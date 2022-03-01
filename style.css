@@ -20,3 +20,33 @@
   width: 210px;
   height: 250px;
 }
+
+.image-kpu {
+  width: 230px;
+  height: 250px;
+}
+
+.image-sd {
+  width: 270px;
+  height: 230px;
+}
+
+.image-smp {
+  width: 205px;
+  height: 230px;
+}
+
+.image-amazon {
+  width: 250px;
+  height: 70px;
+}
+
+.image-oia {
+  width: 230px;
+  height: 70px;
+}
+
+.image-pilot {
+  width: 230px;
+  height: 90px;
+}
