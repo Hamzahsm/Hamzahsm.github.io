@@ -5,8 +5,56 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
+    <style>
+
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        .container{
+            background-color: blue;
+            padding: 20px;
+            color: #fff;
+            display: flex;
+
+        }
+
+        form {
+            margin-left: 630px;
+        }
+
+        .button{
+            padding: 5px;
+        }
+    </style>
 </head>
-<body>
-    <h1>Hello world</h1>
+<body id="body">
+
+    <div class="container">
+        <h2>FACEBOOK</h2>
+        <form action="./login.php">
+            <label for="name">Nama</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" class="button" id="login">Mode Malam</button>
+        </form>
+    </div>
+
+    <p id="target">Lorem ipsum dolor sit amet consectetur adipisicing elit. Culpa autem harum cumque aliquam atque ipsa reprehenderit cum recusandae veritatis voluptatem quae provident consequuntur itaque voluptatibus rem, a commodi nam dolor, voluptates neque dolorum corporis fugiat expedita deserunt? Deleniti quisquam debitis voluptatibus officiis maiores recusandae quasi eum placeat illo natus impedit, excepturi ea libero ab pariatur dolorum asperiores voluptates accusamus quae mollitia nisi dolores. Dolore, architecto nesciunt suscipit officia asperiores recusandae eos vero. Hic unde eum atque dolor ducimus quia ex impedit, nam a neque praesentium dolores cum exercitationem et fugiat voluptates totam nesciunt quaerat, repellat ab aspernatur iure porro officia.</p>
+
+    <a href="../index.html"><img src="../images/freelancer.png" alt="gambar hamzah"></a>
+<script>
+
+    var button = document.getElementById('login').addEventListener('click', function(){
+        var body = document.getElementById('body');
+        var target = document.getElementById('target');
+        body.style.backgroundColor = 'black';
+        target.style.color = 'white';
+    });
+    </script>
 </body>
 </html>

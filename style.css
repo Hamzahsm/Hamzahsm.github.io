@@ -21,6 +21,11 @@
   height: 180px;
 }
 
+.image-bpl {
+  width: 150px;
+  height: 180px;
+}
+
 .image-kpu {
   width: 155px;
   height: 180px;
@@ -49,4 +54,9 @@
 .image-pilot {
   width: 230px;
   height: 90px;
+}
+
+.image-stasion {
+  width: 240px;
+  height: 130px;
 }
