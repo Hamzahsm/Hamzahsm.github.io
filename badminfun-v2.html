@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mabar Badminton</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #0284c7;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --warning: #f59e0b;
+            --kas-bg: #e8f5e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Header Bar */
+        .top-header {
+            background: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            z-index: 100;
+        }
+        .top-header h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 18px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            position: relative;
+        }
+        .icon-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .icon-btn:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        /* Export Dropdown Menu */
+        .export-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 44px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid #cbd5e1;
+            z-index: 1000;
+            min-width: 170px;
+            overflow: hidden;
+        }
+        .export-dropdown.show {
+            display: block;
+        }
+        .export-option {
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            background: white;
+            transition: background 0.2s;
+        }
+        .export-option:last-child {
+            border-bottom: none;
+        }
+        .export-option:hover {
+            background: #f8fafc;
+            color: var(--secondary);
+        }
+
+        /* Bottom Navigation Bar with White Background */
+        .sidebar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: white;
+            border-top: 1px solid #cbd5e1;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 6px rgba(0,0,0,0.05);
+            z-index: 1000;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .menu-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 12px;
+            color: #64748b;
+            background-color: transparent;
+            transition: all 0.2s;
+            border: none;
+            user-select: none;
+        }
+
+        .menu-item:hover { color: var(--secondary); background-color: #f1f5f9; }
+        .menu-item.active {
+            color: var(--secondary);
+            font-weight: bold;
+            background-color: #e0f2fe;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            padding-bottom: 75px; /* Leave space for bottom navigation bar */
+            background-color: #f1f5f9;
+        }
+
+        .view-section { display: none; max-width: 1200px; margin: 0 auto; animation: fadeIn 0.3s; }
+        .view-section.active-view { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .header-top h2 { color: var(--primary); margin: 0; font-size: 18px; }
+        
+        button {
+            background-color: var(--secondary);
+            color: white; border: none; cursor: pointer;
+            font-weight: bold; padding: 8px 12px; border-radius: 6px;
+        }
+        button:hover { opacity: 0.9; }
+
+        input[type="number"], input[type="text"], textarea, select {
+            padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;
+        }
+
+        .player-table-wrapper { max-height: 500px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .player-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+        .player-table th, .player-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; }
+        .player-table th { background-color: #f8fafc; position: sticky; top: 0; z-index: 10; }
+        
+        .badge-grade { padding: 3px 8px; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; display: inline-block; min-width: 15px; text-align: center; }
+        .grade-A { background-color: #10b981; } .grade-B { background-color: #3b82f6; } .grade-C { background-color: #f59e0b; }
+        .grade-D { background-color: #ef4444; } .grade-E { background-color: #64748b; }
+        
+        .btn-absen { background-color: #25d366; color: white; padding: 3px 8px; font-size: 11px; border-radius: 4px; }
+        .badge-jam { background-color: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .badge-jam:hover { background-color: #fecaca; color: #b91c1c; text-decoration: line-through; }
+
+        .grading-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 10px; }
+        .grading-box { background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 11px; text-align: center; }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 1100px) { .grid-layout { grid-template-columns: 1fr 400px; } }
+
+        .courts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        .court-card { border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; background: #fff; border-top: 4px solid var(--secondary); }
+        .court-title { font-weight: bold; font-size: 14px; margin-bottom: 2px; text-align: center; }
+        .live-timer-banner { font-size: 11px; font-weight: bold; text-align: center; color: #64748b; margin-bottom: 10px; background: #f1f5f9; padding: 4px; border-radius: 4px; }
+        
+        .match-setup { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .team-col { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .team-col select { width: 100%; padding: 4px; font-size: 11px; text-overflow: ellipsis; overflow: hidden; }
+        .team-col input { padding: 4px; text-align: center; font-size: 13px; font-weight: bold; width: 100%; box-sizing: border-box; }
+        .vs-center { font-weight: bold; font-size: 12px; color: #94a3b8; padding: 0 4px; }
+
+        .timer-btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+        .timer-btn-group button { font-size: 10px; padding: 6px 4px; }
+        .btn-start-match { background-color: var(--success); }
+        .btn-finish-match { background-color: var(--primary); }
+        .btn-finish-match:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .history-list { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; margin: 0; }
+        .history-item { background: #f1f5f9; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; border-left: 4px solid var(--secondary); }
+
+        .summary-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 13px; font-weight: bold; text-align: center; border-bottom: 2px dashed #a5d6a7; padding-bottom: 10px; margin-bottom: 10px; }
+        .grand-total-box { text-align: center; font-weight: bold; font-size: 16px; color: #1b5e20; line-height: 1.5; }
+        .attendance-details { font-size: 12px; color: #444; font-weight: normal; margin-top: 5px; background: rgba(255, 255, 255, 0.5); padding: 6px; border-radius: 6px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 5px; }
+        
+        .kas-member-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 8px; border-bottom: 1px solid #eee; gap: 8px; }
+        .kas-member-info { flex: 1; min-width: 0; }
+        .kas-member-name { font-weight: bold; font-size: 15px; }
+        .kas-check-badge { color: #4caf50; font-weight: bold; font-size: 14px; display: none; margin-left: 5px; }
+        .kas-member-item.is-paid .kas-check-badge { display: inline; }
+        .kas-member-amount { font-size: 12px; color: #666; margin-top: 2px; }
+        
+        .kas-pay-controls { display: flex; align-items: center; gap: 6px; }
+        .kas-btn-status { border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; min-width: 90px; text-align: center; background: #e0e0e0; color: #444; transition: all 0.2s ease; }
+        .kas-btn-status.paid { background: #4caf50; color: white; box-shadow: 0 2px 5px rgba(76,175,80,0.3); }
+
+        /* Custom Modal Styling */
+        #custom-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; }
+        .modal-box { background:white; padding:20px; border-radius:12px; max-width:320px; width:90%; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body onclick="closeExportDropdown(event)">
+
+<div id="custom-modal">
+    <div class="modal-box">
+        <p id="modal-message" style="font-size:14px; margin-bottom:20px; color:#334155; font-weight:500;"></p>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button id="modal-ok-btn" style="background:var(--secondary); padding:8px 16px; border-radius:6px; color:white; font-weight:bold;">OK</button>
+            <button id="modal-cancel-btn" style="background:#cbd5e1; padding:8px 16px; border-radius:6px; color:#334155; font-weight:bold; display:none;">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Top Global Header -->
+<div class="top-header">
+    <h1>🏸 Mabar Badminton</h1>
+    <div class="header-actions">
+        <!-- Export Icon with Dropdown -->
+        <button class="icon-btn" onclick="toggleExportMenu(event)" title="Export Data">📤</button>
+        <div id="export-dropdown" class="export-dropdown">
+            <div class="export-option" onclick="exportKeExcelMabar()">📊 Export Mabar</div>
+            <div class="export-option" onclick="exportKeExcelKas()">💰 Export Kas</div>
+        </div>
+
+        <!-- Reset Icon -->
+        <button class="icon-btn" onclick="resetSemuaData()" title="Reset Semua Data">🔄</button>
+    </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<div class="sidebar">
+    <button class="menu-item active" onclick="switchView('view-registrasi', this)">📋 Registrasi</button>
+    <button class="menu-item" onclick="switchView('view-mabar', this)">🏸 Mabar & Lapangan</button>
+    <button class="menu-item" onclick="switchView('view-kas', this)">💰 Kas Badminton</button>
+</div>
+
+<div class="main-content">
+
+    <div id="view-registrasi" class="view-section active-view">
+        <div class="card">
+            <h2 style="margin-top:0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom:10px;">⚙️ Pengaturan Grading</h2>
+            <div style="margin-bottom: 12px; background: #e0f2fe; padding: 10px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                <strong style="font-size: 13px; color: #0369a1;">Poin Awal Pemain Baru:</strong>
+                <input type="number" id="setting-initial-score" step="0.1" min="0" max="10" style="width: 60px; text-align: center; font-weight:bold;">
+            </div>
+
+            <strong style="font-size: 12px;">Rentang Poin (Penentu Kelas Otomatis):</strong>
+            <div class="grading-settings-grid" id="grading-settings-container">
+                <!-- Generate JS -->
+            </div>
+            <button style="width: 100%; background-color: var(--primary);" onclick="saveGradingSettings()">💾 Simpan Pengaturan Grading</button>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-top:0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom:10px;">➕ Tambah Pemain Baru (Copas WA)</h2>
+            <p style="font-size:12px; color:#666; margin-bottom: 10px;">Paste daftar nama dari WhatsApp disini. Sistem otomatis menyaring angka dan simbol, serta mensinkronkan ke Kas Badminton.</p>
+            <textarea id="bulk-names" placeholder="Contoh:&#10;1. Andi&#10;2. Budi" style="width: 100%; height: 120px; box-sizing: border-box; resize: vertical; margin-bottom: 10px;"></textarea>
+            <button style="width: 100%;" onclick="addBulkPlayers()">Masukkan Nama Pemain</button>
+        </div>
+    </div>
+
+
+    <div id="view-mabar" class="view-section">
+        <div class="grid-layout">
+            <!-- Kiri: Lapangan dan Tabel -->
+            <div>
+                <!-- Kontrol Lapangan (Icon Only + / -) -->
+                <div class="card" style="display:flex; justify-content: space-between; align-items:center; padding: 10px 15px;">
+                    <strong style="font-size: 14px;">Kontrol Lapangan:</strong>
+                    <div style="display:flex; gap: 8px;">
+                        <button onclick="tambahLapanganBaru()" style="background:var(--success); padding: 4px 14px; font-size: 16px; font-weight: bold;">+</button>
+                        <button onclick="kurangiLapangan()" style="background:var(--danger); padding: 4px 14px; font-size: 16px; font-weight: bold;">-</button>
+                    </div>
+                </div>
+
+                <!-- Grid Lapangan -->
+                <div class="courts-grid" id="courts-container" style="margin-bottom: 15px;">
+                    <!-- Generate JS -->
+                </div>
+
+                <!-- Tabel Pemain -->
+                <div class="card" style="padding: 0;">
+                    <div style="padding: 12px 15px; background: #f1f5f9; border-radius: 12px 12px 0 0; font-weight: bold; color: var(--primary);">
+                        👥 Daftar Pemain Tersedia (<span id="total-players">0</span>)
+                    </div>
+                    <div class="player-table-wrapper" style="border:none; border-radius: 0 0 12px 12px;">
+                        <table class="player-table">
+                            <thead>
+                                <tr>
+                                    <th>Pemain</th>
+                                    <th style="text-align: center;">Hadir</th>
+                                    <th style="text-align: center;" title="Match Played (Jumlah Main)">MP</th>
+                                    <th style="text-align: center;">Poin</th>
+                                    <th style="text-align: center;">Kls</th>
+                                    <th style="text-align: center;">Del</th>
+                                </tr>
+                            </thead>
+                            <tbody id="player-table-body">
+                                <!-- Generate JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kanan: Riwayat -->
+            <div>
+                <div class="card">
+                    <h2 style="margin-top: 0; font-size: 15px; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom:10px;">📜 Riwayat Pertandingan</h2>
+                    <ul class="history-list" id="history-container">
+                        <!-- Generate JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="view-kas" class="view-section">
+        <!-- Box Rekap Kas -->
+        <div class="card" style="background: var(--kas-bg);">
+            <div class="summary-box">
+                <div>
+                    <span style="color: #2e7d32; display:block;">💵 Tunai <span style="font-size:10px; font-weight:normal;" id="box-count-tunai">(0)</span></span>
+                    <span id="total-tunai" style="font-size:14px; margin-top:4px; display:block;">Rp 0</span>
+                </div>
+                <div>
+                    <span style="color: #1565c0; display:block;">📱 QRIS/TF <span style="font-size:10px; font-weight:normal;" id="box-count-qris">(0)</span></span>
+                    <span id="total-transfer" style="font-size:14px; margin-top:4px; display:block;">Rp 0</span>
+                </div>
+                <div>
+                    <span style="color: #c62828; display:block;">⏳ Belum <span style="font-size:10px; font-weight:normal;" id="box-count-belum">(0)</span></span>
+                    <span id="total-belum" style="font-size:14px; margin-top:4px; display:block;">Rp 0</span>
+                </div>
+            </div>
+            <div class="grand-total-box">
+                💰 Total Uang Masuk: <span id="total-keseluruhan">Rp 0</span>
+                <div class="attendance-details">
+                    <span>👥 Total Nama: <b id="count-hadir">0</b></span>
+                    <span>🤝 Sponsor/Free: <b id="count-sponsor">0</b></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 10px 15px; margin-bottom: 15px; display:flex; align-items:center; justify-content:space-between; gap: 8px;">
+            <span style="font-size:12px; font-weight:bold; color:var(--primary);">Nominal Default: Rp</span>
+            <input type="number" id="iuran-pemain" value="20000" style="width: 80px; text-align:center; font-weight:bold;">
+            <button onclick="terapkanNominalKas()" style="padding: 6px 12px; font-size: 11px; background-color: var(--primary);">💾 Simpan</button>
+        </div>
+
+        <div class="card" style="padding:0;">
+            <ul style="list-style: none; padding: 0; margin: 0; max-height: 500px; overflow-y: auto;" id="daftar-pemain-kas">
+                <!-- Generate JS -->
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+
+
+<script>
+    // spreadsheet
+    const GOOGLE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbybW_9L5ImpD0PEtqO0lCaMttBmqOKGkSaSyWMiLLvzE97FF0f6XBDnkyJp9h4rPtjYeA/exec";
+
+    // mengganti local storage, load database
+
+async function loadPlayersFromGoogleSheet() {
+
+    try {
+
+        const response =
+            await fetch(GOOGLE_SCRIPT_URL);
+
+        const result =
+            await response.json();
+
+        if (!result.success) {
+            throw new Error(result.message);
+        }
+
+        playersData = {};
+
+        result.players.forEach(player => {
+
+            playersData[player.name] = {
+                score: parseFloat(player.score) || 1.0,
+                checkInTime: player.checkInTime || "",
+                mp: parseInt(player.mp) || 0
+            };
+
+        });
+
+        updatePlayerTable();
+        updateAllSelectOptions();
+
+        console.log("Database Google Sheet berhasil dimuat.");
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMsg(
+            "Gagal mengambil database Google Sheet."
+        );
+
+    }
+}
+
+//mengganti pemain
+async function addPlayersToGoogleSheet(names) {
+
+    const response = await fetch(
+        GOOGLE_SCRIPT_URL,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                action: "bulkAdd",
+                names: names,
+                initialScore: initialNewPlayerScore
+            })
+        }
+    );
+
+    return await response.json();
+}
+
+async function addBulkPlayers() {
+
+    const textarea =
+        document.getElementById('bulk-names');
+
+    const lines =
+        textarea.value.split(/[\n,]+/);
+
+    const names = [];
+
+    lines.forEach(line => {
+
+        const cleanName =
+            line
+                .replace(/^[\d\s\.\)\-\*]+/g, '')
+                .trim()
+                .toUpperCase();
+
+        if (cleanName !== "") {
+            names.push(cleanName);
+        }
+
+    });
+
+    if (names.length === 0) {
+        showMsg("Tidak ada nama pemain.");
+        return;
+    }
+
+    const result =
+        await addPlayersToGoogleSheet(names);
+
+    if (result.success) {
+
+        textarea.value = "";
+
+        await loadPlayersFromGoogleSheet();
+
+        showMsg(
+            `${result.count} Pemain berhasil ditambahkan!`
+        );
+
+    } else {
+
+        showMsg(result.message);
+
+    }
+
+}
+
+//update score
+async function updateScoreManual(name, inputEl) {
+
+    let val = parseFloat(inputEl.value);
+
+    if (isNaN(val)) val = 1.0;
+    if (val > 10.0) val = 10.0;
+    if (val < 0.0) val = 0.0;
+
+    inputEl.value = val.toFixed(1);
+
+    const response = await fetch(
+        GOOGLE_SCRIPT_URL,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                action: "update",
+                name: name,
+                score: val
+            })
+        }
+    );
+
+    const result = await response.json();
+
+    if (!result.success) {
+        showMsg(result.message);
+        return;
+    }
+
+    playersData[name].score = val;
+
+    const gradeStr =
+        getGradeFromScore(val);
+
+    const badgeEl =
+        document.getElementById(`badge-${name}`);
+
+    if (badgeEl) {
+
+        badgeEl.innerText = gradeStr;
+
+        badgeEl.className =
+            `badge-grade grade-${gradeStr}`;
+
+    }
+
+    updateAllSelectOptions();
+
+}
+
+//tanggal absen
+async function toggleAbsen(name) {
+
+    let checkInTime = "";
+
+    if (playersData[name].checkInTime === "") {
+
+        const now = new Date();
+
+        checkInTime =
+            now
+                .toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                .replace(':', '.');
+
+    }
+
+    const response = await fetch(
+        GOOGLE_SCRIPT_URL,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                action: "checkin",
+                name: name,
+                checkInTime: checkInTime
+            })
+        }
+    );
+
+    const result = await response.json();
+
+    if (!result.success) {
+        showMsg(result.message);
+        return;
+    }
+
+    playersData[name].checkInTime =
+        checkInTime;
+
+    updatePlayerTable();
+    updateAllSelectOptions();
+
+}
+
+//hapus pemain
+async function hapusPemain(name) {
+
+    showConfirm(
+        `Hapus ${name} dari seluruh sistem (Mabar & Kas)?`,
+        async () => {
+
+            const response = await fetch(
+                GOOGLE_SCRIPT_URL,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "delete",
+                        name: name
+                    })
+                }
+            );
+
+            const result =
+                await response.json();
+
+            if (!result.success) {
+                showMsg(result.message);
+                return;
+            }
+
+            delete playersData[name];
+
+            updatePlayerTable();
+            updateAllSelectOptions();
+
+            showMsg(
+                `${name} berhasil dihapus.`
+            );
+
+        }
+    );
+
+}
+
+
+
+
+    // --- CUSTOM MODAL HELPERS (Avoiding alert/confirm) ---
+    function showMsg(msg, callback) {
+        document.getElementById('modal-message').innerText = msg;
+        document.getElementById('modal-cancel-btn').style.display = 'none';
+        const okBtn = document.getElementById('modal-ok-btn');
+        okBtn.onclick = () => {
+            document.getElementById('custom-modal').style.display = 'none';
+            if(callback) callback();
+        };
+        document.getElementById('custom-modal').style.display = 'flex';
+    }
+
+    function showConfirm(msg, onConfirm) {
+        document.getElementById('modal-message').innerText = msg;
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        cancelBtn.style.display = 'inline-block';
+        const okBtn = document.getElementById('modal-ok-btn');
+        okBtn.onclick = () => {
+            document.getElementById('custom-modal').style.display = 'none';
+            if(onConfirm) onConfirm();
+        };
+        cancelBtn.onclick = () => {
+            document.getElementById('custom-modal').style.display = 'none';
+        };
+        document.getElementById('custom-modal').style.display = 'flex';
+    }
+
+    // --- EXPORT DROPDOWN TOGGLE ---
+    function toggleExportMenu(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('export-dropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    function closeExportDropdown(event) {
+        const dropdown = document.getElementById('export-dropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    // --- 1. STATE & VARIABLES ---
+    let playersData = JSON.parse(localStorage.getItem('mabar_players')) || {};
+    let matchesHistory = JSON.parse(localStorage.getItem('mabar_history')) || [];
+    let totalCourtsActive = parseInt(localStorage.getItem('mabar_courts')) || 3;
+    let savedTimersState = JSON.parse(localStorage.getItem('mabar_timers')) || {};
+    let courtTimers = {};
+
+    let gradingRules = JSON.parse(localStorage.getItem('mabar_rules')) || {
+        A: { min: 8.5, max: 10.0 }, B: { min: 7.0, max: 8.4 },
+        C: { min: 5.5, max: 6.9 }, D: { min: 4.0, max: 5.4 }, E: { min: 0.0, max: 3.9 }
+    };
+    let initialNewPlayerScore = parseFloat(localStorage.getItem('mabar_initial_score')) || 1.0;
+
+    //let dataPemainKas = JSON.parse(localStorage.getItem('kasBadmintonData')) || [];
+    let dataPemainKas = [];
+    let rekapSistemKas = { totalTunai: 0, totalTransfer: 0, totalBelum: 0, totalKeseluruhan: 0, countHadir: 0, countTunai: 0, countQris: 0, countSponsor: 0, countBelum: 0 };
+
+
+    // --- 2. UI NAVIGATION ---
+    function switchView(viewId, menuElement) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(viewId).classList.add('active-view');
+        menuElement.classList.add('active');
+        
+        if (viewId === 'view-mabar') {
+            updateAllSelectOptions();
+        }
+    }
+
+
+    // --- 3. MABAR: GRADING & PLAYER MANAGEMENT ---
+    function getGradeFromScore(score) {
+        let val = parseFloat(score);
+        if(isNaN(val)) return 'E';
+        if (val >= gradingRules.A.min) return 'A';
+        if (val >= gradingRules.B.min && val <= gradingRules.B.max) return 'B';
+        if (val >= gradingRules.C.min && val <= gradingRules.C.max) return 'C';
+        if (val >= gradingRules.D.min && val <= gradingRules.D.max) return 'D';
+        return 'E';
+    }
+
+    function renderGradingSettings() {
+        const initInput = document.getElementById('setting-initial-score');
+        if(initInput) initInput.value = initialNewPlayerScore.toFixed(1);
+
+        const container = document.getElementById('grading-settings-container');
+        let html = '';
+        const grades = ['A', 'B', 'C', 'D', 'E'];
+        grades.forEach(g => {
+            html += `
+                <div class="grading-box">
+                    <strong style="display:block; margin-bottom:4px; color:var(--primary);">Grade ${g}</strong>
+                    Min <input type="number" id="set-${g}-min" value="${gradingRules[g].min}" step="0.1" style="width:45px; padding:2px;"> 
+                    Max <input type="number" id="set-${g}-max" value="${gradingRules[g].max}" step="0.1" style="width:45px; padding:2px;">
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function saveGradingSettings() {
+        initialNewPlayerScore = parseFloat(document.getElementById('setting-initial-score').value) || 1.0;
+        localStorage.setItem('mabar_initial_score', initialNewPlayerScore.toString());
+
+        const grades = ['A', 'B', 'C', 'D', 'E'];
+        grades.forEach(g => {
+            gradingRules[g].min = parseFloat(document.getElementById(`set-${g}-min`).value) || 0;
+            gradingRules[g].max = parseFloat(document.getElementById(`set-${g}-max`).value) || 0;
+        });
+        localStorage.setItem('mabar_rules', JSON.stringify(gradingRules));
+        updatePlayerTable(); 
+        updateAllSelectOptions();
+        showMsg("Pengaturan sistem grading berhasil disimpan!");
+    }
+
+    function addBulkPlayers() {
+        const textarea = document.getElementById('bulk-names');
+        const lines = textarea.value.split(/[\n,]+/);
+        let count = 0;
+
+        lines.forEach(line => {
+            let cleanName = line.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
+            if (cleanName !== "" && !playersData.hasOwnProperty(cleanName)) {
+                playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0 };
+                count++;
+            }
+        });
+
+        if (count > 0) {
+            textarea.value = "";
+            saveDataLocally();
+            updatePlayerTable();
+            syncPemainKas();
+            showMsg(`${count} Pemain berhasil ditambahkan!`);
+        }
+    }
+
+    function hapusPemain(name) {
+        showConfirm(`Hapus ${name} dari seluruh sistem (Mabar & Kas)?`, () => {
+            delete playersData[name];
+            saveDataLocally();
+            updatePlayerTable();
+            updateAllSelectOptions();
+            syncPemainKas();
+        });
+    }
+
+    function toggleAbsen(name) {
+        if (playersData[name].checkInTime !== "") {
+            playersData[name].checkInTime = "";
+        } else {
+            const now = new Date();
+            playersData[name].checkInTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}).replace(':', '.');
+        }
+        saveDataLocally();
+        updatePlayerTable();
+        updateAllSelectOptions();
+    }
+
+    function updateScoreManual(name, inputEl) {
+        let val = parseFloat(inputEl.value);
+        if(isNaN(val)) val = 1.0;
+        if(val > 10.0) val = 10.0;
+        if(val < 0.0) val = 0.0;
+        
+        inputEl.value = val.toFixed(1);
+        playersData[name].score = val;
+        saveDataLocally();
+        
+        const gradeStr = getGradeFromScore(val);
+        const badgeEl = document.getElementById(`badge-${name}`);
+        if(badgeEl) {
+            badgeEl.innerText = gradeStr;
+            badgeEl.className = `badge-grade grade-${gradeStr}`;
+        }
+        updateAllSelectOptions();
+    }
+
+    function updatePlayerTable() {
+        const tbody = document.getElementById('player-table-body');
+        const sortedNames = Object.keys(playersData).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+        document.getElementById('total-players').innerText = sortedNames.length;
+        
+        let html = "";
+        sortedNames.forEach(name => {
+            const p = playersData[name];
+            const grade = getGradeFromScore(p.score);
+            const mpScore = p.mp || 0;
+            
+            let absenBtn = p.checkInTime !== "" 
+                ? `<span class="badge-jam" onclick="toggleAbsen('${name}')" title="Klik batal">🕒 ${p.checkInTime}</span>` 
+                : `<button class="btn-absen" onclick="toggleAbsen('${name}')">Absen</button>`;
+
+            html += `
+                <tr>
+                    <td style="font-weight:600;">${name}</td>
+                    <td style="text-align:center;">${absenBtn}</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--primary);">${mpScore}</td>
+                    <td style="text-align:center;">
+                        <input type="number" style="width:45px; text-align:center; font-size:12px; font-weight:bold; padding:4px;" value="${p.score.toFixed(1)}" step="0.1" min="0" max="10" 
+                        onblur="updateScoreManual('${name}', this)" onkeypress="if(event.key === 'Enter') this.blur();">
+                    </td>
+                    <td style="text-align:center;"><span id="badge-${name}" class="badge-grade grade-${grade}">${grade}</span></td>
+                    <td style="text-align:center;"><button style="background:transparent; color:red; padding:0; font-size:14px;" onclick="hapusPemain('${name}')">❌</button></td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+
+    // --- 4. MABAR: COURTS & AUTO DRAFT ---
+    function tambahLapanganBaru() {
+        totalCourtsActive++;
+        courtTimers[totalCourtsActive] = { startTime: null, intervalId: null };
+        saveDataLocally();
+        generateCourtsDOM();
+        updateAllSelectOptions();
+        restoreTimers();
+    }
+
+    function kurangiLapangan() {
+        if (totalCourtsActive <= 1) return;
+        if (courtTimers[totalCourtsActive] && courtTimers[totalCourtsActive].intervalId) {
+            clearInterval(courtTimers[totalCourtsActive].intervalId);
+        }
+        delete courtTimers[totalCourtsActive];
+        delete savedTimersState[totalCourtsActive];
+        totalCourtsActive--;
+        saveDataLocally();
+        generateCourtsDOM();
+        updateAllSelectOptions();
+        restoreTimers();
+    }
+
+    function generateCourtsDOM() {
+        const container = document.getElementById('courts-container');
+        container.innerHTML = "";
+
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            container.innerHTML += `
+                <div class="court-card" id="court-${i}">
+                    <div class="court-title">LAPANGAN ${i}</div>
+                    <div class="live-timer-banner" id="c${i}-timer-label">Status: Belum Mulai</div>
+                    
+                    <div class="match-setup">
+                        <div class="team-col">
+                            <select id="c${i}-a1" onchange="updateAllSelectOptions()"><option value="">Pilih Pemain</option></select>
+                            <select id="c${i}-a2" onchange="updateAllSelectOptions()"><option value="">Pilih Pemain</option></select>
+                            <input type="number" id="c${i}-scoreA" placeholder="Skor" min="0">
+                        </div>
+                        <div class="vs-center">VS</div>
+                        <div class="team-col">
+                            <select id="c${i}-b1" onchange="updateAllSelectOptions()"><option value="">Pilih Pemain</option></select>
+                            <select id="c${i}-b2" onchange="updateAllSelectOptions()"><option value="">Pilih Pemain</option></select>
+                            <input type="number" id="c${i}-scoreB" placeholder="Skor" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="timer-btn-group">
+                        <button id="c${i}-auto-btn" class="btn-start-match" onclick="autoDraft(${i})" style="background-color: var(--warning); color: black;">🎲 Auto Draft</button>
+                        <button id="c${i}-start-btn" class="btn-start-match" onclick="toggleCourtTimer(${i})">⏱️ Mulai</button>
+                        <button id="c${i}-finish-btn" class="btn-finish-match" onclick="saveCourtMatch(${i})" disabled>💾 Simpan</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function updateAllSelectOptions() {
+        const currentlySelected = new Set();
+        const positions = ['a1', 'a2', 'b1', 'b2'];
+        
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            positions.forEach(p => {
+                const el = document.getElementById(`c${i}-${p}`);
+                if (el && el.value) currentlySelected.add(el.value);
+            });
+        }
+
+        const sortedNames = Object.keys(playersData).sort((a,b) => a.localeCompare(b));
+
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            positions.forEach(p => {
+                const selectEl = document.getElementById(`c${i}-${p}`);
+                if (!selectEl) return;
+                
+                const myValue = selectEl.value;
+                let html = `<option value="">Pilih Pemain</option>`;
+                
+                sortedNames.forEach(name => {
+                    const stats = playersData[name];
+                    if (stats.checkInTime !== "") {
+                        if (!currentlySelected.has(name) || name === myValue) {
+                            const grade = getGradeFromScore(stats.score);
+                            html += `<option value="${name}">[MP:${stats.mp || 0}] ${name} (${grade})</option>`;
+                        }
+                    }
+                });
+
+                selectEl.innerHTML = html;
+                selectEl.value = myValue;
+            });
+        }
+    }
+
+    function autoDraft(courtNum) {
+        let available = [];
+        let currentlySelected = new Set();
+        const positions = ['a1', 'a2', 'b1', 'b2'];
+
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            positions.forEach(p => {
+                const el = document.getElementById(`c${i}-${p}`);
+                if (el && el.value) currentlySelected.add(el.value);
+            });
+        }
+
+        Object.keys(playersData).forEach(name => {
+            if (playersData[name].checkInTime !== "" && !currentlySelected.has(name)) {
+                available.push({ 
+                    name: name, 
+                    score: playersData[name].score, 
+                    mp: playersData[name].mp || 0,
+                    grade: getGradeFromScore(playersData[name].score)
+                });
+            }
+        });
+
+        if (available.length < 4) {
+            showMsg("Pemain yang tersedia (Hadir & Sedang Tidak Main) kurang dari 4 orang!");
+            return;
+        }
+
+        // Prioritas 1: Urutkan berdasarkan MP paling sedikit
+        available.sort((a, b) => a.mp - b.mp);
+        let pool = available.slice(0, Math.max(4, 12)); 
+        
+        // Prioritas 2: Cari 4 orang di kelas grading yang sama persis
+        let gradesCount = { A:[], B:[], C:[], D:[], E:[] };
+        pool.forEach(p => gradesCount[p.grade].push(p));
+        
+        let selected4 = null;
+        for(let g in gradesCount) {
+            if(gradesCount[g].length >= 4) {
+                selected4 = gradesCount[g].slice(0, 4); 
+                break;
+            }
+        }
+
+        // Prioritas 3: Jika tidak ada 4 orang kelas sama, ambil 4 orang dengan selisih poin terdekat
+        if (!selected4) {
+            pool.sort((a, b) => a.score - b.score);
+            let minDiff = Infinity;
+            let bestIndex = 0;
+            for(let i = 0; i <= pool.length - 4; i++) {
+                let diff = pool[i+3].score - pool[i].score;
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    bestIndex = i;
+                }
+            }
+            selected4 = pool.slice(bestIndex, bestIndex + 4);
+        }
+
+        selected4.sort((a, b) => b.score - a.score);
+
+        document.getElementById(`c${courtNum}-a1`).value = selected4[0].name;
+        document.getElementById(`c${courtNum}-a2`).value = selected4[3].name;
+        document.getElementById(`c${courtNum}-b1`).value = selected4[1].name;
+        document.getElementById(`c${courtNum}-b2`).value = selected4[2].name;
+
+        updateAllSelectOptions();
+    }
+
+
+    // --- 5. TIMER & MATCH HISTORY ---
+    function toggleCourtTimer(courtNum) {
+        const state = courtTimers[courtNum];
+        if (state && state.intervalId) {
+            clearInterval(state.intervalId);
+            courtTimers[courtNum] = { startTime: null, intervalId: null };
+            delete savedTimersState[courtNum];
+            saveDataLocally();
+            
+            document.getElementById(`c${courtNum}-timer-label`).innerHTML = `Status: Belum Mulai`;
+            const btn = document.getElementById(`c${courtNum}-start-btn`);
+            btn.innerHTML = `⏱️ Mulai`;
+            btn.style.backgroundColor = 'var(--success)';
+            document.getElementById(`c${courtNum}-finish-btn`).disabled = true;
+        } else {
+            const a1 = document.getElementById(`c${courtNum}-a1`).value;
+            const b1 = document.getElementById(`c${courtNum}-b1`).value;
+            if(!a1 || !b1) { showMsg("Pilih minimal 1 pemain di tiap tim!"); return; }
+
+            const startTimeObj = new Date();
+            courtTimers[courtNum].startTime = startTimeObj;
+            savedTimersState[courtNum] = { startTime: startTimeObj.toISOString() };
+            saveDataLocally();
+            
+            runTimerDOM(courtNum);
+            
+            const btn = document.getElementById(`c${courtNum}-start-btn`);
+            btn.innerHTML = `❌ Batal`;
+            btn.style.backgroundColor = 'var(--danger)';
+            document.getElementById(`c${courtNum}-finish-btn`).disabled = false;
+        }
+    }
+
+    function runTimerDOM(courtNum) {
+        if (courtTimers[courtNum].intervalId) { clearInterval(courtTimers[courtNum].intervalId); }
+        courtTimers[courtNum].intervalId = setInterval(() => {
+            const diffMs = new Date() - courtTimers[courtNum].startTime;
+            const m = Math.floor(diffMs / 60000);
+            const s = Math.floor((diffMs / 1000) % 60);
+            const label = document.getElementById(`c${courtNum}-timer-label`);
+            if (label) label.innerHTML = `🟢 Main: <strong>${m}m ${s}s</strong>`;
+        }, 1000);
+    }
+
+    function restoreTimers() {
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            if (courtTimers[i] && courtTimers[i].startTime) {
+                runTimerDOM(i);
+                const startBtn = document.getElementById(`c${i}-start-btn`);
+                const finishBtn = document.getElementById(`c${i}-finish-btn`);
+                if(startBtn) {
+                    startBtn.innerHTML = `❌ Batal`;
+                    startBtn.style.backgroundColor = 'var(--danger)';
+                }
+                if(finishBtn) finishBtn.disabled = false;
+            }
+        }
+    }
+
+async function saveCourtMatch(courtNum) {
+
+    // =====================================================
+    // 1. AMBIL DATA PEMAIN & SCORE
+    // =====================================================
+
+    const a1 = document.getElementById(`c${courtNum}-a1`).value;
+    const a2 = document.getElementById(`c${courtNum}-a2`).value;
+    const b1 = document.getElementById(`c${courtNum}-b1`).value;
+    const b2 = document.getElementById(`c${courtNum}-b2`).value;
+
+    const sA = document.getElementById(`c${courtNum}-scoreA`).value;
+    const sB = document.getElementById(`c${courtNum}-scoreB`).value;
+
+
+    // =====================================================
+    // 2. VALIDASI
+    // =====================================================
+
+    if (sA === "" || sB === "") {
+        showMsg("Isi skor terlebih dahulu!");
+        return;
+    }
+
+    const scoreA = parseInt(sA);
+    const scoreB = parseInt(sB);
+
+    if (isNaN(scoreA) || isNaN(scoreB)) {
+        showMsg("Skor tidak valid!");
+        return;
+    }
+
+    if (!a1 || !b1) {
+        showMsg("Pilih minimal 1 pemain di tiap tim!");
+        return;
+    }
+
+
+    // =====================================================
+    // 3. PEMAIN DALAM PERTANDINGAN
+    // =====================================================
+
+    const playersInMatch =
+        [a1, a2, b1, b2].filter(p => p !== "");
+
+
+    // =====================================================
+    // 4. HITUNG DURASI
+    // =====================================================
+
+    const timeEnd = new Date();
+
+    const timeStart =
+        courtTimers[courtNum].startTime ||
+        new Date();
+
+    const durationMin =
+        Math.floor(
+            (timeEnd - timeStart) / 60000
+        );
+
+
+    // =====================================================
+    // 5. FORMAT WAKTU
+    // =====================================================
+
+    const pad = n =>
+        String(n).padStart(2, "0");
+
+
+    const startTimeText =
+        `${pad(timeStart.getHours())}.${pad(timeStart.getMinutes())}`;
+
+
+    const endTimeText =
+        `${pad(timeEnd.getHours())}.${pad(timeEnd.getMinutes())}`;
+
+
+    const matchTime =
+        `${startTimeText} - ${endTimeText}`;
+
+
+    // =====================================================
+    // 6. FORMAT TEAM
+    // =====================================================
+
+    const teamA =
+        a2 ? `${a1} / ${a2}` : a1;
+
+    const teamB =
+        b2 ? `${b1} / ${b2}` : b1;
+
+
+    // =====================================================
+    // 7. TENTUKAN PEMENANG
+    // =====================================================
+
+    let winner = "";
+
+    if (scoreA > scoreB) {
+        winner = "Team A";
+    } else if (scoreB > scoreA) {
+        winner = "Team B";
+    } else {
+        winner = "Draw";
+    }
+
+
+    // =====================================================
+    // 8. UPDATE MP LOCAL
+    // =====================================================
+
+    playersInMatch.forEach(p => {
+
+        if (playersData[p]) {
+
+            playersData[p].mp =
+                (playersData[p].mp || 0) + 1;
+
+        }
+
+    });
+
+
+    // =====================================================
+    // 9. SIMPAN KE MATCH_HISTORY GOOGLE SHEET
+    // =====================================================
+
+    try {
+
+        const response =
+            await fetch(GOOGLE_SCRIPT_URL, {
+
+                method: "POST",
+
+                body: JSON.stringify({
+
+                    action: "saveMatch",
+
+                    date:
+                        timeEnd.toLocaleDateString("id-ID"),
+
+                    time:
+                        matchTime,
+
+                    court:
+                        String(courtNum),
+
+                    duration:
+                        String(durationMin),
+
+                    teamA:
+                        teamA,
+
+                    scoreA:
+                        scoreA,
+
+                    scoreB:
+                        scoreB,
+
+                    teamB:
+                        teamB,
+
+                    winner:
+                        winner
+
+                })
+
+            });
+
+
+        const result =
+            await response.json();
+
+
+        console.log(
+            "MATCH_HISTORY response:",
+            result
+        );
+
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message ||
+                "Gagal menyimpan MATCH_HISTORY"
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "MATCH_HISTORY ERROR:",
+            error
+        );
+
+
+        // Kembalikan MP karena database gagal
+        playersInMatch.forEach(p => {
+
+            if (playersData[p]) {
+
+                playersData[p].mp =
+                    Math.max(
+                        0,
+                        (playersData[p].mp || 1) - 1
+                    );
+
+            }
+
+        });
+
+
+        showMsg(
+            "Gagal menyimpan pertandingan ke Google Sheet. Pertandingan belum disimpan."
+        );
+
+        return;
+
+    }
+
+
+    // =====================================================
+    // 10. UPDATE MP KE GOOGLE SHEET
+    // =====================================================
+
+    try {
+
+        for (const playerName of playersInMatch) {
+
+            if (!playersData[playerName]) {
+                continue;
+            }
+
+
+            const newMP =
+                playersData[playerName].mp || 0;
+
+
+            const response =
+                await fetch(GOOGLE_SCRIPT_URL, {
+
+                    method: "POST",
+
+                    body: JSON.stringify({
+
+                        action: "updateMP",
+
+                        name: playerName,
+
+                        mp: newMP
+
+                    })
+
+                });
+
+
+            const result =
+                await response.json();
+
+
+            console.log(
+                "UPDATE MP:",
+                playerName,
+                result
+            );
+
+
+            if (!result.success) {
+
+                console.error(
+                    "MP gagal diperbarui:",
+                    playerName,
+                    result.message
+                );
+
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "UPDATE MP ERROR:",
+            error
+        );
+
+    }
+
+
+    // =====================================================
+    // 11. SIMPAN HISTORY LOCAL
+    // =====================================================
+
+    matchesHistory.unshift({
+
+        court: courtNum,
+
+        time: matchTime,
+
+        duration:
+            `${durationMin} Menit`,
+
+        teamA: teamA,
+
+        teamB: teamB,
+
+        scoreA: scoreA,
+
+        scoreB: scoreB
+
+    });
+
+
+    // =====================================================
+    // 12. STOP TIMER
+    // =====================================================
+
+    if (
+        courtTimers[courtNum].intervalId
+    ) {
+
+        clearInterval(
+            courtTimers[courtNum].intervalId
+        );
+
+    }
+
+
+    courtTimers[courtNum] = {
+
+        startTime: null,
+
+        intervalId: null
+
+    };
+
+
+    delete savedTimersState[courtNum];
+
+
+    // =====================================================
+    // 13. RESET TAMPILAN TIMER
+    // =====================================================
+
+    document.getElementById(
+        `c${courtNum}-timer-label`
+    ).innerHTML =
+        "Status: Selesai";
+
+
+    const btn =
+        document.getElementById(
+            `c${courtNum}-start-btn`
+        );
+
+
+    btn.innerHTML =
+        `⏱️ Mulai`;
+
+
+    btn.style.backgroundColor =
+        'var(--success)';
+
+
+    document.getElementById(
+        `c${courtNum}-finish-btn`
+    ).disabled = true;
+
+
+    // =====================================================
+    // 14. RESET PEMAIN & SCORE
+    // =====================================================
+
+    [
+        'a1',
+        'a2',
+        'b1',
+        'b2',
+        'scoreA',
+        'scoreB'
+
+    ].forEach(p => {
+
+        const el =
+            document.getElementById(
+                `c${courtNum}-${p}`
+            );
+
+        if (el) {
+            el.value = "";
+        }
+
+    });
+
+
+    // =====================================================
+    // 15. SIMPAN LOCAL DATA
+    // =====================================================
+
+    saveDataLocally();
+
+
+    // =====================================================
+    // 16. UPDATE PLAYER TABLE
+    // =====================================================
+
+    updatePlayerTable();
+
+    updateAllSelectOptions();
+
+
+    // =====================================================
+    // 17. UPDATE MATCH HISTORY
+    // =====================================================
+
+    updateHistoryDOM();
+
+
+    // =====================================================
+    // 18. PESAN BERHASIL
+    // =====================================================
+
+    showMsg(
+        `Pertandingan Lapangan ${courtNum} berhasil disimpan!`
+    );
+
+}
+
+    function updateHistoryDOM() {
+        const container = document.getElementById('history-container');
+        container.innerHTML = "";
+        
+        matchesHistory.forEach((match) => {
+            const isAWin = match.scoreA > match.scoreB;
+            container.innerHTML += `
+                <li class="history-item">
+                    <div style="font-size:10px; color:#64748b; margin-bottom:4px;">Lap ${match.court} | ${match.time} (${match.duration})</div>
+                    <div>
+                        <b style="${isAWin ? 'color:var(--success);' : ''}">${match.teamA} (${match.scoreA})</b>
+                        vs 
+                        <b style="${!isAWin ? 'color:var(--success);' : ''}">(${match.scoreB}) ${match.teamB}</b>
+                    </div>
+                </li>
+            `;
+        });
+    }
+
+    function saveDataLocally() {
+        localStorage.setItem('mabar_players', JSON.stringify(playersData));
+        localStorage.setItem('mabar_history', JSON.stringify(matchesHistory));
+        localStorage.setItem('mabar_courts', totalCourtsActive.toString());
+        localStorage.setItem('mabar_timers', JSON.stringify(savedTimersState));
+    }
+
+
+    // --- 6. KAS BADMINTON SYNC & ICON MANAGEMENT ---
+// =====================================================
+// 6. KAS BADMINTON - GOOGLE SHEET
+// =====================================================
+
+let dataPemainKas = [];
+
+let rekapSistemKas = {
+    totalTunai: 0,
+    totalTransfer: 0,
+    totalBelum: 0,
+    totalKeseluruhan: 0,
+    countHadir: 0,
+    countTunai: 0,
+    countQris: 0,
+    countSponsor: 0,
+    countBelum: 0
+};
+
+
+// =====================================================
+// LOAD KAS DARI GOOGLE SHEET
+// =====================================================
+
+async function loadKasFromGoogleSheet() {
+
+    try {
+
+        const response = await fetch(
+            GOOGLE_SCRIPT_URL,
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    action: "getKas"
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(
+                result.message ||
+                "Gagal mengambil data KAS."
+            );
+        }
+
+
+        const kasData = result.kas || [];
+
+        /*
+         * Ambil transaksi TERAKHIR
+         * dari setiap pemain.
+         */
+        const kasMap = {};
+
+        kasData.forEach(item => {
+
+            if (!item.nama) return;
+
+            kasMap[
+                String(item.nama).trim().toUpperCase()
+            ] = item;
+
+        });
+
+
+        const inputIuran =
+            document.getElementById(
+                "iuran-pemain"
+            );
+
+        const nominalDefault =
+            inputIuran
+                ? parseInt(inputIuran.value) || 20000
+                : 20000;
+
+
+        const newData = [];
+
+
+        /*
+         * Sinkronkan dengan PLAYERS.
+         */
+        Object.keys(playersData).forEach(name => {
+
+            const key =
+                String(name)
+                    .trim()
+                    .toUpperCase();
+
+            const dbKas =
+                kasMap[key];
+
+
+            if (dbKas) {
+
+                let metode = "Tunai";
+
+                const keterangan =
+                    String(
+                        dbKas.keterangan || ""
+                    );
+
+
+                if (
+                    keterangan.includes(
+                        "Metode: QRIS"
+                    )
+                ) {
+
+                    metode = "QRIS";
+
+                } else if (
+                    keterangan.includes(
+                        "Metode: Sponsor"
+                    )
+                ) {
+
+                    metode = "Sponsor";
+
+                }
+
+
+                newData.push({
+
+                    id: dbKas.id,
+
+                    nama: name,
+
+                    nominal:
+                        parseFloat(
+                            dbKas.nominal
+                        ) || 0,
+
+                    metode: metode,
+
+                    lunas:
+                        String(
+                            dbKas.status || ""
+                        ).toUpperCase() ===
+                        "LUNAS"
+
+                });
+
+
+            } else {
+
+                /*
+                 * Pemain baru / belum memiliki
+                 * transaksi KAS.
+                 */
+                newData.push({
+
+                    id:
+                        "new-" +
+                        name,
+
+                    nama: name,
+
+                    nominal:
+                        nominalDefault,
+
+                    metode: "Tunai",
+
+                    lunas: false
+
+                });
+
+            }
+
+        });
+
+
+        dataPemainKas =
+            newData;
+
+
+        urutkanDanRenderKas();
+
+
+        console.log(
+            "KAS berhasil dimuat dari Google Sheet:",
+            dataPemainKas
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "loadKasFromGoogleSheet:",
+            error
+        );
+
+        showMsg(
+            "Gagal mengambil data KAS dari Google Sheet."
+        );
+
+    }
+
+}
+
+
+// =====================================================
+// SAVE KAS KE GOOGLE SHEET
+// =====================================================
+
+async function saveKasToGoogleSheet(
+    pemain
+) {
+
+    try {
+
+        let keterangan =
+            "Kas Mabar";
+
+
+        if (pemain.metode) {
+
+            keterangan +=
+                " | Metode: " +
+                pemain.metode;
+
+        }
+
+
+        const response =
+            await fetch(
+                GOOGLE_SCRIPT_URL,
+                {
+
+                    method: "POST",
+
+                    body: JSON.stringify({
+
+                        action:
+                            "saveKas",
+
+                        nama:
+                            pemain.nama,
+
+                        tanggal:
+                            new Date()
+                                .toLocaleDateString(
+                                    "id-ID"
+                                ),
+
+                        nominal:
+                            parseFloat(
+                                pemain.nominal
+                            ) || 0,
+
+                        status:
+                            pemain.lunas
+                                ? "LUNAS"
+                                : "BELUM",
+
+                        keterangan:
+                            keterangan
+
+                    })
+
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message ||
+                "Gagal menyimpan KAS."
+            );
+
+        }
+
+
+        /*
+         * Simpan ID dari Google Sheet
+         * ke data lokal tampilan.
+         */
+        if (result.kas && result.kas.id) {
+
+            pemain.id =
+                result.kas.id;
+
+        }
+
+
+        console.log(
+            "KAS berhasil disimpan:",
+            result
+        );
+
+
+        return true;
+
+
+    } catch (error) {
+
+        console.error(
+            "saveKasToGoogleSheet:",
+            error
+        );
+
+        showMsg(
+            "Gagal menyimpan KAS: " +
+            error.message
+        );
+
+        return false;
+
+    }
+
+}
+
+
+// =====================================================
+// TOGGLE LUNAS / BELUM
+// =====================================================
+
+async function toggleLunasKas(id) {
+
+    const pemain =
+        dataPemainKas.find(
+            p => p.id === id
+        );
+
+
+    if (!pemain) {
+
+        console.warn(
+            "Pemain KAS tidak ditemukan:",
+            id
+        );
+
+        return;
+
+    }
+
+
+    const statusLama =
+        pemain.lunas;
+
+
+    pemain.lunas =
+        !pemain.lunas;
+
+
+    const berhasil =
+        await saveKasToGoogleSheet(
+            pemain
+        );
+
+
+    if (!berhasil) {
+
+        /*
+         * Rollback jika Google Sheet gagal.
+         */
+        pemain.lunas =
+            statusLama;
+
+        return;
+
+    }
+
+
+    renderPemainKas();
+
+
+    showMsg(
+        pemain.nama +
+        " → " +
+        (
+            pemain.lunas
+                ? "LUNAS"
+                : "BELUM"
+        )
+    );
+
+}
+
+
+// =====================================================
+// GANTI METODE PEMBAYARAN
+// =====================================================
+
+async function gantiMetodeKas(
+    id,
+    metodeBaru
+) {
+
+    const pemain =
+        dataPemainKas.find(
+            p => p.id === id
+        );
+
+
+    if (!pemain) return;
+
+
+    const metodeLama =
+        pemain.metode;
+
+    const nominalLama =
+        pemain.nominal;
+
+
+    pemain.metode =
+        metodeBaru;
+
+
+    if (
+        metodeBaru === "Sponsor"
+    ) {
+
+        pemain.nominal = 0;
+
+    } else if (
+        pemain.nominal === 0
+    ) {
+
+        const inputIuran =
+            document.getElementById(
+                "iuran-pemain"
+            );
+
+        pemain.nominal =
+            inputIuran
+                ? parseInt(
+                    inputIuran.value
+                ) || 20000
+                : 20000;
+
+    }
+
+
+    const berhasil =
+        await saveKasToGoogleSheet(
+            pemain
+        );
+
+
+    if (!berhasil) {
+
+        pemain.metode =
+            metodeLama;
+
+        pemain.nominal =
+            nominalLama;
+
+        return;
+
+    }
+
+
+    renderPemainKas();
+
+}
+
+
+// =====================================================
+// SYNC KAS DENGAN PLAYERS
+// =====================================================
+
+async function syncPemainKas() {
+
+    await loadKasFromGoogleSheet();
+
+}
+
+
+// =====================================================
+// URUTKAN KAS
+// =====================================================
+
+function urutkanDanRenderKas() {
+
+    dataPemainKas.sort(
+        (a, b) =>
+            a.nama.localeCompare(
+                b.nama,
+                "id",
+                {
+                    sensitivity: "base"
+                }
+            )
+    );
+
+
+    renderPemainKas();
+
+}
+
+
+// =====================================================
+// TERAPKAN NOMINAL DEFAULT
+// =====================================================
+
+async function terapkanNominalKas() {
+
+    const input =
+        document.getElementById(
+            "iuran-pemain"
+        );
+
+
+    const nominalBaru =
+        input
+            ? parseInt(input.value) || 20000
+            : 20000;
+
+
+    /*
+     * Hanya ubah tampilan dahulu.
+     *
+     * Data Google Sheet akan berubah
+     * ketika status/metode disimpan.
+     */
+    dataPemainKas.forEach(
+        pemain => {
+
+            if (
+                pemain.metode !==
+                "Sponsor"
+            ) {
+
+                pemain.nominal =
+                    nominalBaru;
+
+            }
+
+        }
+    );
+
+
+    renderPemainKas();
+
+
+    showMsg(
+        "Nominal kas berhasil diterapkan."
+    );
+
+}
+
+    // --- 7. EXCEL EXPORTS & GLOBAL RESET ---
+    function exportKeExcelMabar() {
+        if (matchesHistory.length === 0) { showMsg("Belum ada pertandingan selesai!"); return; }
+        
+        let rows = [["No", "Lapangan", "Waktu", "Durasi", "Tim A", "Skor A", "Skor B", "Tim B", "Menang"]];
+        matchesHistory.slice().reverse().forEach((m, i) => {
+            rows.push([i+1, m.court, m.time, m.duration, m.teamA, m.scoreA, m.scoreB, m.teamB, m.scoreA > m.scoreB ? "Tim A" : "Tim B"]);
+        });
+
+        rows.push([], ["DATA PEMAIN"], ["Nama", "Skor (Poin)", "Grade", "Jumlah Main (MP)"]);
+        Object.keys(playersData).forEach(name => {
+            const p = playersData[name];
+            rows.push([name, p.score, getGradeFromScore(p.score), p.mp || 0]);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Rekap Mabar");
+        XLSX.writeFile(wb, "Rekap_Mabar_Grading.xlsx");
+    }
+
+    function exportKeExcelKas() {
+        if (dataPemainKas.length === 0) { showMsg("Data Kas kosong!"); return; }
+        let csv = "\ufeffNo,Nama,Status,Metode,Nominal\n";
+        dataPemainKas.forEach((p, i) => { csv += `${i + 1},"${p.nama}",${p.lunas ? "LUNAS" : "BELUM"},${p.metode},${p.nominal}\n`; });
+        
+        csv += `\n\n,,TOTAL KESELURUHAN,Rp ${rekapSistemKas.totalKeseluruhan}\n`;
+        csv += `,,TOTAL TUNAI,Rp ${rekapSistemKas.totalTunai}\n`;
+        csv += `,,TOTAL QRIS,Rp ${rekapSistemKas.totalTransfer}\n`;
+        csv += `,,TOTAL BELUM,Rp ${rekapSistemKas.totalBelum}\n`;
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = `Rekap_Kas_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.csv`;
+        link.click();
+    }
+
+    function resetSemuaData() {
+        showConfirm("HAPUS PERMANEN seluruh data pemain, riwayat mabar, dan rekap kas aplikasi?", () => {
+            for (let i in courtTimers) { if(courtTimers[i].intervalId) clearInterval(courtTimers[i].intervalId); }
+            localStorage.clear();
+            location.reload();
+        });
+    }
+
+
+    // --- 8. INITIALIZATION ---
+window.onload = async () => {
+
+    for (let i = 1; i <= totalCourtsActive; i++) {
+
+        if (savedTimersState[i] && savedTimersState[i].startTime) {
+
+            courtTimers[i] = {
+                startTime: new Date(savedTimersState[i].startTime),
+                intervalId: null
+            };
+
+        } else {
+
+            courtTimers[i] = {
+                startTime: null,
+                intervalId: null
+            };
+
+        }
+    }
+
+    renderGradingSettings();
+
+    generateCourtsDOM();
+
+    updateHistoryDOM();
+
+    restoreTimers();
+
+    // Ambil database pemain dari Google Sheet
+    await loadPlayersFromGoogleSheet();
+
+    // Sinkronkan ke Kas
+    syncPemainKas();
+
+};
+
+
+
+</script>
+</body>
+</html>
