@@ -2398,6 +2398,7 @@
                 p.nominal = nominalBaru;
             }
         });
+        saveDataLocally();
         renderPemainKas();
         showMsg("Nominal kas default berhasil diterapkan ke pemain yang belum berstatus sponsor!");
     }
@@ -2539,23 +2540,28 @@
         });
     }
 
-    function toggleLunasKas(id) { 
-        const pemain = dataPemainKas.find(p => p.id === id); 
-        if (pemain) { 
-            pemain.lunas = !pemain.lunas; 
-            renderPemainKas(); 
-        } 
+    function toggleLunasKas(id) {
+        const pemain = dataPemainKas.find(p => String(p.id) === String(id));
+        if (pemain) {
+            pemain.lunas = pemain.lunas === true ? false : true;
+            // Simpan perubahan status LUNAS ke localStorage + Firestore.
+            saveDataLocally();
+            renderPemainKas();
+        }
     }
     
     function gantiMetodeKas(id, metodeBaru) {
-        const pemain = dataPemainKas.find(p => p.id === id);
+        const pemain = dataPemainKas.find(p => String(p.id) === String(id));
         if (pemain) {
             pemain.metode = metodeBaru;
             if (metodeBaru === "Sponsor") { 
                 pemain.nominal = 0; 
+                pemain.lunas = true;
             } else if (pemain.nominal === 0) { 
                 pemain.nominal = parseInt(document.getElementById('iuran-pemain').value) || 20000; 
             }
+            // Simpan perubahan metode/nominal/status ke localStorage + Firestore.
+            saveDataLocally();
             renderPemainKas();
         }
     }
@@ -2567,6 +2573,7 @@
         }
         showConfirm("Tandai SEMUA pemain sebagai LUNAS?", () => {
             dataPemainKas.forEach(p => p.lunas = true);
+            saveDataLocally();
             renderPemainKas();
             showMsg("Semua pemain telah ditandai Lunas! 🎉");
         });
@@ -2711,12 +2718,12 @@
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
     const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDnb5sgKrI3FGRDgXK4gEQlkztLXmWvBiA",
-  authDomain: "newton-be.firebaseapp.com",
-  projectId: "newton-be",
-  storageBucket: "newton-be.firebasestorage.app",
-  messagingSenderId: "492563082006",
-  appId: "1:492563082006:web:028b54c97aa43b6aef3e37"
+        apiKey: "AIzaSyDnb5sgKrI3FGRDgXK4gEQlkztLXmWvBiA",
+        authDomain: "newton-be.firebaseapp.com",
+        projectId: "newton-be",
+        storageBucket: "newton-be.firebasestorage.app",
+        messagingSenderId: "492563082006",
+        appId: "1:492563082006:web:028b54c97aa43b6aef3e37"
     };
 
     const FIREBASE_CONFIG_READY =
@@ -2759,7 +2766,14 @@
         savedCourtsSetup = data.savedCourtsSetup || {};
         gradingRules = data.gradingRules || gradingRules;
         initialNewPlayerScore = Number(data.initialNewPlayerScore) || 1;
-        dataPemainKas = Array.isArray(data.dataPemainKas) ? data.dataPemainKas : [];
+        dataPemainKas = Array.isArray(data.dataPemainKas) ? data.dataPemainKas.map(p => ({
+            ...p,
+            id: p.id ?? (Date.now() + Math.random()),
+            nama: p.nama || '',
+            nominal: Number(p.nominal) || 0,
+            metode: p.metode || 'Tunai',
+            lunas: p.lunas === true || p.lunas === 'true' || p.lunas === 1
+        })) : [];
 
         try {
             localStorage.setItem('mabar_players', JSON.stringify(playersData));
