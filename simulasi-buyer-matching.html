@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>RUMAHFIT 2.0 - Developer Buyer Matching</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+    <style>
+        body {
+            background: #f5f6f8;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,.75);
+            border-radius: .5rem;
+            margin-bottom: 4px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,.15);
+        }
+
+        .stat-card {
+            border: 0;
+            border-radius: 14px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1.4rem;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        .table th {
+            white-space: nowrap;
+        }
+
+        .score {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .progress {
+            height: 8px;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                min-height: auto;
+            }
+
+            .sidebar .nav {
+                flex-direction: row;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .sidebar .nav-link {
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="col-lg-2 bg-dark text-white p-3 sidebar">
+
+            <div class="mb-4">
+                <h4 class="fw-bold mb-0">RUMAHFIT</h4>
+                <small class="text-secondary">Developer Matching 2.0</small>
+            </div>
+
+            <nav class="nav flex-column">
+
+                <a href="#" class="nav-link active" data-page="dashboard">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    Dashboard
+                </a>
+
+                <a href="#" class="nav-link" data-page="developer">
+                    <i class="bi bi-building me-2"></i>
+                    Developer
+                </a>
+
+                <a href="#" class="nav-link" data-page="unitmix">
+                    <i class="bi bi-houses me-2"></i>
+                    Unit Mix
+                </a>
+
+                <a href="#" class="nav-link" data-page="landplan">
+                    <i class="bi bi-map me-2"></i>
+                    Land Plan
+                </a>
+
+                <a href="#" class="nav-link" data-page="cost">
+                    <i class="bi bi-calculator me-2"></i>
+                    Cost Engine
+                </a>
+
+                <a href="#" class="nav-link" data-page="buyers">
+                    <i class="bi bi-people me-2"></i>
+                    Buyer Input
+                </a>
+
+                <a href="#" class="nav-link" data-page="matching">
+                    <i class="bi bi-bullseye me-2"></i>
+                    Matching
+                </a>
+
+                <a href="#" class="nav-link" data-page="market">
+                    <i class="bi bi-bar-chart me-2"></i>
+                    Market Insight
+                </a>
+
+                <a href="#" class="nav-link" data-page="financing">
+                    <i class="bi bi-bank me-2"></i>
+                    Financing
+                </a>
+
+                <a href="#" class="nav-link" data-page="growth">
+                    <i class="bi bi-arrow-up-right-circle me-2"></i>
+                    Growth Plan
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- ================= MAIN ================= -->
+        <main class="col-lg-10 p-3 p-lg-4">
+
+            <!-- ================= DASHBOARD ================= -->
+            <section id="dashboard" class="page-section active">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <div>
+                        <h2 class="fw-bold mb-1">
+                            Executive Dashboard
+                        </h2>
+
+                        <p class="text-secondary mb-0">
+                            RUMAHFIT 2.0 - Developer & Buyer Matching
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="recalculate()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Recalculate
+                    </button>
+
+                </div>
+
+
+                <!-- KPI -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-6 col-xl-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <small class="text-secondary">
+                                            Luas Lahan
+                                        </small>
+                                        <h4 id="dashLand" class="fw-bold mt-2">
+                                            -
+                                        </h4>
+                                    </div>
+
+                                    <div class="stat-icon bg-primary-subtle text-primary">
+                                        <i class="bi bi-map"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-6 col-xl-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <small class="text-secondary">
+                                            Target Unit
+                                        </small>
+                                        <h4 id="dashUnits" class="fw-bold mt-2">
+                                            -
+                                        </h4>
+                                    </div>
+
+                                    <div class="stat-icon bg-success-subtle text-success">
+                                        <i class="bi bi-houses"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-6 col-xl-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <small class="text-secondary">
+                                            Revenue
+                                        </small>
+                                        <h4 id="dashRevenue" class="fw-bold mt-2">
+                                            -
+                                        </h4>
+                                    </div>
+
+                                    <div class="stat-icon bg-info-subtle text-info">
+                                        <i class="bi bi-cash-stack"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-6 col-xl-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <small class="text-secondary">
+                                            Gross Margin
+                                        </small>
+                                        <h4 id="dashMargin" class="fw-bold mt-2">
+                                            -
+                                        </h4>
+                                    </div>
+
+                                    <div class="stat-icon bg-warning-subtle text-warning">
+                                        <i class="bi bi-percent"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- Financial summary -->
+                <div class="row g-3 mb-4">
+
+                    <div class="col-lg-8">
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    Financial Summary
+                                </h5>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-4">
+                                        <div class="border rounded p-3">
+                                            <small class="text-secondary">
+                                                Development Cost
+                                            </small>
+                                            <div
+                                                id="dashCost"
+                                                class="fw-bold fs-5 mt-2">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="border rounded p-3">
+                                            <small class="text-secondary">
+                                                Gross Profit
+                                            </small>
+                                            <div
+                                                id="dashProfit"
+                                                class="fw-bold fs-5 mt-2">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="border rounded p-3">
+                                            <small class="text-secondary">
+                                                Cadangan Proyek
+                                            </small>
+                                            <div
+                                                id="dashReserve"
+                                                class="fw-bold fs-5 mt-2">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-lg-4">
+
+                        <div class="card shadow-sm border-0">
+
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    Buyer Matching
+                                </h5>
+                            </div>
+
+                            <div class="card-body">
+
+                                <div id="dashboardMatching"></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= DEVELOPER ================= -->
+            <section id="developer" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Developer Input
+                </h2>
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Luas lahan (m²)
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="landArea"
+                                    value="10000"
+                                >
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Harga tanah / m²
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="landPrice"
+                                    value="1500000"
+                                >
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Target unit
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="targetUnits"
+                                    value="100"
+                                >
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Infrastruktur kawasan
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="infraCost"
+                                    value="15000000000"
+                                >
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Cadangan proyek (%)
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="reserveRate"
+                                    value="5"
+                                    step="0.1"
+                                >
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Target margin kotor (%)
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="targetMargin"
+                                    value="20"
+                                    step="0.1"
+                                >
+                            </div>
+
+                        </div>
+
+
+                        <div class="mt-4">
+
+                            <!-- <button
+                                class="btn btn-primary"
+                                onclick="recalculate()">
+
+                                <i class="bi bi-calculator me-1"></i>
+                                Hitung Ulang
+
+                            </button> -->
+
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                id="btnRecalculate">
+
+                                <i class="bi bi-calculator me-1"></i>
+                                Hitung Ulang
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= UNIT MIX ================= -->
+            <section id="unitmix" class="page-section">
+
+                <div class="d-flex justify-content-between mb-4">
+
+                    <h2 class="fw-bold">
+                        Unit Mix
+                    </h2>
+
+                    <button
+                        class="btn btn-success"
+                        onclick="addUnit()">
+
+                        <i class="bi bi-plus-lg"></i>
+                        Tambah Unit
+
+                    </button>
+
+                </div>
+
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table align-middle">
+
+                                <thead>
+                                    <tr>
+                                        <th>Tipe</th>
+                                        <th>LB</th>
+                                        <th>LT</th>
+                                        <th>Jumlah</th>
+                                        <th>Harga Jual</th>
+                                        <th>Biaya Konstruksi</th>
+                                        <th>Target Buyer</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="unitTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= LAND PLAN ================= -->
+            <section id="landplan" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Land Plan
+                </h2>
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Komponen</th>
+                                        <th>Luas (m²)</th>
+                                        <th>% Lahan</th>
+                                        <th>Catatan</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="landTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= COST ================= -->
+            <section id="cost" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Development Cost Engine
+                </h2>
+
+                <div class="row g-3">
+
+                    <div class="col-lg-8">
+
+                        <div class="card border-0 shadow-sm">
+
+                            <div class="card-body">
+
+                                <div class="table-responsive">
+
+                                    <table class="table">
+
+                                        <thead>
+                                            <tr>
+                                                <th>Komponen</th>
+                                                <th>Nilai</th>
+                                                <th>Keterangan</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="costTable"></tbody>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-lg-4">
+
+                        <div class="card border-0 shadow-sm">
+
+                            <div class="card-body">
+
+                                <h5>Financial Result</h5>
+
+                                <hr>
+
+                                <div class="mb-3">
+                                    <small class="text-secondary">
+                                        Revenue
+                                    </small>
+                                    <div
+                                        id="costRevenue"
+                                        class="fs-4 fw-bold">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <small class="text-secondary">
+                                        Total Cost
+                                    </small>
+                                    <div
+                                        id="costTotal"
+                                        class="fs-4 fw-bold">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <small class="text-secondary">
+                                        Gross Profit
+                                    </small>
+                                    <div
+                                        id="costProfit"
+                                        class="fs-4 fw-bold">
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= BUYERS ================= -->
+            <section id="buyers" class="page-section">
+
+                <div class="d-flex justify-content-between mb-4">
+
+                    <h2 class="fw-bold">
+                        Buyer Profiles
+                    </h2>
+
+                    <button
+                        class="btn btn-success"
+                        onclick="addBuyer()">
+
+                        <i class="bi bi-person-plus me-1"></i>
+                        Tambah Buyer
+
+                    </button>
+
+                </div>
+
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table align-middle">
+
+                                <thead>
+
+                                    <tr>
+                                        <th>Buyer</th>
+                                        <th>Income / Bulan</th>
+                                        <th>Expense / Bulan</th>
+                                        <th>DP</th>
+                                        <th>Family</th>
+                                        <th>Need</th>
+                                        <th></th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="buyerTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= MATCHING ================= -->
+            <section id="matching" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Buyer Matching Engine
+                </h2>
+
+                <div id="matchingCards"></div>
+
+            </section>
+
+
+            <!-- ================= MARKET ================= -->
+            <section id="market" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Market Demand Insight
+                </h2>
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Tipe</th>
+                                        <th>Buyer Sample</th>
+                                        <th>Demand</th>
+                                        <th>Implikasi Developer</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="marketTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= FINANCING ================= -->
+            <section id="financing" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Financing Scenario
+                </h2>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Simulasi pokok sederhana tanpa bunga.
+                    Bukan simulasi persetujuan KPR bank.
+                </div>
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table">
+
+                                <thead>
+
+                                    <tr>
+                                        <th>Buyer</th>
+                                        <th>Recommended</th>
+                                        <th>Price</th>
+                                        <th>DP</th>
+                                        <th>Need Financing</th>
+                                        <th>Ability / Month</th>
+                                        <th>Principal / Month</th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="financeTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= GROWTH ================= -->
+            <section id="growth" class="page-section">
+
+                <h2 class="fw-bold mb-4">
+                    Growth Plan
+                </h2>
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <div class="table-responsive">
+
+                            <table class="table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Tipe</th>
+                                        <th>Tahap 1</th>
+                                        <th>Tahap 2</th>
+                                        <th>Tahap 3</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="growthTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+
+/* =========================================================
+   RUMAHFIT 2.0
+   APPLICATION STATE
+========================================================= */
+
+const app = {
+
+    developer: {
+        landArea: 10000,
+        landPrice: 1500000,
+        targetUnits: 100,
+        infraCost: 15000000000,
+        reserveRate: 5,
+        targetMargin: 20
+    },
+
+    units: [
+        {
+            type: "FIT 30",
+            lb: 30,
+            lt: 60,
+            qty: 25,
+            price: 250000000,
+            construction: 140000000,
+            buyer: "Pasangan muda"
+        },
+
+        {
+            type: "FIT 36",
+            lb: 36,
+            lt: 72,
+            qty: 50,
+            price: 300000000,
+            construction: 165000000,
+            buyer: "Keluarga kecil"
+        },
+
+        {
+            type: "FIT 45",
+            lb: 45,
+            lt: 90,
+            qty: 25,
+            price: 375000000,
+            construction: 205000000,
+            buyer: "Keluarga berkembang"
+        }
+    ],
+
+    land: {
+        road: 2200,
+        green: 800,
+        facility: 500
+    },
+
+    buyers: [
+        {
+            name: "Buyer A",
+            income: 7000000,
+            expense: 4500000,
+            dp: 40000000,
+            family: 4,
+            need: "2 kamar"
+        },
+
+        {
+            name: "Buyer B",
+            income: 9000000,
+            expense: 5500000,
+            dp: 60000000,
+            family: 4,
+            need: "2–3 kamar"
+        },
+
+        {
+            name: "Buyer C",
+            income: 5500000,
+            expense: 3500000,
+            dp: 30000000,
+            family: 3,
+            need: "2 kamar"
+        },
+
+        {
+            name: "Buyer D",
+            income: 12000000,
+            expense: 7000000,
+            dp: 75000000,
+            family: 5,
+            need: "3 kamar"
+        },
+
+        {
+            name: "Buyer E",
+            income: 8000000,
+            expense: 5000000,
+            dp: 50000000,
+            family: 4,
+            need: "2 kamar"
+        }
+    ],
+
+    growth: [
+        ["FIT 30", "Rumah inti 30 m²", "Tambah kamar", "Ruang fleksibel"],
+        ["FIT 36", "Rumah inti 36 m²", "Tambah kamar / ruang", "Ruang usaha"],
+        ["FIT 45", "Rumah inti 45 m²", "Perluasan ruang keluarga", "Ruang usaha / lantai 2"]
+    ]
+
+};
+
+
+/* =========================================================
+   FORMATTER
+========================================================= */
+
+function rupiah(value) {
+
+    return new Intl.NumberFormat(
+        "id-ID",
+        {
+            style: "currency",
+            currency: "IDR",
+            maximumFractionDigits: 0
+        }
+    ).format(value);
+
+}
+
+
+function number(value) {
+
+    return new Intl.NumberFormat("id-ID").format(value);
+
+}
+
+
+function percent(value) {
+
+    return `${value.toFixed(1)}%`;
+
+}
+
+
+/* =========================================================
+   NAVIGATION SPA
+========================================================= */
+
+document.querySelectorAll("[data-page]").forEach(link => {
+
+    link.addEventListener("click", function(e) {
+
+        e.preventDefault();
+
+        const page = this.dataset.page;
+
+        document.querySelectorAll(".page-section")
+            .forEach(section => section.classList.remove("active"));
+
+        document
+            .getElementById(page)
+            .classList.add("active");
+
+        document.querySelectorAll("[data-page]")
+            .forEach(nav => nav.classList.remove("active"));
+
+        this.classList.add("active");
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    });
+
+});
+
+
+/* =========================================================
+   DEVELOPER INPUT
+========================================================= */
+
+function readDeveloper() {
+
+    app.developer.landArea =
+        Number(document.getElementById("landArea").value) || 0;
+
+    app.developer.landPrice =
+        Number(document.getElementById("landPrice").value) || 0;
+
+    app.developer.targetUnits =
+        Number(document.getElementById("targetUnits").value) || 0;
+
+    app.developer.infraCost =
+        Number(document.getElementById("infraCost").value) || 0;
+
+    app.developer.reserveRate =
+        Number(document.getElementById("reserveRate").value) || 0;
+
+    app.developer.targetMargin =
+        Number(document.getElementById("targetMargin").value) || 0;
+
+}
+
+
+/* =========================================================
+   UNIT MIX
+========================================================= */
+
+function renderUnits() {
+
+    const tbody =
+        document.getElementById("unitTable");
+
+    tbody.innerHTML = "";
+
+    app.units.forEach((unit, index) => {
+
+        tbody.innerHTML += `
+
+            <tr>
+
+                <td>
+                    <input
+                        class="form-control form-control-sm"
+                        value="${unit.type}"
+                        onchange="updateUnit(${index}, 'type', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${unit.lb}"
+                        onchange="updateUnit(${index}, 'lb', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${unit.lt}"
+                        onchange="updateUnit(${index}, 'lt', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${unit.qty}"
+                        onchange="updateUnit(${index}, 'qty', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${unit.price}"
+                        onchange="updateUnit(${index}, 'price', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${unit.construction}"
+                        onchange="updateUnit(${index}, 'construction', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        class="form-control form-control-sm"
+                        value="${unit.buyer}"
+                        onchange="updateUnit(${index}, 'buyer', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <button
+                        class="btn btn-sm btn-outline-danger"
+                        onclick="deleteUnit(${index})">
+
+                        <i class="bi bi-trash"></i>
+
+                    </button>
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+function updateUnit(index, field, value) {
+
+    if (
+        field === "type" ||
+        field === "buyer"
+    ) {
+
+        app.units[index][field] = value;
+
+    } else {
+
+        app.units[index][field] =
+            Number(value) || 0;
+
+    }
+
+    recalculate();
+
+}
+
+
+function addUnit() {
+
+    app.units.push({
+        type: "FIT Baru",
+        lb: 30,
+        lt: 60,
+        qty: 0,
+        price: 0,
+        construction: 0,
+        buyer: ""
+    });
+
+    renderUnits();
+
+}
+
+
+function deleteUnit(index) {
+
+    if (!confirm("Hapus unit ini?")) {
+        return;
+    }
+
+    app.units.splice(index, 1);
+
+    recalculate();
+
+}
+
+
+/* =========================================================
+   COST ENGINE
+========================================================= */
+
+function calculateFinancial() {
+
+    const d = app.developer;
+
+    const landCost =
+        d.landArea * d.landPrice;
+
+    const constructionCost =
+        app.units.reduce(
+            (total, unit) =>
+                total + (unit.qty * unit.construction),
+            0
+        );
+
+    const revenue =
+        app.units.reduce(
+            (total, unit) =>
+                total + (unit.qty * unit.price),
+            0
+        );
+
+    const subtotal =
+        landCost +
+        constructionCost +
+        d.infraCost;
+
+    const reserve =
+        subtotal * (d.reserveRate / 100);
+
+    const totalCost =
+        subtotal + reserve;
+
+    const profit =
+        revenue - totalCost;
+
+    const margin =
+        revenue > 0
+            ? (profit / revenue) * 100
+            : 0;
+
+    return {
+        landCost,
+        constructionCost,
+        revenue,
+        subtotal,
+        reserve,
+        totalCost,
+        profit,
+        margin
+    };
+
+}
+
+
+function renderCost() {
+
+    const f = calculateFinancial();
+
+    document.getElementById("costTable").innerHTML = `
+
+        <tr>
+            <td>Biaya tanah</td>
+            <td>${rupiah(f.landCost)}</td>
+            <td>Luas lahan × harga tanah</td>
+        </tr>
+
+        <tr>
+            <td>Biaya konstruksi rumah</td>
+            <td>${rupiah(f.constructionCost)}</td>
+            <td>Seluruh unit</td>
+        </tr>
+
+        <tr>
+            <td>Infrastruktur kawasan</td>
+            <td>${rupiah(app.developer.infraCost)}</td>
+            <td>Asumsi developer</td>
+        </tr>
+
+        <tr class="table-light">
+            <td>Subtotal</td>
+            <td class="fw-bold">${rupiah(f.subtotal)}</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>Cadangan proyek</td>
+            <td>${rupiah(f.reserve)}</td>
+            <td>${app.developer.reserveRate}%</td>
+        </tr>
+
+        <tr class="table-dark">
+            <td>
+                <strong>TOTAL DEVELOPMENT COST</strong>
+            </td>
+
+            <td>
+                <strong>${rupiah(f.totalCost)}</strong>
+            </td>
+
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>Total Revenue</td>
+            <td class="fw-bold">${rupiah(f.revenue)}</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>Gross Profit</td>
+            <td class="fw-bold">${rupiah(f.profit)}</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>Gross Margin</td>
+            <td class="fw-bold">${percent(f.margin)}</td>
+            <td></td>
+        </tr>
+
+    `;
+
+    document.getElementById("costRevenue").textContent =
+        rupiah(f.revenue);
+
+    document.getElementById("costTotal").textContent =
+        rupiah(f.totalCost);
+
+    document.getElementById("costProfit").textContent =
+        rupiah(f.profit);
+
+}
+
+
+/* =========================================================
+   LAND PLAN
+========================================================= */
+
+function renderLandPlan() {
+
+    const land = app.developer.landArea;
+
+    const houseLots =
+        app.units.reduce(
+            (total, unit) =>
+                total + (unit.lt * unit.qty),
+            0
+        );
+
+    const road = app.land.road;
+    const green = app.land.green;
+    const facility = app.land.facility;
+
+    const used =
+        houseLots +
+        road +
+        green +
+        facility;
+
+    const buffer =
+        land - used;
+
+    const rows = [
+
+        [
+            "Kavling rumah",
+            houseLots,
+            "Kavling efektif"
+        ],
+
+        [
+            "Jalan & drainase",
+            road,
+            "Akses internal"
+        ],
+
+        [
+            "RTH / ruang terbuka",
+            green,
+            "Ruang terbuka"
+        ],
+
+        [
+            "Fasilitas / utilitas",
+            facility,
+            "Utilitas kawasan"
+        ],
+
+        [
+            "Sisa / buffer",
+            buffer,
+            "Cadangan tata lahan"
+        ]
+
+    ];
+
+    let html = "";
+
+    rows.forEach(row => {
+
+        const p =
+            land > 0
+                ? (row[1] / land) * 100
+                : 0;
+
+        html += `
+
+            <tr>
+
+                <td>${row[0]}</td>
+
+                <td>${number(row[1])}</td>
+
+                <td>${percent(p)}</td>
+
+                <td>${row[2]}</td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    html += `
+
+        <tr class="table-light fw-bold">
+
+            <td>TOTAL</td>
+
+            <td>${number(land)}</td>
+
+            <td>100.0%</td>
+
+            <td></td>
+
+        </tr>
+
+    `;
+
+    document.getElementById("landTable").innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   BUYER INPUT
+========================================================= */
+
+function renderBuyers() {
+
+    const tbody =
+        document.getElementById("buyerTable");
+
+    tbody.innerHTML = "";
+
+    app.buyers.forEach((buyer, index) => {
+
+        tbody.innerHTML += `
+
+            <tr>
+
+                <td>
+                    <input
+                        class="form-control form-control-sm"
+                        value="${buyer.name}"
+                        onchange="updateBuyer(${index}, 'name', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${buyer.income}"
+                        onchange="updateBuyer(${index}, 'income', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${buyer.expense}"
+                        onchange="updateBuyer(${index}, 'expense', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${buyer.dp}"
+                        onchange="updateBuyer(${index}, 'dp', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        value="${buyer.family}"
+                        onchange="updateBuyer(${index}, 'family', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <input
+                        class="form-control form-control-sm"
+                        value="${buyer.need}"
+                        onchange="updateBuyer(${index}, 'need', this.value)"
+                    >
+                </td>
+
+                <td>
+                    <button
+                        class="btn btn-sm btn-outline-danger"
+                        onclick="deleteBuyer(${index})">
+
+                        <i class="bi bi-trash"></i>
+
+                    </button>
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+function updateBuyer(index, field, value) {
+
+    if (
+        field === "name" ||
+        field === "need"
+    ) {
+
+        app.buyers[index][field] = value;
+
+    } else {
+
+        app.buyers[index][field] =
+            Number(value) || 0;
+
+    }
+
+    recalculate();
+
+}
+
+
+function addBuyer() {
+
+    app.buyers.push({
+
+        name: "Buyer Baru",
+        income: 0,
+        expense: 0,
+        dp: 0,
+        family: 1,
+        need: "2 kamar"
+
+    });
+
+    renderBuyers();
+
+}
+
+
+function deleteBuyer(index) {
+
+    if (!confirm("Hapus buyer ini?")) {
+        return;
+    }
+
+    app.buyers.splice(index, 1);
+
+    recalculate();
+
+}
+
+
+/* =========================================================
+   MATCHING ENGINE
+========================================================= */
+
+/*
+   Logika matching prototype:
+
+   1. Kebutuhan kamar
+   2. Kemampuan pembayaran
+   3. Jumlah anggota keluarga
+   4. DP
+   5. Harga unit
+
+   Score bukan keputusan kredit.
+   Hanya skor kecocokan berdasarkan data input.
+*/
+
+function matchBuyer(buyer) {
+
+    const ability =
+        buyer.income - buyer.expense;
+
+    const needText =
+        buyer.need.toLowerCase();
+
+    let desiredBedrooms = 2;
+
+    if (needText.includes("3")) {
+        desiredBedrooms = 3;
+    }
+
+
+    /*
+       Mapping sederhana tipe rumah
+    */
+
+    const bedroomMap = {
+
+        "FIT 30": 2,
+        "FIT 36": 2,
+        "FIT 45": 3
+
+    };
+
+
+    let candidates = [];
+
+
+    app.units.forEach(unit => {
+
+        const bedrooms =
+            bedroomMap[unit.type] || 2;
+
+        /*
+           Estimasi kemampuan financing
+           menggunakan ability × 60
+           sebagai proxy affordability.
+        */
+
+        const estimatedCapacity =
+            ability * 60 + buyer.dp;
+
+
+        const affordability =
+            Math.min(
+                estimatedCapacity / unit.price,
+                1
+            );
+
+
+        let bedroomScore = 1;
+
+        if (bedrooms === desiredBedrooms) {
+            bedroomScore = 1;
+        }
+        else {
+            bedroomScore = 0.7;
+        }
+
+
+        /*
+           DP score
+        */
+
+        const dpRatio =
+            unit.price > 0
+                ? buyer.dp / unit.price
+                : 0;
+
+        const dpScore =
+            Math.min(dpRatio / 0.2, 1);
+
+
+        /*
+           Family score
+        */
+
+        let familyScore = 1;
+
+        if (
+            buyer.family >= 5 &&
+            bedrooms < 3
+        ) {
+            familyScore = 0.65;
+        }
+
+
+        const score =
+            (
+                affordability * 0.45 +
+                bedroomScore * 0.30 +
+                dpScore * 0.15 +
+                familyScore * 0.10
+            );
+
+
+        candidates.push({
+
+            unit,
+            score,
+            ability
+
+        });
+
+    });
+
+
+    candidates.sort(
+        (a, b) => b.score - a.score
+    );
+
+
+    return candidates[0];
+
+}
+
+
+/* =========================================================
+   MATCHING VIEW
+========================================================= */
+
+function renderMatching() {
+
+    const container =
+        document.getElementById("matchingCards");
+
+    container.innerHTML = "";
+
+    app.buyers.forEach(buyer => {
+
+        const result =
+            matchBuyer(buyer);
+
+        const score =
+            result.score * 100;
+
+        const ability =
+            result.ability;
+
+        let reason =
+            "Kesesuaian berdasarkan kebutuhan dan kemampuan.";
+
+        if (buyer.family >= 5) {
+
+            reason =
+                "Keluarga lebih besar sehingga tipe dengan kapasitas lebih tinggi menjadi pertimbangan.";
+
+        }
+        else if (
+            buyer.need.includes("2")
+        ) {
+
+            reason =
+                "Kebutuhan utama 2 kamar dan mempertimbangkan keterjangkauan.";
+
+        }
+
+
+        container.innerHTML += `
+
+            <div class="card border-0 shadow-sm mb-3">
+
+                <div class="card-body">
+
+                    <div class="row align-items-center">
+
+                        <div class="col-lg-2">
+
+                            <h5 class="fw-bold">
+                                ${buyer.name}
+                            </h5>
+
+                            <small class="text-secondary">
+                                Family ${buyer.family}
+                            </small>
+
+                        </div>
+
+
+                        <div class="col-lg-2">
+
+                            <small class="text-secondary">
+                                Ability
+                            </small>
+
+                            <div class="fw-bold">
+                                ${rupiah(ability)}
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-lg-2">
+
+                            <small class="text-secondary">
+                                Recommended
+                            </small>
+
+                            <div class="fw-bold fs-5">
+                                ${result.unit.type}
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-lg-2">
+
+                            <small class="text-secondary">
+                                Indicative Price
+                            </small>
+
+                            <div class="fw-bold">
+                                ${rupiah(result.unit.price)}
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-lg-2">
+
+                            <small class="text-secondary">
+                                Fit Score
+                            </small>
+
+                            <div class="score">
+                                ${score.toFixed(0)}%
+                            </div>
+
+                            <div class="progress mt-1">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:${score}%">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="col-lg-2">
+
+                            <small class="text-secondary">
+                                Reason
+                            </small>
+
+                            <div class="small">
+                                ${reason}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================================
+   MARKET INSIGHT
+========================================================= */
+
+function renderMarket() {
+
+    const counts = {};
+
+    app.buyers.forEach(buyer => {
+
+        const result =
+            matchBuyer(buyer);
+
+        const type =
+            result.unit.type;
+
+        counts[type] =
+            (counts[type] || 0) + 1;
+
+    });
+
+
+    const total =
+        app.buyers.length;
+
+
+    let html = "";
+
+
+    app.units.forEach(unit => {
+
+        const count =
+            counts[unit.type] || 0;
+
+        const demand =
+            total > 0
+                ? (count / total) * 100
+                : 0;
+
+
+        let implication =
+            "Pertimbangkan sebagai bagian unit mix.";
+
+
+        if (demand >= 35) {
+
+            implication =
+                "Potensi demand sample relatif tinggi.";
+
+        }
+        else if (demand > 0) {
+
+            implication =
+                "Pertahankan sebagai alternatif produk.";
+
+        }
+        else {
+
+            implication =
+                "Evaluasi kembali proporsi unit.";
+
+        }
+
+
+        html += `
+
+            <tr>
+
+                <td>
+                    <strong>${unit.type}</strong>
+                </td>
+
+                <td>
+                    ${count}
+                </td>
+
+                <td>
+                    ${percent(demand)}
+                </td>
+
+                <td>
+                    ${implication}
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    document.getElementById("marketTable").innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   FINANCING
+========================================================= */
+
+function renderFinancing() {
+
+    let html = "";
+
+    app.buyers.forEach(buyer => {
+
+        const result =
+            matchBuyer(buyer);
+
+        const price =
+            result.unit.price;
+
+        const financing =
+            Math.max(
+                price - buyer.dp,
+                0
+            );
+
+        const ability =
+            buyer.income - buyer.expense;
+
+        const principal =
+            financing / (20 * 12);
+
+
+        html += `
+
+            <tr>
+
+                <td>
+                    <strong>${buyer.name}</strong>
+                </td>
+
+                <td>
+                    ${result.unit.type}
+                </td>
+
+                <td>
+                    ${rupiah(price)}
+                </td>
+
+                <td>
+                    ${rupiah(buyer.dp)}
+                </td>
+
+                <td>
+                    ${rupiah(financing)}
+                </td>
+
+                <td>
+                    ${rupiah(ability)}
+                </td>
+
+                <td>
+                    ${rupiah(principal)}
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    document.getElementById("financeTable").innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   GROWTH PLAN
+========================================================= */
+
+function renderGrowth() {
+
+    let html = "";
+
+    app.growth.forEach(row => {
+
+        html += `
+
+            <tr>
+
+                <td>
+                    <strong>${row[0]}</strong>
+                </td>
+
+                <td>${row[1]}</td>
+
+                <td>${row[2]}</td>
+
+                <td>${row[3]}</td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    document.getElementById("growthTable").innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderDashboard() {
+
+    const f =
+        calculateFinancial();
+
+
+    document.getElementById("dashLand")
+        .textContent =
+        `${number(app.developer.landArea)} m²`;
+
+
+    const totalUnits =
+        app.units.reduce(
+            (sum, unit) =>
+                sum + unit.qty,
+            0
+        );
+
+
+    document.getElementById("dashUnits")
+        .textContent =
+        number(totalUnits);
+
+
+    document.getElementById("dashRevenue")
+        .textContent =
+        rupiah(f.revenue);
+
+
+    document.getElementById("dashMargin")
+        .textContent =
+        percent(f.margin);
+
+
+    document.getElementById("dashCost")
+        .textContent =
+        rupiah(f.totalCost);
+
+
+    document.getElementById("dashProfit")
+        .textContent =
+        rupiah(f.profit);
+
+
+    document.getElementById("dashReserve")
+        .textContent =
+        rupiah(f.reserve);
+
+
+    let html = "";
+
+    app.buyers.forEach(buyer => {
+
+        const result =
+            matchBuyer(buyer);
+
+        html += `
+
+            <div class="d-flex justify-content-between
+                        align-items-center mb-3">
+
+                <div>
+
+                    <strong>${buyer.name}</strong>
+
+                    <div class="small text-secondary">
+                        ${result.unit.type}
+                    </div>
+
+                </div>
+
+                <span class="badge text-bg-primary">
+                    ${(result.score * 100).toFixed(0)}%
+                </span>
+
+            </div>
+
+        `;
+
+    });
+
+
+    document.getElementById("dashboardMatching")
+        .innerHTML = html;
+
+}
+
+
+/* =========================================================
+   MAIN RECALCULATE
+========================================================= */
+
+function recalculate() {
+
+    readDeveloper();
+
+    renderUnits();
+
+    renderBuyers();
+
+    renderLandPlan();
+
+    renderCost();
+
+    renderMatching();
+
+    renderMarket();
+
+    renderFinancing();
+
+    renderGrowth();
+
+    renderDashboard();
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        recalculate();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
