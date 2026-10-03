@@ -1006,9 +1006,265 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
             animation: popIn 0.2s ease-out;
         }
+
+        /* ============================================================
+           LOGIN & ROLE ACCESS
+           ============================================================ */
+        body.app-locked > .top-header,
+        body.app-locked > .sidebar,
+        body.app-locked > .main-content {
+            display: none !important;
+        }
+
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(59,130,246,.20), transparent 32%),
+                radial-gradient(circle at 85% 80%, rgba(2,132,199,.18), transparent 32%),
+                linear-gradient(135deg, #0f172a 0%, #172554 52%, #0c4a6e 100%);
+        }
+
+        .login-card {
+            width: min(420px, 100%);
+            background: rgba(255,255,255,.97);
+            border: 1px solid rgba(255,255,255,.35);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 25px 70px rgba(0,0,0,.28);
+            animation: loginIn .25s ease-out;
+        }
+
+        @keyframes loginIn {
+            from { opacity: 0; transform: translateY(12px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .login-brand {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .login-brand-icon {
+            width: 62px;
+            height: 62px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1e3a8a, #0284c7);
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 10px 25px rgba(2,132,199,.28);
+        }
+
+        .login-brand h2 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: .5px;
+        }
+
+        .login-brand p {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .login-role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .login-role-btn {
+            min-height: 78px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
+            border-radius: 14px;
+            padding: 10px;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+        }
+
+        .login-role-btn .role-icon { font-size: 25px; }
+        .login-role-btn .role-title { font-weight: 800; }
+        .login-role-btn .role-desc { font-size: 10px; color: #64748b; font-weight: 600; }
+
+        .login-role-btn.active {
+            border-color: #0284c7;
+            background: #f0f9ff;
+            color: #0369a1;
+            box-shadow: 0 0 0 3px rgba(2,132,199,.10);
+        }
+
+        .login-admin-form {
+            display: none;
+            margin-top: 4px;
+        }
+
+        .login-admin-form.show { display: block; }
+
+        .login-field {
+            margin-bottom: 12px;
+        }
+
+        .login-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .login-field input {
+            width: 100%;
+            padding: 12px 13px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .login-field input:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2,132,199,.12);
+        }
+
+        .login-submit {
+            width: 100%;
+            margin-top: 4px;
+            padding: 12px;
+            background: linear-gradient(135deg, #1e3a8a, #0284c7);
+            color: white;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .login-member-action {
+            display: none;
+            margin-top: 4px;
+        }
+
+        .login-member-action.show { display: block; }
+
+        .login-member-action button {
+            width: 100%;
+            padding: 12px;
+            background: #0284c7;
+            color: white;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .login-error {
+            display: none;
+            margin-top: 10px;
+            padding: 9px 11px;
+            border-radius: 9px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            font-size: 11.5px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .login-error.show { display: block; }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 10px;
+            border-radius: 9px;
+            background: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+            font-size: 10.5px;
+            font-weight: 800;
+        }
+
+        .logout-btn {
+            background: #fef2f2 !important;
+            color: #b91c1c !important;
+            border-color: #fecaca !important;
+        }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 22px 18px; border-radius: 20px; }
+            .login-role-btn { min-height: 72px; }
+        }
+
     </style>
 </head>
-<body onclick="closeExportDropdown(event)">
+<body class="app-locked" onclick="closeExportDropdown(event)">
+
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="login-brand-icon">🏸</div>
+            <h2>NEWTON</h2>
+            <p>Newbie Belajar Badminton</p>
+        </div>
+
+        <div class="login-role-grid">
+            <button type="button" id="role-member-btn" class="login-role-btn" onclick="pilihRoleLogin('member')">
+                <span class="role-icon">👤</span>
+                <span class="role-title">Member</span>
+                <span class="role-desc">Akses menu Mabar</span>
+            </button>
+
+            <button type="button" id="role-admin-btn" class="login-role-btn" onclick="pilihRoleLogin('admin')">
+                <span class="role-icon">🛡️</span>
+                <span class="role-title">Admin</span>
+                <span class="role-desc">Akses semua menu & data</span>
+            </button>
+        </div>
+
+        <div id="login-admin-form" class="login-admin-form">
+            <div class="login-field">
+                <label for="login-username">Username Admin</label>
+                <input type="text" id="login-username" autocomplete="username"
+                       placeholder="Masukkan username"
+                       onkeydown="if(event.key === 'Enter') prosesLoginAdmin()">
+            </div>
+
+            <div class="login-field">
+                <label for="login-password">Password Admin</label>
+                <input type="password" id="login-password" autocomplete="current-password"
+                       placeholder="Masukkan password"
+                       onkeydown="if(event.key === 'Enter') prosesLoginAdmin()">
+            </div>
+
+            <button type="button" class="login-submit" onclick="prosesLoginAdmin()">
+                🔐 Login sebagai Admin
+            </button>
+        </div>
+
+        <div id="login-member-action" class="login-member-action">
+            <button type="button" onclick="loginSebagaiMember()">
+                🏸 Masuk ke Mabar
+            </button>
+        </div>
+
+        <div id="login-error" class="login-error"></div>
+    </div>
+</div>
+
 
 <div id="custom-modal">
     <div class="modal-box">
@@ -1136,6 +1392,8 @@
         </div>
     </div>
     <div class="header-actions">
+        <span id="current-role-badge" class="role-badge">🔐 LOGIN</span>
+        <button id="logout-button" class="icon-btn logout-btn" onclick="logoutNewton()" title="Logout" aria-label="Logout">🚪</button>
         <button class="icon-btn" onclick="toggleExportMenu(event)" title="Export Data" aria-label="Export Data">📤</button>
         <div id="export-dropdown" class="export-dropdown">
             <div class="export-option" onclick="exportKeExcelMabar()">📊 Export Mabar (Excel)</div>
@@ -1146,7 +1404,7 @@
 </div>
 
 <div class="sidebar">
-    <button class="menu-item active" onclick="switchView('view-registrasi', this)">
+    <button class="menu-item admin-only-menu active" onclick="switchView('view-registrasi', this)">
         <span class="nav-icon">📋</span>
         <span>Registrasi</span>
     </button>
@@ -1154,11 +1412,11 @@
         <span class="nav-icon">🏸</span>
         <span>Mabar</span>
     </button>
-    <button class="menu-item" onclick="switchView('view-kas', this)">
+    <button class="menu-item admin-only-menu" onclick="switchView('view-kas', this)">
         <span class="nav-icon">💰</span>
         <span>Kas</span>
     </button>
-    <button class="menu-item" onclick="switchView('view-database', this)">
+    <button class="menu-item admin-only-menu" onclick="switchView('view-database', this)">
         <span class="nav-icon">🗄️</span>
         <span>Database</span>
     </button>
@@ -1462,6 +1720,7 @@
     }
 
     function bukaModalResetChoice() {
+        if (!pastikanAdmin()) return;
         document.getElementById('modal-reset-choice').style.display = 'flex';
     }
 
@@ -1560,13 +1819,160 @@
     let dataPemainKas = safeJSON('kasBadmintonData', []);
     let rekapSistemKas = { totalTunai: 0, totalTransfer: 0, totalBelum: 0, totalKeseluruhan: 0, countHadir: 0, countTunai: 0, countQris: 0, countSponsor: 0, countBelum: 0 };
 
+
+    // ============================================================
+    // LOGIN / ROLE ACCESS
+    // Admin credentials sederhana sesuai permintaan:
+    // Username: admin
+    // Password: 1234
+    // ============================================================
+    const NEWTON_ADMIN_USERNAME = 'admin';
+    const NEWTON_ADMIN_PASSWORD = '1234';
+
+    let newtonCurrentRole = null;
+
+    function pilihRoleLogin(role) {
+        const memberBtn = document.getElementById('role-member-btn');
+        const adminBtn = document.getElementById('role-admin-btn');
+        const adminForm = document.getElementById('login-admin-form');
+        const memberAction = document.getElementById('login-member-action');
+        const errorBox = document.getElementById('login-error');
+
+        newtonCurrentRole = role;
+        errorBox.classList.remove('show');
+        errorBox.innerText = '';
+
+        memberBtn.classList.toggle('active', role === 'member');
+        adminBtn.classList.toggle('active', role === 'admin');
+        adminForm.classList.toggle('show', role === 'admin');
+        memberAction.classList.toggle('show', role === 'member');
+
+        if (role === 'admin') {
+            setTimeout(() => document.getElementById('login-username')?.focus(), 50);
+        }
+    }
+
+    function tampilkanLoginError(message) {
+        const box = document.getElementById('login-error');
+        if (!box) return;
+        box.innerText = message;
+        box.classList.add('show');
+    }
+
+    function bukaAplikasiNewton(role) {
+        newtonCurrentRole = role;
+
+        document.body.classList.remove('app-locked');
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'none';
+
+        const badge = document.getElementById('current-role-badge');
+        if (badge) {
+            badge.innerHTML = role === 'admin' ? '🛡️ ADMIN' : '👤 MEMBER';
+        }
+
+        const adminMenus = document.querySelectorAll('.admin-only-menu');
+        adminMenus.forEach(menu => {
+            menu.style.display = role === 'admin' ? '' : 'none';
+        });
+
+        // Header export & reset hanya untuk Admin.
+        const exportBtn = document.querySelector('.header-actions > .icon-btn[onclick^="toggleExportMenu"]');
+        const resetBtn = document.querySelector('.header-actions > .icon-btn[onclick^="bukaModalResetChoice"]');
+
+        if (exportBtn) exportBtn.style.display = role === 'admin' ? 'flex' : 'none';
+        if (resetBtn) resetBtn.style.display = role === 'admin' ? 'flex' : 'none';
+
+        if (role === 'member') {
+            const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-mabar'"));
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            document.getElementById('view-mabar')?.classList.add('active-view');
+
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            if (mabarMenu) mabarMenu.classList.add('active');
+        } else {
+            const registrasiMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-registrasi'"));
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            document.getElementById('view-registrasi')?.classList.add('active-view');
+
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            if (registrasiMenu) registrasiMenu.classList.add('active');
+        }
+    }
+
+    function prosesLoginAdmin() {
+        const username = (document.getElementById('login-username')?.value || '').trim();
+        const password = document.getElementById('login-password')?.value || '';
+
+        if (username === NEWTON_ADMIN_USERNAME && password === NEWTON_ADMIN_PASSWORD) {
+            bukaAplikasiNewton('admin');
+            document.getElementById('login-password').value = '';
+        } else {
+            tampilkanLoginError('Username atau password admin salah.');
+            document.getElementById('login-password').select();
+        }
+    }
+
+    function loginSebagaiMember() {
+        bukaAplikasiNewton('member');
+    }
+
+    function logoutNewton() {
+        // Hentikan timer yang sedang berjalan agar sesi UI bersih.
+        for (const i in courtTimers) {
+            if (courtTimers[i] && courtTimers[i].intervalId) {
+                clearInterval(courtTimers[i].intervalId);
+                courtTimers[i].intervalId = null;
+            }
+        }
+
+        newtonCurrentRole = null;
+        document.body.classList.add('app-locked');
+
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'flex';
+
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-error').classList.remove('show');
+
+        document.querySelectorAll('.login-role-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('login-admin-form').classList.remove('show');
+        document.getElementById('login-member-action').classList.remove('show');
+
+        pilihRoleLogin('member');
+    }
+
+    function pastikanAdmin() {
+        if (newtonCurrentRole !== 'admin') {
+            showMsg('Menu ini hanya dapat digunakan oleh Admin.');
+            return false;
+        }
+        return true;
+    }
+
+    // Member hanya boleh membuka Mabar.
+    const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
+
     function switchView(viewId, menuElement) {
+        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar') {
+            showMsg('Member hanya memiliki akses ke menu Mabar.');
+            return;
+        }
+
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
         document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(viewId).classList.add('active-view');
-        menuElement.classList.add('active');
-        
+
+        const target = document.getElementById(viewId);
+        if (!target) return;
+
+        target.classList.add('active-view');
+        if (menuElement) menuElement.classList.add('active');
+
         if (viewId === 'view-mabar') {
             updateAllSelectOptions();
         } else if (viewId === 'view-database') {
@@ -1574,6 +1980,13 @@
             renderGradingSettings();
         }
     }
+
+    // Setiap kali halaman baru dibuka, login tetap diwajibkan.
+    // Tidak menggunakan localStorage/sessionStorage untuk kredensial.
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('app-locked');
+        pilihRoleLogin('member');
+    });
 
     function getGradeFromScore(score) {
         let val = parseFloat(score);
@@ -1699,6 +2112,7 @@
     }
 
     function addBulkPlayers() {
+        if (!pastikanAdmin()) return;
         const textarea = document.getElementById('bulk-names');
         const lines = textarea.value.split(/[\n,]+/);
         let count = 0;
@@ -1724,6 +2138,7 @@
     }
 
     function hapusPemain(name) {
+        if (!pastikanAdmin()) return;
         showConfirm(`Hapus ${name} dari seluruh sistem (Database, Mabar & Kas)?`, () => {
             delete playersData[name];
             for (let c in savedCourtsSetup) {
@@ -1744,6 +2159,7 @@
     }
 
     function bukaModalEditPemain(name) {
+        if (!pastikanAdmin()) return;
         document.getElementById('edit-player-old-name').value = name;
         const inputNew = document.getElementById('edit-player-new-name');
         inputNew.value = name;
@@ -1759,6 +2175,7 @@
     }
 
     function simpanEditNamaPemain() {
+        if (!pastikanAdmin()) return;
         const oldName = document.getElementById('edit-player-old-name').value.trim();
         const inputNew = document.getElementById('edit-player-new-name');
         const newName = inputNew.value.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
@@ -1846,6 +2263,7 @@
     }
 
     function updateScoreManual(name, inputEl) {
+        if (!pastikanAdmin()) return;
         let val = parseFloat(inputEl.value);
         if(isNaN(val)) val = 1.0;
         if(val > 10.0) val = 10.0;
@@ -2619,6 +3037,7 @@
     }
 
     function exportKeExcelMabar() {
+        if (!pastikanAdmin()) return;
         if (matchesHistory.length === 0) { showMsg("Belum ada pertandingan selesai!"); return; }
         
         let rows = [["No", "Lapangan", "Waktu", "Durasi", "Tim A", "Skor A", "Skor B", "Tim B", "Menang"]];
@@ -2639,6 +3058,7 @@
     }
 
     function exportKeExcelKas() {
+        if (!pastikanAdmin()) return;
         if (dataPemainKas.length === 0) { showMsg("Data Kas kosong!"); return; }
         let csv = "\ufeffNo,Nama,Status,Metode,Nominal\n";
         dataPemainKas.forEach((p, i) => { csv += `${i + 1},"${p.nama}",${p.lunas ? "LUNAS" : "BELUM"},${p.metode},${p.nominal}\n`; });
