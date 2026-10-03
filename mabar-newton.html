@@ -1209,6 +1209,12 @@
             .login-role-btn { min-height: 72px; }
         }
 
+
+        /* Member: sembunyikan kolom Hadir dan Aksi pada tabel Mabar */
+        body.role-member .member-hide-for-member {
+            display: none !important;
+        }
+
     </style>
 </head>
 <body class="app-locked" onclick="closeExportDropdown(event)">
@@ -1468,10 +1474,10 @@
                     <thead>
                         <tr>
                             <th>Pemain</th>
-                            <th style="text-align: center;">Hadir</th>
+                            <th style="text-align: center;"><span class="member-hide-for-member">Hadir</span></th>
                             <th style="text-align: center;" title="Match Played (Jumlah Main)">MP</th>
                             <th style="text-align: center;" title="Riwayat Hasil Pertandingan (Maksimal 7 Match Terakhir)">Riwayat (W/L)</th>
-                            <th style="text-align: center;">Aksi</th>
+                            <th style="text-align: center;"><span class="member-hide-for-member">Aksi</span></th>
                         </tr>
                     </thead>
                     <tbody id="player-table-body">
@@ -1664,7 +1670,7 @@
                             <th style="text-align: center;">Poin</th>
                             <th style="text-align: center;">Kls</th>
                             <th style="text-align: center;" title="Total Pertandingan Dimainkan">Total MP</th>
-                            <th style="text-align: center;">Aksi</th>
+                            <th style="text-align: center;"><span class="member-hide-for-member">Aksi</span></th>
                         </tr>
                     </thead>
                     <tbody id="db-table-body">
@@ -1859,6 +1865,36 @@
         box.classList.add('show');
     }
 
+
+    function aturTabelMabarUntukRole() {
+        const isMember = newtonCurrentRole === 'member';
+        document.body.classList.toggle('role-member', isMember);
+
+        document.querySelectorAll('#view-mabar table').forEach(table => {
+            const headerRow = table.querySelector('thead tr');
+            if (!headerRow) return;
+
+            const headers = Array.from(headerRow.children);
+            const hideIndexes = [];
+
+            headers.forEach((cell, index) => {
+                const text = (cell.textContent || '').trim().toLowerCase();
+                if (text === 'hadir' || text === 'kehadiran' || text === 'aksi') {
+                    hideIndexes.push(index);
+                    cell.classList.toggle('member-hide-for-member', isMember);
+                }
+            });
+
+            table.querySelectorAll('tbody tr').forEach(row => {
+                Array.from(row.children).forEach((cell, index) => {
+                    if (hideIndexes.includes(index)) {
+                        cell.classList.toggle('member-hide-for-member', isMember);
+                    }
+                });
+            });
+        });
+    }
+
     function bukaAplikasiNewton(role) {
         newtonCurrentRole = role;
 
@@ -1882,6 +1918,8 @@
 
         if (exportBtn) exportBtn.style.display = role === 'admin' ? 'flex' : 'none';
         if (resetBtn) resetBtn.style.display = role === 'admin' ? 'flex' : 'none';
+
+        aturTabelMabarUntukRole();
 
         if (role === 'member') {
             const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
@@ -3122,6 +3160,8 @@
                 console.warn('Firebase tidak dapat dimuat. Menggunakan cache lokal.', error);
             }
         }
+
+        aturTabelMabarUntukRole();
     };
 </script>
 
