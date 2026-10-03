@@ -1,0 +1,3293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEWTON - Newbie Belajar Badminton</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0284c7;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-muted: #64748b;
+            --kas-bg: #ecfdf5;
+            --nav-height: 68px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .top-header {
+            background: white;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-racket-icon {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            user-select: none;
+            background: transparent;
+            filter: drop-shadow(0 2px 5px rgba(2, 132, 199, 0.35));
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .brand-racket-icon:hover {
+            transform: scale(1.1) rotate(-6deg);
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-title {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .brand-subtitle {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.15px;
+            color: #64748b;
+            margin-top: 1px;
+            line-height: 1.15;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            position: relative;
+        }
+
+        .icon-btn {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--dark);
+        }
+
+        .icon-btn:hover, .icon-btn:active {
+            background: #e2e8f0;
+            transform: scale(0.96);
+        }
+
+        .export-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 48px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            z-index: 1000;
+            min-width: 180px;
+            overflow: hidden;
+            animation: popIn 0.18s ease-out;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .export-dropdown.show {
+            display: block;
+        }
+
+        .export-option {
+            padding: 12px 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            background: white;
+            transition: background 0.15s;
+        }
+
+        .export-option:last-child {
+            border-bottom: none;
+        }
+
+        .export-option:hover, .export-option:active {
+            background: #f0f9ff;
+            color: var(--secondary);
+        }
+
+        .sidebar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background-color: #ffffff;
+            border-top: 1px solid #cbd5e1;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+            z-index: 1000;
+            padding: 4px 6px;
+            padding-bottom: max(4px, env(safe-area-inset-bottom));
+        }
+
+        .menu-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 6px 2px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            color: #64748b;
+            background-color: transparent;
+            transition: all 0.2s ease;
+            border: none;
+            user-select: none;
+            height: 52px;
+            margin: 0 2px;
+        }
+
+        .menu-item .nav-icon {
+            font-size: 18px;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .menu-item:active {
+            transform: scale(0.95);
+        }
+
+        .menu-item.active {
+            color: var(--secondary);
+            background-color: #f0f9ff;
+            font-weight: 700;
+        }
+
+        .menu-item.active .nav-icon {
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: calc(var(--nav-height) + 24px);
+            background-color: #f8fafc;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .view-section {
+            display: none;
+            max-width: 960px;
+            margin: 0 auto;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .view-section.active-view {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+
+        .card-header-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        input[type="number"], input[type="text"], textarea, select {
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 1.5px solid #cbd5e1;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #ffffff;
+            color: var(--dark);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+        }
+
+        .reg-hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        }
+
+        .reg-hero h2 {
+            margin: 0 0 6px 0;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .reg-hero p {
+            margin: 0;
+            font-size: 12.5px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .quick-badge-tip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .grading-settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 10px;
+            margin: 12px 0 16px 0;
+        }
+
+        .grading-box {
+            background: #f8fafc;
+            padding: 10px 8px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 11.5px;
+            text-align: center;
+        }
+
+        .player-table-wrapper {
+            max-height: 480px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .player-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 12.5px;
+        }
+
+        .player-table th, .player-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .player-table th {
+            background-color: #f8fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 700;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .badge-grade {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: white;
+            font-size: 11px;
+            display: inline-block;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .grade-A { background-color: #10b981; }
+        .grade-B { background-color: #3b82f6; }
+        .grade-C { background-color: #f59e0b; }
+        .grade-D { background-color: #ef4444; }
+        .grade-E { background-color: #64748b; }
+
+        .btn-absen {
+            background-color: #16a34a;
+            color: white;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+        }
+
+        .badge-jam {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .badge-jam:hover {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            text-decoration: line-through;
+        }
+
+        .courts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 14px;
+        }
+
+        .court-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 14px;
+            background: #ffffff;
+            border-top: 5px solid var(--secondary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .court-title {
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 4px;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .court-lock-btn {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1.5px solid #cbd5e1;
+            padding: 3px 10px;
+            font-size: 11px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .court-lock-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .court-lock-btn.locked {
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #fca5a5;
+            box-shadow: 0 1px 3px rgba(220, 38, 38, 0.12);
+        }
+
+        .live-timer-banner {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            color: #475569;
+            margin-bottom: 12px;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        .match-setup {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .team-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .team-col select {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 11.5px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            font-weight: 600;
+        }
+
+        .team-col input {
+            padding: 6px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 800;
+            width: 100%;
+        }
+
+        .vs-center {
+            font-weight: 900;
+            font-size: 13px;
+            color: #94a3b8;
+            padding: 0 4px;
+        }
+
+        .timer-btn-group {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 1fr;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .timer-btn-group button {
+            font-size: 11px;
+            padding: 8px 4px;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+
+        .btn-start-match { background-color: var(--success); }
+        .btn-finish-match { background-color: var(--primary); }
+        .btn-finish-match:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .badge-wl-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            flex-wrap: nowrap;
+        }
+
+        .badge-wl {
+            width: 19px;
+            height: 19px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+            transition: transform 0.15s ease;
+            user-select: none;
+        }
+
+        .badge-wl:hover {
+            transform: scale(1.15);
+        }
+
+        .badge-wl.wl-w {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        }
+
+        .badge-wl.wl-l {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .badge-wl.wl-d {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            max-height: 420px;
+            overflow-y: auto;
+            margin: 0;
+        }
+
+        .history-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 12.5px;
+            border-left: 4px solid var(--secondary);
+            border: 1px solid #e2e8f0;
+            border-left-width: 4px;
+        }
+
+        /* === MODERN KAS & TREASURY STYLING === */
+        .kas-hero-wallet {
+            background: linear-gradient(135deg, #065f46 0%, #047857 45%, #0f766e 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.35), 0 8px 10px -6px rgba(5, 150, 105, 0.2);
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .kas-hero-wallet::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .kas-wallet-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .kas-wallet-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .kas-grand-amount {
+            font-size: 27px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            margin: 4px 0 14px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .kas-grand-amount span {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.85;
+        }
+
+        .kas-progress-wrap {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .kas-progress-bar {
+            background: linear-gradient(90deg, #34d399 0%, #6ee7b7 100%);
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .kas-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-weight: 600;
+            opacity: 0.92;
+        }
+
+        .kas-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        @media (min-width: 640px) {
+            .kas-stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .kas-stat-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .kas-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .kas-stat-val {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .kas-stat-card.tunai { border-left: 4px solid #16a34a; }
+        .kas-stat-card.tunai .kas-stat-header { color: #166534; }
+        .kas-stat-card.qris { border-left: 4px solid #0284c7; }
+        .kas-stat-card.qris .kas-stat-header { color: #0369a1; }
+        .kas-stat-card.belum { border-left: 4px solid #dc2626; }
+        .kas-stat-card.belum .kas-stat-header { color: #991b1b; }
+        .kas-stat-card.sponsor { border-left: 4px solid #d97706; }
+        .kas-stat-card.sponsor .kas-stat-header { color: #b45309; }
+
+        .kas-controls-bar {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .kas-search-box {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 100%;
+        }
+
+        .kas-search-box input {
+            width: 100%;
+            padding-left: 36px;
+            padding-right: 12px;
+            font-size: 12.5px;
+            background: #f8fafc;
+        }
+
+        .kas-search-icon {
+            position: absolute;
+            left: 12px;
+            font-size: 14px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .kas-filter-pills {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .kas-pill-btn {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid transparent;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .kas-pill-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        .kas-card-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        .kas-player-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            padding: 11px 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: all 0.18s ease;
+        }
+
+        .kas-player-card.is-paid {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+
+        .kas-player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .kas-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .kas-player-card.is-paid .kas-avatar {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .kas-player-details {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .kas-player-name {
+            font-weight: 700;
+            font-size: 13.5px;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .kas-player-amount {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 1px;
+        }
+
+        .kas-player-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .kas-method-select {
+            padding: 6px 8px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            cursor: pointer;
+        }
+
+        .kas-action-toggle {
+            padding: 7px 12px;
+            border-radius: 9px;
+            font-size: 11.5px;
+            font-weight: 800;
+            cursor: pointer;
+            border: none;
+            min-width: 82px;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .kas-action-toggle.paid {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+        }
+
+        .kas-action-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .watermark-ct {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px 4px 6px;
+            margin-left: 4px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            opacity: 0.55;
+            transition: all 0.2s ease;
+            user-select: none;
+            flex-shrink: 0;
+            cursor: default;
+        }
+
+        .watermark-ct:hover {
+            opacity: 0.95;
+            border-color: var(--secondary);
+            transform: scale(1.02);
+        }
+
+        .wm-icon-badge {
+            font-size: 13px;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+        }
+
+        .wm-text-block {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+            text-align: left;
+        }
+
+        .wm-line-sub {
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .wm-line-name {
+            font-size: 10.5px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            color: var(--primary);
+        }
+
+        #custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            max-width: 320px;
+            width: 88%;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.2s ease-out;
+        }
+
+        /* ============================================================
+           LOGIN & ROLE ACCESS
+           ============================================================ */
+        body.app-locked > .top-header,
+        body.app-locked > .sidebar,
+        body.app-locked > .main-content {
+            display: none !important;
+        }
+
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(59,130,246,.20), transparent 32%),
+                radial-gradient(circle at 85% 80%, rgba(2,132,199,.18), transparent 32%),
+                linear-gradient(135deg, #0f172a 0%, #172554 52%, #0c4a6e 100%);
+        }
+
+        .login-card {
+            width: min(420px, 100%);
+            background: rgba(255,255,255,.97);
+            border: 1px solid rgba(255,255,255,.35);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 25px 70px rgba(0,0,0,.28);
+            animation: loginIn .25s ease-out;
+        }
+
+        @keyframes loginIn {
+            from { opacity: 0; transform: translateY(12px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .login-brand {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .login-brand-icon {
+            width: 62px;
+            height: 62px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1e3a8a, #0284c7);
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 10px 25px rgba(2,132,199,.28);
+        }
+
+        .login-brand h2 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: .5px;
+        }
+
+        .login-brand p {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .login-role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .login-role-btn {
+            min-height: 78px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
+            border-radius: 14px;
+            padding: 10px;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+        }
+
+        .login-role-btn .role-icon { font-size: 25px; }
+        .login-role-btn .role-title { font-weight: 800; }
+        .login-role-btn .role-desc { font-size: 10px; color: #64748b; font-weight: 600; }
+
+        .login-role-btn.active {
+            border-color: #0284c7;
+            background: #f0f9ff;
+            color: #0369a1;
+            box-shadow: 0 0 0 3px rgba(2,132,199,.10);
+        }
+
+        .login-admin-form {
+            display: none;
+            margin-top: 4px;
+        }
+
+        .login-admin-form.show { display: block; }
+
+        .login-field {
+            margin-bottom: 12px;
+        }
+
+        .login-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .login-field input {
+            width: 100%;
+            padding: 12px 13px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .login-field input:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2,132,199,.12);
+        }
+
+        .login-submit {
+            width: 100%;
+            margin-top: 4px;
+            padding: 12px;
+            background: linear-gradient(135deg, #1e3a8a, #0284c7);
+            color: white;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .login-member-action {
+            display: none;
+            margin-top: 4px;
+        }
+
+        .login-member-action.show { display: block; }
+
+        .login-member-action button {
+            width: 100%;
+            padding: 12px;
+            background: #0284c7;
+            color: white;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .login-error {
+            display: none;
+            margin-top: 10px;
+            padding: 9px 11px;
+            border-radius: 9px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            font-size: 11.5px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .login-error.show { display: block; }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 10px;
+            border-radius: 9px;
+            background: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+            font-size: 10.5px;
+            font-weight: 800;
+        }
+
+        .logout-btn {
+            background: #fef2f2 !important;
+            color: #b91c1c !important;
+            border-color: #fecaca !important;
+        }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 22px 18px; border-radius: 20px; }
+            .login-role-btn { min-height: 72px; }
+        }
+
+    </style>
+</head>
+<body class="app-locked" onclick="closeExportDropdown(event)">
+
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="login-brand-icon">🏸</div>
+            <h2>NEWTON</h2>
+            <p>Newbie Belajar Badminton</p>
+        </div>
+
+        <div class="login-role-grid">
+            <button type="button" id="role-member-btn" class="login-role-btn" onclick="pilihRoleLogin('member')">
+                <span class="role-icon">👤</span>
+                <span class="role-title">Member</span>
+                <span class="role-desc">Akses menu Mabar</span>
+            </button>
+
+            <button type="button" id="role-admin-btn" class="login-role-btn" onclick="pilihRoleLogin('admin')">
+                <span class="role-icon">🛡️</span>
+                <span class="role-title">Admin</span>
+                <span class="role-desc">Akses semua menu & data</span>
+            </button>
+        </div>
+
+        <div id="login-admin-form" class="login-admin-form">
+            <div class="login-field">
+                <label for="login-username">Username Admin</label>
+                <input type="text" id="login-username" autocomplete="username"
+                       placeholder="Masukkan username"
+                       onkeydown="if(event.key === 'Enter') prosesLoginAdmin()">
+            </div>
+
+            <div class="login-field">
+                <label for="login-password">Password Admin</label>
+                <input type="password" id="login-password" autocomplete="current-password"
+                       placeholder="Masukkan password"
+                       onkeydown="if(event.key === 'Enter') prosesLoginAdmin()">
+            </div>
+
+            <button type="button" class="login-submit" onclick="prosesLoginAdmin()">
+                🔐 Login sebagai Admin
+            </button>
+        </div>
+
+        <div id="login-member-action" class="login-member-action">
+            <button type="button" onclick="loginSebagaiMember()">
+                🏸 Masuk ke Mabar
+            </button>
+        </div>
+
+        <div id="login-error" class="login-error"></div>
+    </div>
+</div>
+
+
+<div id="custom-modal">
+    <div class="modal-box">
+        <p id="modal-message" style="font-size:14px; margin-bottom:18px; color:#1e293b; font-weight:600; line-height:1.5;"></p>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button id="modal-ok-btn" style="background:var(--secondary); padding:9px 18px; border-radius:8px; color:white; font-weight:700;">OK</button>
+            <button id="modal-cancel-btn" style="background:#cbd5e1; padding:9px 18px; border-radius:8px; color:#334155; font-weight:700; display:none;">Batal</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-reset-choice" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(3px); z-index:9999; justify-content:center; align-items:center;">
+    <div class="modal-box" style="max-width:350px; width:90%; text-align:left; padding:20px;">
+        <h3 style="margin:0 0 6px 0; color:#1e293b; font-size:16px; font-weight:800; display:flex; align-items:center; gap:6px;">
+            🔄 Pilihan Reset Data
+        </h3>
+        <p style="font-size:12px; color:#64748b; margin:0 0 16px 0; line-height:1.4;">
+            Pilih jenis reset yang ingin Anda jalankan:
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
+            <button onclick="eksekusiResetHarian()" style="background:#f0fdf4; border:1.5px solid #86efac; color:#166534; padding:12px 14px; border-radius:12px; text-align:left; display:flex; flex-direction:column; gap:4px;">
+                <span style="font-weight:800; font-size:13px; display:flex; align-items:center; gap:6px;">🧹 Reset Harian (Mabar & Kas)</span>
+                <span style="font-size:11px; color:#15803d; font-weight:normal; line-height:1.3;">
+                    Bersihkan sesi mabar, timer lapangan, riwayat pertandingan, & status kas hari ini. <b>Database nama & poin pemain tetap aman tersimpan.</b>
+                </span>
+            </button>
+            <button onclick="eksekusiResetDatabase()" style="background:#fef2f2; border:1.5px solid #fecaca; color:#991b1b; padding:12px 14px; border-radius:12px; text-align:left; display:flex; flex-direction:column; gap:4px;">
+                <span style="font-weight:800; font-size:13px; display:flex; align-items:center; gap:6px;">⚠️ Reset Database (Semua Data)</span>
+                <span style="font-size:11px; color:#b91c1c; font-weight:normal; line-height:1.3;">
+                    Hapus total seluruh database pemain, histori mabar, kas, dan setelan grading ke kondisi awal pabrik.
+                </span>
+            </button>
+        </div>
+        
+        <button onclick="tutupModalResetChoice()" style="width:100%; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:9px; border-radius:8px; font-weight:700;">
+            Batal
+        </button>
+    </div>
+</div>
+
+<div id="modal-edit-player" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(3px); z-index:9999; justify-content:center; align-items:center;">
+    <div class="modal-box" style="max-width:320px; width:88%; text-align:left; padding:20px;">
+        <h3 style="margin:0 0 10px 0; color:#1e293b; font-size:15px; font-weight:800; display:flex; align-items:center; gap:6px;">
+            ✏️ Edit Nama Pemain
+        </h3>
+        <label style="font-size:11.5px; color:#64748b; display:block; margin-bottom:6px; font-weight:600;">Nama Baru Pemain:</label>
+        <input type="hidden" id="edit-player-old-name" value="">
+        <input type="text" id="edit-player-new-name" placeholder="Masukkan nama baru..." style="width:100%; box-sizing:border-box; margin-bottom:14px; font-weight:700; text-transform:uppercase;" onkeypress="if(event.key === 'Enter') simpanEditNamaPemain();">
+        
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button onclick="tutupModalEditPemain()" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:700;">Batal</button>
+            <button onclick="simpanEditNamaPemain()" style="background:var(--secondary); color:white; padding:8px 16px; border-radius:8px; font-size:12px; font-weight:700;">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div class="top-header">
+    <div class="brand-container">
+        <div class="brand-racket-icon" aria-label="NEWTON Racket">
+            <svg width="36" height="36" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="racketFrameGrad" x1="14" y1="2" x2="32" y2="24" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#38bdf8"/>
+                        <stop offset="45%" stop-color="#0284c7"/>
+                        <stop offset="100%" stop-color="#1e3a8a"/>
+                    </linearGradient>
+                    <linearGradient id="shaftGrad" x1="22" y1="23" x2="24" y2="33" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#94a3b8"/>
+                        <stop offset="50%" stop-color="#cbd5e1"/>
+                        <stop offset="100%" stop-color="#64748b"/>
+                    </linearGradient>
+                    <linearGradient id="gripGrad" x1="21" y1="33" x2="25" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#1e293b"/>
+                        <stop offset="100%" stop-color="#0f172a"/>
+                    </linearGradient>
+                    <clipPath id="headStringClip">
+                        <ellipse cx="23" cy="12.5" rx="7.8" ry="9.8" />
+                    </clipPath>
+                </defs>
+                <g transform="rotate(45 23 23)">
+                    <!-- Senar Raket (Strings) dengan Clip Frame -->
+                    <g clip-path="url(#headStringClip)">
+                        <line x1="18.2" y1="1" x2="18.2" y2="24" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="20.6" y1="1" x2="20.6" y2="24" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="23" y1="1" x2="23" y2="24" stroke="#0284c7" stroke-width="0.8" opacity="0.75"/>
+                        <line x1="25.4" y1="1" x2="25.4" y2="24" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="27.8" y1="1" x2="27.8" y2="24" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        
+                        <line x1="12" y1="5.5" x2="34" y2="5.5" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="12" y1="8.5" x2="34" y2="8.5" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="12" y1="11.5" x2="34" y2="11.5" stroke="#0284c7" stroke-width="0.8" opacity="0.75"/>
+                        <line x1="12" y1="14.5" x2="34" y2="14.5" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="12" y1="17.5" x2="34" y2="17.5" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                        <line x1="12" y1="20.5" x2="34" y2="20.5" stroke="#0284c7" stroke-width="0.8" opacity="0.65"/>
+                    </g>
+
+                    <!-- Frame Oval Raket -->
+                    <ellipse cx="23" cy="12.5" rx="8.8" ry="10.8" stroke="url(#racketFrameGrad)" stroke-width="2.2"/>
+
+                    <!-- T-Joint Throat -->
+                    <path d="M20.8 22.8 C21.6 24 22.3 24.8 23 24.8 C23.7 24.8 24.4 24 25.2 22.8" stroke="url(#racketFrameGrad)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+                    <!-- Shaft / Batang Raket Metalik -->
+                    <line x1="23" y1="24.5" x2="23" y2="33.5" stroke="url(#shaftGrad)" stroke-width="1.9" stroke-linecap="round"/>
+
+                    <!-- Cone Sambungan Handle -->
+                    <path d="M21.5 33.5 L24.5 33.5 L24.8 34.7 L21.2 34.7 Z" fill="#0284c7"/>
+
+                    <!-- Grip / Gagang Raket -->
+                    <rect x="21.2" y="34.7" width="3.6" height="8" rx="0.8" fill="url(#gripGrad)"/>
+                    <!-- Detail Lilitan Grip -->
+                    <line x1="21.2" y1="36.5" x2="24.8" y2="35.7" stroke="#64748b" stroke-width="0.75"/>
+                    <line x1="21.2" y1="38.5" x2="24.8" y2="37.7" stroke="#64748b" stroke-width="0.75"/>
+                    <line x1="21.2" y1="40.5" x2="24.8" y2="39.7" stroke="#64748b" stroke-width="0.75"/>
+
+                    <!-- Butt Cap Bawah -->
+                    <rect x="20.7" y="42.5" width="4.6" height="1.6" rx="0.6" fill="#0284c7"/>
+                </g>
+            </svg>
+        </div>
+        <div class="brand-text-block">
+            <h1 class="brand-title">NEWTON</h1>
+            <span class="brand-subtitle">(Newbie Belajar Badminton)</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <span id="current-role-badge" class="role-badge">🔐 LOGIN</span>
+        <button id="logout-button" class="icon-btn logout-btn" onclick="logoutNewton()" title="Logout" aria-label="Logout">🚪</button>
+        <button class="icon-btn" onclick="toggleExportMenu(event)" title="Export Data" aria-label="Export Data">📤</button>
+        <div id="export-dropdown" class="export-dropdown">
+            <div class="export-option" onclick="exportKeExcelMabar()">📊 Export Mabar (Excel)</div>
+            <div class="export-option" onclick="exportKeExcelKas()">💰 Export Kas (CSV)</div>
+        </div>
+        <button class="icon-btn" onclick="bukaModalResetChoice()" title="Reset Data" aria-label="Reset Data">🔄</button>
+    </div>
+</div>
+
+<div class="sidebar">
+    <button class="menu-item admin-only-menu active" onclick="switchView('view-registrasi', this)">
+        <span class="nav-icon">📋</span>
+        <span>Registrasi</span>
+    </button>
+    <button class="menu-item" onclick="switchView('view-mabar', this)">
+        <span class="nav-icon">🏸</span>
+        <span>Mabar</span>
+    </button>
+    <button class="menu-item admin-only-menu" onclick="switchView('view-kas', this)">
+        <span class="nav-icon">💰</span>
+        <span>Kas</span>
+    </button>
+    <button class="menu-item admin-only-menu" onclick="switchView('view-database', this)">
+        <span class="nav-icon">🗄️</span>
+        <span>Database</span>
+    </button>
+    <div class="watermark-ct" title="Designed & Crafted by CT">
+        <div class="wm-icon-badge">⚡</div>
+        <div class="wm-text-block">
+            <span class="wm-line-sub">Made by</span>
+            <span class="wm-line-name">C.T</span>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+
+    <div id="view-registrasi" class="view-section active-view">
+        <div class="reg-hero">
+            <h2>Pendaftaran Pemain</h2>
+            <p>Salin & tempel daftar peserta secara instan. Sistem otomatis menyaring nama, nomor, dan menyinkronkannya ke Kas & Database.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header-title">
+                <span>➕ Tambah Pemain Baru (Copas WA)</span>
+                <span class="quick-badge-tip">⚡ Otomatis Rapih</span>
+            </div>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-top:0; margin-bottom:12px;">
+                Tempel daftar nama dari chat WhatsApp ke kotak di bawah:
+            </p>
+            <textarea id="bulk-names" placeholder="Contoh:&#10;1. Andi&#10;2. Budi&#10;3. Citra" style="width: 100%; height: 120px; box-sizing: border-box; resize: vertical; margin-bottom: 12px; font-family:inherit;"></textarea>
+            <button style="width: 100%; background: var(--secondary); font-size: 14px; padding: 12px;" onclick="addBulkPlayers()">
+                ✨ Tambahkan Nama ke Mabar
+            </button>
+        </div>
+    </div>
+
+    <!-- STREAMING_CHUNK:Rendering Mabar view in specified order: Players -> Court Control -> Match History -->
+    <div id="view-mabar" class="view-section">
+        
+        <!-- 1. DAFTAR PEMAIN (Tabel Pemain) -->
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 16px;">
+            <div style="padding: 14px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: var(--primary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                    👥 Daftar Pemain (<span id="total-players">0</span>)
+                </strong>
+                <span style="font-size: 11.5px; color: var(--text-muted);">Klik 'Absen' saat pemain hadir</span>
+            </div>
+            <div class="player-table-wrapper" style="border: none; border-radius: 0;">
+                <table class="player-table">
+                    <thead>
+                        <tr>
+                            <th>Pemain</th>
+                            <th style="text-align: center;">Hadir</th>
+                            <th style="text-align: center;" title="Match Played (Jumlah Main)">MP</th>
+                            <th style="text-align: center;" title="Riwayat Hasil Pertandingan (Maksimal 7 Match Terakhir)">Riwayat (W/L)</th>
+                            <th style="text-align: center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="player-table-body">
+                        <!-- Injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. KONTROL LAPANGAN & GRID LAPANGAN -->
+        <div class="card" style="margin-bottom: 16px;">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                <div>
+                    <strong style="font-size: 15px; color: var(--primary); display:block;">🏸 Kontrol Lapangan</strong>
+                    <span style="font-size: 11.5px; color: var(--text-muted);">Sesuaikan jumlah lapangan yang aktif</span>
+                </div>
+                <div style="display:flex; gap: 8px; align-items: center;">
+                    <button onclick="kurangiLapangan()" style="background:var(--danger); width: 36px; height: 36px; padding: 0; font-size: 18px; border-radius: 8px;" title="Kurangi Lapangan">-</button>
+                    <button onclick="tambahLapanganBaru()" style="background:var(--success); width: 36px; height: 36px; padding: 0; font-size: 18px; border-radius: 8px;" title="Tambah Lapangan">+</button>
+                </div>
+            </div>
+
+            <!-- Grid Lapangan Aktif -->
+            <div class="courts-grid" id="courts-container">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+
+        <!-- 3. RIWAYAT PERTANDINGAN -->
+        <div class="card">
+            <div class="card-header-title">
+                <span>📜 Riwayat Pertandingan</span>
+            </div>
+            <ul class="history-list" id="history-container">
+                <!-- Injected via JavaScript -->
+            </ul>
+        </div>
+
+    </div>
+
+    <div id="view-kas" class="view-section">
+        <!-- 1. MODERN FINTECH WALLET HERO -->
+        <div class="kas-hero-wallet">
+            <div class="kas-wallet-top">
+                <span class="kas-wallet-badge">💰 KAS MABAR BADMINTON</span>
+                <button onclick="salinRekapKasWA()" style="background: rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.3); color:white; padding:5px 10px; font-size:11px; border-radius:8px;" title="Salin format rekap untuk WhatsApp">
+                    📋 Salin WA
+                </button>
+            </div>
+            <div style="font-size: 11.5px; opacity: 0.9; margin-top: 4px;">Total Uang Masuk</div>
+            <div class="kas-grand-amount">
+                <span id="total-keseluruhan">Rp 0</span>
+            </div>
+
+            <!-- Progress Terkumpul -->
+            <div class="kas-progress-wrap">
+                <div class="kas-progress-bar" id="kas-progress-bar" style="width: 0%;"></div>
+            </div>
+            <div class="kas-progress-meta">
+                <span id="kas-progress-text">Terkumpul: 0 dari 0 Pemain</span>
+                <span id="kas-progress-percent">0% Lunas</span>
+            </div>
+        </div>
+
+        <!-- 2. MODERN 4-METRIC STAT CARDS -->
+        <div class="kas-stats-grid">
+            <div class="kas-stat-card tunai">
+                <div class="kas-stat-header">
+                    <span>💵 TUNAI</span>
+                    <span id="box-count-tunai">(0)</span>
+                </div>
+                <div class="kas-stat-val" id="total-tunai">Rp 0</div>
+            </div>
+            <div class="kas-stat-card qris">
+                <div class="kas-stat-header">
+                    <span>📱 QRIS / TF</span>
+                    <span id="box-count-qris">(0)</span>
+                </div>
+                <div class="kas-stat-val" id="total-transfer">Rp 0</div>
+            </div>
+            <div class="kas-stat-card belum">
+                <div class="kas-stat-header">
+                    <span>⏳ BELUM</span>
+                    <span id="box-count-belum">(0)</span>
+                </div>
+                <div class="kas-stat-val" id="total-belum">Rp 0</div>
+            </div>
+            <div class="kas-stat-card sponsor">
+                <div class="kas-stat-header">
+                    <span>🤝 FREE/SPONSOR</span>
+                    <span>GRATIS</span>
+                </div>
+                <div class="kas-stat-val"><span id="count-sponsor">0</span> <span style="font-size:11.5px; font-weight:600; color:#64748b;">Orang</span></div>
+            </div>
+        </div>
+
+        <!-- 3. CONFIG & QUICK ACTIONS -->
+        <div class="card" style="padding: 12px 14px; margin-bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="display:flex; align-items:center; gap: 6px;">
+                <span style="font-size:12.5px; font-weight:700; color:var(--primary);">Nominal: Rp</span>
+                <input type="number" id="iuran-pemain" value="20000" style="width: 85px; text-align:center; font-weight:800; padding:6px 8px; font-size:13px;">
+                <button onclick="terapkanNominalKas()" style="padding: 6px 12px; font-size: 11.5px; background: #ffffff; color: var(--primary); border: 1.5px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+                    💾 Terapkan
+                </button>
+            </div>
+            <div style="display:flex; gap: 6px;">
+                <button onclick="tandaiSemuaLunasKas()" style="padding: 6px 12px; font-size: 11.5px; background: #ffffff; color: #0f172a; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+                    ⚡ Semua Lunas
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. SEARCH & FILTER CONTROLS -->
+        <div class="kas-controls-bar">
+            <div class="kas-search-box">
+                <span class="kas-search-icon">🔍</span>
+                <input type="text" id="kas-search-input" placeholder="Cari nama pemain kas..." oninput="onKasSearch(this.value)">
+            </div>
+            <div class="kas-filter-pills">
+                <button class="kas-pill-btn active" id="kas-tab-all" onclick="setKasFilter('all', this)">Semua (<span id="count-hadir">0</span>)</button>
+                <button class="kas-pill-btn" id="kas-tab-belum" onclick="setKasFilter('belum', this)">⏳ Belum Bayar</button>
+                <button class="kas-pill-btn" id="kas-tab-lunas" onclick="setKasFilter('lunas', this)">✅ Lunas</button>
+            </div>
+        </div>
+
+        <!-- 5. DAFTAR KARTU PEMAIN KAS -->
+        <ul class="kas-card-list" id="daftar-pemain-kas">
+            <!-- Injected via JavaScript -->
+        </ul>
+    </div>
+
+    <div id="view-database" class="view-section">
+        <div class="reg-hero" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+            <h2>🗄️ Database & Pengaturan Pemain</h2>
+            <p>Pusat database seluruh nama pemain badminton, histori MP, edit poin kelas, dan pengaturan grading sistem.</p>
+        </div>
+
+        <!-- 1. PENGATURAN GRADING & POIN (Bisa Dibuka Tutup / Minimize) -->
+        <div class="card" style="margin-bottom: 16px;">
+            <div class="card-header-title" onclick="toggleGradingAccordion()" style="cursor: pointer; user-select: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none; display: flex; justify-content: space-between; align-items: center;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    ⚙️ Pengaturan Grading & Poin
+                </span>
+                <button type="button" id="btn-toggle-grading" onclick="event.stopPropagation(); toggleGradingAccordion();" style="background: #f1f5f9; color: var(--secondary); border: 1.5px solid #cbd5e1; padding: 4px 10px; font-size: 11.5px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <span id="grading-toggle-text">Buka</span>
+                    <span id="grading-toggle-icon" style="font-size: 10px;">▼</span>
+                </button>
+            </div>
+            
+            <div id="grading-accordion-body" style="display: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+                <div style="margin-bottom: 14px; background: #f0f9ff; padding: 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #bae6fd;">
+                    <div>
+                        <strong style="font-size: 13px; color: #0369a1; display:block;">Poin Awal Pemain Baru:</strong>
+                        <span style="font-size: 11.5px; color: #0284c7;">Skor bawaan saat pertama didaftarkan</span>
+                    </div>
+                    <input type="number" id="setting-initial-score" step="0.1" min="0" max="10" style="width: 64px; text-align: center; font-weight:800; font-size:14px;">
+                </div>
+
+                <span style="font-size: 12px; font-weight: 700; color: #475569; display:block; margin-bottom: 4px;">Rentang Poin Kelas (A - E):</span>
+                <div class="grading-settings-grid" id="grading-settings-container">
+                    <!-- Injected via JavaScript -->
+                </div>
+                <button style="width: 100%; background-color: var(--primary);" onclick="saveGradingSettings()">
+                    💾 Simpan Pengaturan Grading
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. DAFTAR MASTER NAMA PEMAIN -->
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 16px;">
+            <div style="padding: 14px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: var(--primary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                    📚 Master Database Pemain (<span id="total-db-players">0</span>)
+                </strong>
+            </div>
+
+            <!-- Form Tambah 1 Pemain Manual Langsung ke Database -->
+            <div style="padding: 10px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="db-quick-name" placeholder="Tambah 1 nama baru..." style="flex:1; padding: 7px 10px; font-size: 12px;">
+                <button onclick="tambahPemainDatabaseManual()" style="padding: 7px 14px; font-size: 12px; background: var(--secondary); white-space: nowrap;">
+                    ➕ Tambah
+                </button>
+            </div>
+
+            <div class="player-table-wrapper" style="border: none; border-radius: 0; max-height: 480px;">
+                <table class="player-table">
+                    <thead>
+                        <tr>
+                            <th>Nama Pemain</th>
+                            <th style="text-align: center;">Poin</th>
+                            <th style="text-align: center;">Kls</th>
+                            <th style="text-align: center;" title="Total Pertandingan Dimainkan">Total MP</th>
+                            <th style="text-align: center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-table-body">
+                        <!-- Injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- CUSTOM MODAL HELPERS (Avoiding alert/confirm) ---
+    function showMsg(msg, callback) {
+        document.getElementById('modal-message').innerText = msg;
+        document.getElementById('modal-cancel-btn').style.display = 'none';
+        const okBtn = document.getElementById('modal-ok-btn');
+        okBtn.onclick = () => {
+            document.getElementById('custom-modal').style.display = 'none';
+            if(callback) callback();
+        };
+        document.getElementById('custom-modal').style.display = 'flex';
+    }
+
+    function showConfirm(msg, onConfirm) {
+        document.getElementById('modal-message').innerText = msg;
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        cancelBtn.style.display = 'inline-block';
+        const okBtn = document.getElementById('modal-ok-btn');
+        okBtn.onclick = () => {
+            document.getElementById('custom-modal').style.display = 'none';
+            if(onConfirm) onConfirm();
+        };
+        cancelBtn.onclick = () => {
+            document.getElementById('custom-modal').style.display = 'none';
+        };
+        document.getElementById('custom-modal').style.display = 'flex';
+    }
+
+    // --- EXPORT DROPDOWN TOGGLE ---
+    function toggleExportMenu(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('export-dropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    function closeExportDropdown(event) {
+        const dropdown = document.getElementById('export-dropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        }
+    }
+
+    function bukaModalResetChoice() {
+        if (!pastikanAdmin()) return;
+        document.getElementById('modal-reset-choice').style.display = 'flex';
+    }
+
+    function tutupModalResetChoice() {
+        document.getElementById('modal-reset-choice').style.display = 'none';
+    }
+
+    function eksekusiResetHarian() {
+        tutupModalResetChoice();
+        showConfirm("Jalankan RESET HARIAN? Sesi mabar, timer lapangan, riwayat pertandingan & status kas hari ini akan dikosongkan. Seluruh data nama pemain di Database TETAP AMAN.", () => {
+            // 1. Hentikan seluruh timer lapangan aktif
+            for (let i in courtTimers) {
+                if (courtTimers[i] && courtTimers[i].intervalId) {
+                    clearInterval(courtTimers[i].intervalId);
+                }
+            }
+            courtTimers = {};
+            savedTimersState = {};
+            matchesHistory = [];
+            savedCourtsSetup = {};
+            localStorage.removeItem('mabar_court_setups');
+
+            // 2. Kosongkan absensi dan MP harian pemain, tetapi pertahankan database & poin pemain
+            Object.keys(playersData).forEach(name => {
+                playersData[name].checkInTime = "";
+                playersData[name].mp = 0;
+            });
+
+            // 3. Reset status kas harian (kembali ke belum bayar)
+            dataPemainKas.forEach(p => {
+                p.lunas = false;
+                p.metode = "Tunai";
+            });
+
+            saveDataLocally();
+            generateCourtsDOM();
+            restoreCourtsStateDOM();
+            updatePlayerTable();
+            updateAllSelectOptions();
+            updateHistoryDOM();
+            renderPemainKas();
+            renderDatabasePemain();
+
+            showMsg("🧹 Reset Harian selesai! Sesi mabar & kas telah bersih. Database pemain tetap tersimpan.");
+        });
+    }
+
+    function eksekusiResetDatabase() {
+        tutupModalResetChoice();
+        showConfirm("⚠️ PERINGATAN: Anda akan menghapus TOTAL seluruh database pemain, aturan grading, histori mabar, dan rekap kas. Lanjutkan?", async () => {
+            for (let i in courtTimers) {
+                if (courtTimers[i] && courtTimers[i].intervalId) {
+                    clearInterval(courtTimers[i].intervalId);
+                }
+            }
+            if (typeof window.firebaseResetDatabase === 'function') {
+                try {
+                    await window.firebaseResetDatabase();
+                } catch (error) {
+                    console.error('Firebase reset gagal:', error);
+                    showMsg('Gagal menghapus database Firebase: ' + error.message);
+                    return;
+                }
+            }
+
+            localStorage.clear();
+            location.reload();
+        });
+    }
+    // ============================================================
+    // DATA STATE - CACHE LOKAL + FIRESTORE
+    // ============================================================
+    const safeJSON = (key, fallback) => {
+        try {
+            const value = localStorage.getItem(key);
+            return value === null ? fallback : JSON.parse(value);
+        } catch (e) {
+            console.warn('Cache rusak:', key, e);
+            return fallback;
+        }
+    };
+
+    let playersData = safeJSON('mabar_players', {});
+    let matchesHistory = safeJSON('mabar_history', []);
+    let totalCourtsActive = parseInt(localStorage.getItem('mabar_courts')) || 3;
+    let savedTimersState = safeJSON('mabar_timers', {});
+    let savedCourtsSetup = safeJSON('mabar_court_setups', {});
+    let courtTimers = {};
+
+    let gradingRules = safeJSON('mabar_rules', {
+        A: { min: 8.5, max: 10.0 }, B: { min: 7.0, max: 8.4 },
+        C: { min: 5.5, max: 6.9 }, D: { min: 4.0, max: 5.4 }, E: { min: 0.0, max: 3.9 }
+    });
+    let initialNewPlayerScore = parseFloat(localStorage.getItem('mabar_initial_score')) || 1.0;
+
+    let dataPemainKas = safeJSON('kasBadmintonData', []);
+    let rekapSistemKas = { totalTunai: 0, totalTransfer: 0, totalBelum: 0, totalKeseluruhan: 0, countHadir: 0, countTunai: 0, countQris: 0, countSponsor: 0, countBelum: 0 };
+
+
+    // ============================================================
+    // LOGIN / ROLE ACCESS
+    // Admin credentials sederhana sesuai permintaan:
+    // Username: admin
+    // Password: 1234
+    // ============================================================
+    const NEWTON_ADMIN_USERNAME = 'admin';
+    const NEWTON_ADMIN_PASSWORD = '1234';
+
+    let newtonCurrentRole = null;
+
+    function pilihRoleLogin(role) {
+        const memberBtn = document.getElementById('role-member-btn');
+        const adminBtn = document.getElementById('role-admin-btn');
+        const adminForm = document.getElementById('login-admin-form');
+        const memberAction = document.getElementById('login-member-action');
+        const errorBox = document.getElementById('login-error');
+
+        newtonCurrentRole = role;
+        errorBox.classList.remove('show');
+        errorBox.innerText = '';
+
+        memberBtn.classList.toggle('active', role === 'member');
+        adminBtn.classList.toggle('active', role === 'admin');
+        adminForm.classList.toggle('show', role === 'admin');
+        memberAction.classList.toggle('show', role === 'member');
+
+        if (role === 'admin') {
+            setTimeout(() => document.getElementById('login-username')?.focus(), 50);
+        }
+    }
+
+    function tampilkanLoginError(message) {
+        const box = document.getElementById('login-error');
+        if (!box) return;
+        box.innerText = message;
+        box.classList.add('show');
+    }
+
+    function bukaAplikasiNewton(role) {
+        newtonCurrentRole = role;
+
+        document.body.classList.remove('app-locked');
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'none';
+
+        const badge = document.getElementById('current-role-badge');
+        if (badge) {
+            badge.innerHTML = role === 'admin' ? '🛡️ ADMIN' : '👤 MEMBER';
+        }
+
+        const adminMenus = document.querySelectorAll('.admin-only-menu');
+        adminMenus.forEach(menu => {
+            menu.style.display = role === 'admin' ? '' : 'none';
+        });
+
+        // Header export & reset hanya untuk Admin.
+        const exportBtn = document.querySelector('.header-actions > .icon-btn[onclick^="toggleExportMenu"]');
+        const resetBtn = document.querySelector('.header-actions > .icon-btn[onclick^="bukaModalResetChoice"]');
+
+        if (exportBtn) exportBtn.style.display = role === 'admin' ? 'flex' : 'none';
+        if (resetBtn) resetBtn.style.display = role === 'admin' ? 'flex' : 'none';
+
+        if (role === 'member') {
+            const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-mabar'"));
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            document.getElementById('view-mabar')?.classList.add('active-view');
+
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            if (mabarMenu) mabarMenu.classList.add('active');
+        } else {
+            const registrasiMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-registrasi'"));
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            document.getElementById('view-registrasi')?.classList.add('active-view');
+
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            if (registrasiMenu) registrasiMenu.classList.add('active');
+        }
+    }
+
+    function prosesLoginAdmin() {
+        const username = (document.getElementById('login-username')?.value || '').trim();
+        const password = document.getElementById('login-password')?.value || '';
+
+        if (username === NEWTON_ADMIN_USERNAME && password === NEWTON_ADMIN_PASSWORD) {
+            bukaAplikasiNewton('admin');
+            document.getElementById('login-password').value = '';
+        } else {
+            tampilkanLoginError('Username atau password admin salah.');
+            document.getElementById('login-password').select();
+        }
+    }
+
+    function loginSebagaiMember() {
+        bukaAplikasiNewton('member');
+    }
+
+    function logoutNewton() {
+        // Hentikan timer yang sedang berjalan agar sesi UI bersih.
+        for (const i in courtTimers) {
+            if (courtTimers[i] && courtTimers[i].intervalId) {
+                clearInterval(courtTimers[i].intervalId);
+                courtTimers[i].intervalId = null;
+            }
+        }
+
+        newtonCurrentRole = null;
+        document.body.classList.add('app-locked');
+
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'flex';
+
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-error').classList.remove('show');
+
+        document.querySelectorAll('.login-role-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('login-admin-form').classList.remove('show');
+        document.getElementById('login-member-action').classList.remove('show');
+
+        pilihRoleLogin('member');
+    }
+
+    function pastikanAdmin() {
+        if (newtonCurrentRole !== 'admin') {
+            showMsg('Menu ini hanya dapat digunakan oleh Admin.');
+            return false;
+        }
+        return true;
+    }
+
+    // Member hanya boleh membuka Mabar.
+    const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
+
+    function switchView(viewId, menuElement) {
+        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar') {
+            showMsg('Member hanya memiliki akses ke menu Mabar.');
+            return;
+        }
+
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+
+        const target = document.getElementById(viewId);
+        if (!target) return;
+
+        target.classList.add('active-view');
+        if (menuElement) menuElement.classList.add('active');
+
+        if (viewId === 'view-mabar') {
+            updateAllSelectOptions();
+        } else if (viewId === 'view-database') {
+            renderDatabasePemain();
+            renderGradingSettings();
+        }
+    }
+
+    // Setiap kali halaman baru dibuka, login tetap diwajibkan.
+    // Tidak menggunakan localStorage/sessionStorage untuk kredensial.
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('app-locked');
+        pilihRoleLogin('member');
+    });
+
+    function getGradeFromScore(score) {
+        let val = parseFloat(score);
+        if(isNaN(val)) return 'E';
+        if (val >= gradingRules.A.min) return 'A';
+        if (val >= gradingRules.B.min && val <= gradingRules.B.max) return 'B';
+        if (val >= gradingRules.C.min && val <= gradingRules.C.max) return 'C';
+        if (val >= gradingRules.D.min && val <= gradingRules.D.max) return 'D';
+        return 'E';
+    }
+
+    let isGradingAccordionOpen = false;
+    function toggleGradingAccordion() {
+        isGradingAccordionOpen = !isGradingAccordionOpen;
+        const body = document.getElementById('grading-accordion-body');
+        const text = document.getElementById('grading-toggle-text');
+        const icon = document.getElementById('grading-toggle-icon');
+        
+        if (body) {
+            body.style.display = isGradingAccordionOpen ? 'block' : 'none';
+        }
+        if (text) {
+            text.innerText = isGradingAccordionOpen ? 'Tutup' : 'Buka';
+        }
+        if (icon) {
+            icon.innerText = isGradingAccordionOpen ? '▲' : '▼';
+        }
+    }
+
+    function renderGradingSettings() {
+        const initInput = document.getElementById('setting-initial-score');
+        if(initInput) initInput.value = initialNewPlayerScore.toFixed(1);
+
+        const container = document.getElementById('grading-settings-container');
+        let html = '';
+        const grades = ['A', 'B', 'C', 'D', 'E'];
+        grades.forEach(g => {
+            html += `
+                <div class="grading-box">
+                    <span class="badge-grade grade-${g}" style="margin-bottom:6px;">Grade ${g}</span>
+                    <div style="display:flex; justify-content:center; align-items:center; gap:4px; margin-top:4px;">
+                        <input type="number" id="set-${g}-min" value="${gradingRules[g].min}" step="0.1" style="width:48px; padding:4px; text-align:center; font-weight:bold;"> 
+                        <span>-</span>
+                        <input type="number" id="set-${g}-max" value="${gradingRules[g].max}" step="0.1" style="width:48px; padding:4px; text-align:center; font-weight:bold;">
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function saveGradingSettings() {
+        initialNewPlayerScore = parseFloat(document.getElementById('setting-initial-score').value) || 1.0;
+        localStorage.setItem('mabar_initial_score', initialNewPlayerScore.toString());
+
+        const grades = ['A', 'B', 'C', 'D', 'E'];
+        grades.forEach(g => {
+            gradingRules[g].min = parseFloat(document.getElementById(`set-${g}-min`).value) || 0;
+            gradingRules[g].max = parseFloat(document.getElementById(`set-${g}-max`).value) || 0;
+        });
+        localStorage.setItem('mabar_rules', JSON.stringify(gradingRules));
+        updatePlayerTable(); 
+        updateAllSelectOptions();
+        renderDatabasePemain();
+        showMsg("Pengaturan sistem grading berhasil disimpan!");
+    }
+
+    function renderDatabasePemain() {
+        const tbody = document.getElementById('db-table-body');
+        if (!tbody) return;
+
+        const allNames = Object.keys(playersData).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+
+        const totalBadge = document.getElementById('total-db-players');
+        if (totalBadge) totalBadge.innerText = allNames.length;
+
+        if (allNames.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:#94a3b8; font-size:12px;">Tidak ada data pemain</td></tr>`;
+            return;
+        }
+
+        let html = "";
+        allNames.forEach(name => {
+            const p = playersData[name];
+            const grade = getGradeFromScore(p.score);
+            html += `
+                <tr>
+                    <td style="font-weight:700; color:#1e293b;">${name}</td>
+                    <td style="text-align:center;">
+                        <input type="number" style="width:48px; text-align:center; font-size:12px; font-weight:800; padding:4px;" value="${p.score.toFixed(1)}" step="0.1" min="0" max="10" 
+                        onblur="updateScoreManual('${name}', this)" onkeypress="if(event.key === 'Enter') this.blur();">
+                    </td>
+                    <td style="text-align:center;"><span class="badge-grade grade-${grade}">${grade}</span></td>
+                    <td style="text-align:center; font-weight:700; color:#475569;">${p.mp || 0}</td>
+                    <td style="text-align:center;">
+                        <button style="background:transparent; color:#ef4444; padding:2px; font-size:14px;" onclick="hapusPemain('${name}')" title="Hapus dari Database">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function tambahPemainDatabaseManual() {
+        const input = document.getElementById('db-quick-name');
+        let cleanName = input.value.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
+        if (!cleanName) {
+            showMsg("Masukkan nama pemain terlebih dahulu!");
+            return;
+        }
+        if (playersData.hasOwnProperty(cleanName)) {
+            showMsg(`Pemain ${cleanName} sudah ada di Database!`);
+            return;
+        }
+
+        playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0 };
+        input.value = "";
+        saveDataLocally();
+        updatePlayerTable();
+        syncPemainKas();
+        renderDatabasePemain();
+        showMsg(`Pemain ${cleanName} berhasil ditambahkan ke Database!`);
+    }
+
+    function addBulkPlayers() {
+        if (!pastikanAdmin()) return;
+        const textarea = document.getElementById('bulk-names');
+        const lines = textarea.value.split(/[\n,]+/);
+        let count = 0;
+
+        lines.forEach(line => {
+            let cleanName = line.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
+            if (cleanName !== "" && !playersData.hasOwnProperty(cleanName)) {
+                playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0 };
+                count++;
+            }
+        });
+
+        if (count > 0) {
+            textarea.value = "";
+            saveDataLocally();
+            updatePlayerTable();
+            syncPemainKas();
+            renderDatabasePemain();
+            showMsg(`${count} Pemain berhasil ditambahkan!`);
+        } else {
+            showMsg("Masukkan nama pemain terlebih dahulu.");
+        }
+    }
+
+    function hapusPemain(name) {
+        if (!pastikanAdmin()) return;
+        showConfirm(`Hapus ${name} dari seluruh sistem (Database, Mabar & Kas)?`, () => {
+            delete playersData[name];
+            for (let c in savedCourtsSetup) {
+                ['a1', 'a2', 'b1', 'b2'].forEach(pos => {
+                    if (savedCourtsSetup[c] && savedCourtsSetup[c][pos] === name) {
+                        savedCourtsSetup[c][pos] = "";
+                        const el = document.getElementById(`c${c}-${pos}`);
+                        if (el) el.value = "";
+                    }
+                });
+            }
+            saveDataLocally();
+            updatePlayerTable();
+            updateAllSelectOptions();
+            syncPemainKas();
+            renderDatabasePemain();
+        });
+    }
+
+    function bukaModalEditPemain(name) {
+        if (!pastikanAdmin()) return;
+        document.getElementById('edit-player-old-name').value = name;
+        const inputNew = document.getElementById('edit-player-new-name');
+        inputNew.value = name;
+        document.getElementById('modal-edit-player').style.display = 'flex';
+        setTimeout(() => {
+            inputNew.focus();
+            inputNew.select();
+        }, 50);
+    }
+
+    function tutupModalEditPemain() {
+        document.getElementById('modal-edit-player').style.display = 'none';
+    }
+
+    function simpanEditNamaPemain() {
+        if (!pastikanAdmin()) return;
+        const oldName = document.getElementById('edit-player-old-name').value.trim();
+        const inputNew = document.getElementById('edit-player-new-name');
+        const newName = inputNew.value.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
+
+        if (!newName) {
+            showMsg("Nama pemain tidak boleh kosong!");
+            return;
+        }
+
+        if (newName === oldName) {
+            tutupModalEditPemain();
+            return;
+        }
+
+        if (playersData.hasOwnProperty(newName)) {
+            showMsg(`Nama "${newName}" sudah terdaftar di database!`);
+            return;
+        }
+
+        // 1. Update data pemain di playersData
+        playersData[newName] = playersData[oldName];
+        delete playersData[oldName];
+
+        // 2. Update data kas agar nama di halaman Kas langsung tersinkronisasi
+        const kasPemain = dataPemainKas.find(p => p.nama === oldName);
+        if (kasPemain) {
+            kasPemain.nama = newName;
+        }
+
+        // 3. Update pilihan pemain di lapangan yang sedang aktif/terkunci jika ada
+        for (let c in savedCourtsSetup) {
+            if (savedCourtsSetup[c]) {
+                ['a1', 'a2', 'b1', 'b2'].forEach(pos => {
+                    if (savedCourtsSetup[c][pos] === oldName) {
+                        savedCourtsSetup[c][pos] = newName;
+                        const el = document.getElementById(`c${c}-${pos}`);
+                        if (el) el.value = newName;
+                    }
+                });
+            }
+        }
+
+        // 4. Update riwayat pertandingan agar histori W/L tetap sinkron
+        matchesHistory.forEach(m => {
+            if (m.playersA && Array.isArray(m.playersA)) {
+                const idxA = m.playersA.indexOf(oldName);
+                if (idxA !== -1) m.playersA[idxA] = newName;
+            }
+            if (m.playersB && Array.isArray(m.playersB)) {
+                const idxB = m.playersB.indexOf(oldName);
+                if (idxB !== -1) m.playersB[idxB] = newName;
+            }
+            if (m.teamA && m.teamA.includes(oldName)) {
+                m.teamA = m.teamA.split(' / ').map(n => n.trim() === oldName ? newName : n).join(' / ');
+            }
+            if (m.teamB && m.teamB.includes(oldName)) {
+                m.teamB = m.teamB.split(' / ').map(n => n.trim() === oldName ? newName : n).join(' / ');
+            }
+        });
+
+        // 5. Simpan ke local storage dan perbarui tampilan seluruh halaman
+        saveDataLocally();
+        localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
+        tutupModalEditPemain();
+
+        updatePlayerTable();
+        updateAllSelectOptions();
+        renderPemainKas();
+        renderDatabasePemain();
+        updateHistoryDOM();
+
+        showMsg(`Nama pemain berhasil diubah menjadi ${newName}!`);
+    }
+
+    function toggleAbsen(name) {
+        if (playersData[name].checkInTime !== "") {
+            playersData[name].checkInTime = "";
+        } else {
+            const now = new Date();
+            playersData[name].checkInTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}).replace(':', '.');
+        }
+        saveDataLocally();
+        updatePlayerTable();
+        updateAllSelectOptions();
+    }
+
+    function updateScoreManual(name, inputEl) {
+        if (!pastikanAdmin()) return;
+        let val = parseFloat(inputEl.value);
+        if(isNaN(val)) val = 1.0;
+        if(val > 10.0) val = 10.0;
+        if(val < 0.0) val = 0.0;
+        
+        inputEl.value = val.toFixed(1);
+        playersData[name].score = val;
+        saveDataLocally();
+        
+        const gradeStr = getGradeFromScore(val);
+        const badgeEl = document.getElementById(`badge-${name}`);
+        if(badgeEl) {
+            badgeEl.innerText = gradeStr;
+            badgeEl.className = `badge-grade grade-${gradeStr}`;
+        }
+        updateAllSelectOptions();
+        renderDatabasePemain();
+    }
+
+    function renderWLHistoryBadges(name) {
+        const historyList = [];
+        // matchesHistory has latest match first (via unshift)
+        for (let i = 0; i < matchesHistory.length; i++) {
+            const m = matchesHistory[i];
+            const pA = m.playersA || (m.teamA ? m.teamA.split(' / ').map(s => s.trim()) : []);
+            const pB = m.playersB || (m.teamB ? m.teamB.split(' / ').map(s => s.trim()) : []);
+            
+            const inA = pA.includes(name);
+            const inB = pB.includes(name);
+
+            if (inA || inB) {
+                const sA = Number(m.scoreA) || 0;
+                const sB = Number(m.scoreB) || 0;
+                let outcome = 'D';
+                let scoreText = `${sA}-${sB}`;
+                if (inA) {
+                    if (sA > sB) outcome = 'W';
+                    else if (sA < sB) outcome = 'L';
+                    scoreText = `${sA}-${sB}`;
+                } else {
+                    if (sB > sA) outcome = 'W';
+                    else if (sB < sA) outcome = 'L';
+                    scoreText = `${sB}-${sA}`;
+                }
+                historyList.push({
+                    outcome: outcome,
+                    scoreText: scoreText,
+                    court: m.court,
+                    time: m.time || ''
+                });
+                if (historyList.length >= 7) break;
+            }
+        }
+
+        if (historyList.length === 0) {
+            return `<span style="color:#94a3b8; font-size:11px; font-weight:600;">-</span>`;
+        }
+
+        // Tampilkan secara kronologis dari kiri ke kanan (terbaru di paling kanan)
+        const displayList = historyList.slice().reverse();
+        let badgesHtml = `<div class="badge-wl-container">`;
+        displayList.forEach((item, idx) => {
+            const isLatest = (idx === displayList.length - 1);
+            const title = `${item.outcome === 'W' ? 'Menang' : (item.outcome === 'L' ? 'Kalah' : 'Seri')} (${item.scoreText}) - Lap ${item.court}${item.time ? ' ' + item.time : ''}${isLatest ? ' [Terbaru]' : ''}`;
+            badgesHtml += `<span class="badge-wl wl-${item.outcome.toLowerCase()}" title="${title}">${item.outcome}</span>`;
+        });
+        badgesHtml += `</div>`;
+        return badgesHtml;
+    }
+
+    function updatePlayerTable() {
+        const tbody = document.getElementById('player-table-body');
+        const sortedNames = Object.keys(playersData).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+        document.getElementById('total-players').innerText = sortedNames.length;
+        
+        let html = "";
+        sortedNames.forEach(name => {
+            const p = playersData[name];
+            const mpScore = p.mp || 0;
+            
+            let absenBtn = p.checkInTime !== "" 
+                ? `<span class="badge-jam" onclick="toggleAbsen('${name}')" title="Klik untuk batalkan absen">🕒 ${p.checkInTime}</span>` 
+                : `<button class="btn-absen" onclick="toggleAbsen('${name}')">Absen</button>`;
+
+            const wlHistoryHtml = renderWLHistoryBadges(name);
+
+            html += `
+                <tr>
+                    <td style="font-weight:700; color:#1e293b;">${name}</td>
+                    <td style="text-align:center;">${absenBtn}</td>
+                    <td style="text-align:center; font-weight:800; color:var(--primary);">${mpScore}</td>
+                    <td style="text-align:center;">${wlHistoryHtml}</td>
+                    <td style="text-align:center; white-space:nowrap;">
+                        <button style="background:transparent; color:var(--secondary); padding:2px 4px; font-size:13px;" onclick="bukaModalEditPemain('${name}')" title="Edit Nama Pemain">✏️</button>
+                        <button style="background:transparent; color:#ef4444; padding:2px 4px; font-size:13px;" onclick="hapusPemain('${name}')" title="Hapus Pemain">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function tambahLapanganBaru() {
+        totalCourtsActive++;
+        courtTimers[totalCourtsActive] = { startTime: null, intervalId: null };
+        saveDataLocally();
+        generateCourtsDOM();
+        updateAllSelectOptions();
+        restoreTimers();
+    }
+
+    function kurangiLapangan() {
+        if (totalCourtsActive <= 1) return;
+        if (courtTimers[totalCourtsActive] && courtTimers[totalCourtsActive].intervalId) {
+            clearInterval(courtTimers[totalCourtsActive].intervalId);
+        }
+        delete courtTimers[totalCourtsActive];
+        delete savedTimersState[totalCourtsActive];
+        delete savedCourtsSetup[totalCourtsActive];
+        totalCourtsActive--;
+        saveDataLocally();
+        generateCourtsDOM();
+        restoreCourtsStateDOM();
+        updateAllSelectOptions();
+        restoreTimers();
+    }
+
+    function generateCourtsDOM() {
+        const container = document.getElementById('courts-container');
+        container.innerHTML = "";
+
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            container.innerHTML += `
+                <div class="court-card" id="court-${i}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span class="court-title" style="margin-bottom:0;">LAPANGAN ${i}</span>
+                        <button id="c${i}-lock-btn" class="court-lock-btn" onclick="toggleCourtLock(${i})" title="Kunci / Buka Pilihan Pemain">
+                            🔓 Kunci
+                        </button>
+                    </div>
+                    <div class="live-timer-banner" id="c${i}-timer-label">Status: Belum Mulai</div>
+                    
+                    <div class="match-setup">
+                        <div class="team-col">
+                            <select id="c${i}-a1" onchange="onCourtPlayerChange(${i})"><option value="">Pilih Pemain</option></select>
+                            <select id="c${i}-a2" onchange="onCourtPlayerChange(${i})"><option value="">Pilih Pemain</option></select>
+                            <input type="number" id="c${i}-scoreA" placeholder="Skor" min="0" oninput="onCourtScoreChange(${i})">
+                        </div>
+                        <div class="vs-center">VS</div>
+                        <div class="team-col">
+                            <select id="c${i}-b1" onchange="onCourtPlayerChange(${i})"><option value="">Pilih Pemain</option></select>
+                            <select id="c${i}-b2" onchange="onCourtPlayerChange(${i})"><option value="">Pilih Pemain</option></select>
+                            <input type="number" id="c${i}-scoreB" placeholder="Skor" min="0" oninput="onCourtScoreChange(${i})">
+                        </div>
+                    </div>
+                    
+                    <div class="timer-btn-group">
+                        <button id="c${i}-auto-btn" class="btn-start-match" onclick="autoDraft(${i})" style="background-color: var(--warning); color: black;">🎲 Auto Draft</button>
+                        <button id="c${i}-start-btn" class="btn-start-match" onclick="toggleCourtTimer(${i})">⏱️ Mulai</button>
+                        <button id="c${i}-finish-btn" class="btn-finish-match" onclick="saveCourtMatch(${i})" disabled>💾 Simpan</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function toggleCourtLock(courtNum) {
+        if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
+        const isCurrentlyLocked = !!savedCourtsSetup[courtNum].locked;
+        const newLockState = !isCurrentlyLocked;
+
+        // Ambil nilai terbaru saat tombol ditekan
+        ['a1', 'a2', 'b1', 'b2'].forEach(p => {
+            const el = document.getElementById(`c${courtNum}-${p}`);
+            if (el) savedCourtsSetup[courtNum][p] = el.value;
+        });
+        const sA = document.getElementById(`c${courtNum}-scoreA`);
+        const sB = document.getElementById(`c${courtNum}-scoreB`);
+        if (sA) savedCourtsSetup[courtNum].scoreA = sA.value;
+        if (sB) savedCourtsSetup[courtNum].scoreB = sB.value;
+
+        savedCourtsSetup[courtNum].locked = newLockState;
+        saveDataLocally();
+        applyCourtLockUI(courtNum, newLockState);
+    }
+
+    function applyCourtLockUI(courtNum, isLocked) {
+        const lockBtn = document.getElementById(`c${courtNum}-lock-btn`);
+        const positions = ['a1', 'a2', 'b1', 'b2'];
+        const autoBtn = document.getElementById(`c${courtNum}-auto-btn`);
+
+        if (lockBtn) {
+            if (isLocked) {
+                lockBtn.innerHTML = `🔒 Terkunci`;
+                lockBtn.classList.add('locked');
+                lockBtn.title = "Lapangan terkunci. Klik untuk membuka kembali.";
+            } else {
+                lockBtn.innerHTML = `🔓 Kunci`;
+                lockBtn.classList.remove('locked');
+                lockBtn.title = "Kunci nama pemain agar tidak hilang / berubah.";
+            }
+        }
+
+        positions.forEach(p => {
+            const el = document.getElementById(`c${courtNum}-${p}`);
+            if (el) el.disabled = isLocked;
+        });
+
+        if (autoBtn) autoBtn.disabled = isLocked;
+    }
+
+    function onCourtPlayerChange(courtNum) {
+        if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
+        ['a1', 'a2', 'b1', 'b2'].forEach(p => {
+            const el = document.getElementById(`c${courtNum}-${p}`);
+            if (el) savedCourtsSetup[courtNum][p] = el.value;
+        });
+        saveDataLocally();
+        updateAllSelectOptions();
+    }
+
+    function onCourtScoreChange(courtNum) {
+        if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
+        const sA = document.getElementById(`c${courtNum}-scoreA`);
+        const sB = document.getElementById(`c${courtNum}-scoreB`);
+        if (sA) savedCourtsSetup[courtNum].scoreA = sA.value;
+        if (sB) savedCourtsSetup[courtNum].scoreB = sB.value;
+        saveDataLocally();
+    }
+
+    function restoreCourtsStateDOM() {
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            const setup = savedCourtsSetup[i];
+            if (setup) {
+                const sA = document.getElementById(`c${i}-scoreA`);
+                const sB = document.getElementById(`c${i}-scoreB`);
+                if (sA && setup.scoreA !== undefined) sA.value = setup.scoreA;
+                if (sB && setup.scoreB !== undefined) sB.value = setup.scoreB;
+                applyCourtLockUI(i, !!setup.locked);
+            } else {
+                applyCourtLockUI(i, false);
+            }
+        }
+    }
+
+    function updateAllSelectOptions() {
+        const currentlySelected = new Set();
+        const positions = ['a1', 'a2', 'b1', 'b2'];
+        
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            positions.forEach(p => {
+                const el = document.getElementById(`c${i}-${p}`);
+                const val = el && el.value ? el.value : (savedCourtsSetup[i] ? savedCourtsSetup[i][p] : "");
+                if (val) currentlySelected.add(val);
+            });
+        }
+
+        const sortedNames = Object.keys(playersData).sort((a,b) => a.localeCompare(b));
+
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            positions.forEach(p => {
+                const selectEl = document.getElementById(`c${i}-${p}`);
+                if (!selectEl) return;
+                
+                let myValue = selectEl.value;
+                if (!myValue && savedCourtsSetup[i] && savedCourtsSetup[i][p]) {
+                    myValue = savedCourtsSetup[i][p];
+                }
+
+                let html = `<option value="">Pilih Pemain</option>`;
+                
+                sortedNames.forEach(name => {
+                    const stats = playersData[name];
+                    if (stats.checkInTime !== "" || name === myValue) {
+                        if (!currentlySelected.has(name) || name === myValue) {
+                            const grade = getGradeFromScore(stats.score);
+                            html += `<option value="${name}">[MP:${stats.mp || 0}] ${name} (${grade})</option>`;
+                        }
+                    }
+                });
+
+                selectEl.innerHTML = html;
+                selectEl.value = myValue;
+            });
+        }
+    }
+
+    function autoDraft(courtNum) {
+        let available = [];
+        let currentlySelected = new Set();
+        const positions = ['a1', 'a2', 'b1', 'b2'];
+
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            positions.forEach(p => {
+                const el = document.getElementById(`c${i}-${p}`);
+                if (el && el.value) currentlySelected.add(el.value);
+            });
+        }
+
+        Object.keys(playersData).forEach(name => {
+            if (playersData[name].checkInTime !== "" && !currentlySelected.has(name)) {
+                available.push({ 
+                    name: name, 
+                    score: playersData[name].score, 
+                    mp: playersData[name].mp || 0,
+                    grade: getGradeFromScore(playersData[name].score)
+                });
+            }
+        });
+
+        if (available.length < 4) {
+            showMsg("Pemain yang tersedia (Hadir & Sedang Tidak Main) kurang dari 4 orang!");
+            return;
+        }
+
+        // Prioritas 1: Urutkan berdasarkan MP paling sedikit
+        available.sort((a, b) => a.mp - b.mp);
+        let pool = available.slice(0, Math.max(4, 12)); 
+        
+        // Prioritas 2: Cari 4 orang di kelas grading yang sama persis
+        let gradesCount = { A:[], B:[], C:[], D:[], E:[] };
+        pool.forEach(p => gradesCount[p.grade].push(p));
+        
+        let selected4 = null;
+        for(let g in gradesCount) {
+            if(gradesCount[g].length >= 4) {
+                selected4 = gradesCount[g].slice(0, 4); 
+                break;
+            }
+        }
+
+        // Prioritas 3: Jika tidak ada 4 orang kelas sama, ambil 4 orang dengan selisih poin terdekat
+        if (!selected4) {
+            pool.sort((a, b) => a.score - b.score);
+            let minDiff = Infinity;
+            let bestIndex = 0;
+            for(let i = 0; i <= pool.length - 4; i++) {
+                let diff = pool[i+3].score - pool[i].score;
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    bestIndex = i;
+                }
+            }
+            selected4 = pool.slice(bestIndex, bestIndex + 4);
+        }
+
+        selected4.sort((a, b) => b.score - a.score);
+
+        document.getElementById(`c${courtNum}-a1`).value = selected4[0].name;
+        document.getElementById(`c${courtNum}-a2`).value = selected4[3].name;
+        document.getElementById(`c${courtNum}-b1`).value = selected4[1].name;
+        document.getElementById(`c${courtNum}-b2`).value = selected4[2].name;
+
+        if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
+        savedCourtsSetup[courtNum].a1 = selected4[0].name;
+        savedCourtsSetup[courtNum].a2 = selected4[3].name;
+        savedCourtsSetup[courtNum].b1 = selected4[1].name;
+        savedCourtsSetup[courtNum].b2 = selected4[2].name;
+        saveDataLocally();
+
+        updateAllSelectOptions();
+    }
+
+    function toggleCourtTimer(courtNum) {
+        const state = courtTimers[courtNum];
+        if (state && state.intervalId) {
+            clearInterval(state.intervalId);
+            courtTimers[courtNum] = { startTime: null, intervalId: null };
+            delete savedTimersState[courtNum];
+            saveDataLocally();
+            
+            document.getElementById(`c${courtNum}-timer-label`).innerHTML = `Status: Belum Mulai`;
+            const btn = document.getElementById(`c${courtNum}-start-btn`);
+            btn.innerHTML = `⏱️ Mulai`;
+            btn.style.backgroundColor = 'var(--success)';
+            document.getElementById(`c${courtNum}-finish-btn`).disabled = true;
+        } else {
+            const a1 = document.getElementById(`c${courtNum}-a1`).value;
+            const b1 = document.getElementById(`c${courtNum}-b1`).value;
+            if(!a1 || !b1) { showMsg("Pilih minimal 1 pemain di tiap tim!"); return; }
+
+            const startTimeObj = new Date();
+            courtTimers[courtNum].startTime = startTimeObj;
+            savedTimersState[courtNum] = { startTime: startTimeObj.toISOString() };
+            saveDataLocally();
+            
+            runTimerDOM(courtNum);
+            
+            const btn = document.getElementById(`c${courtNum}-start-btn`);
+            btn.innerHTML = `❌ Batal`;
+            btn.style.backgroundColor = 'var(--danger)';
+            document.getElementById(`c${courtNum}-finish-btn`).disabled = false;
+        }
+    }
+
+    function runTimerDOM(courtNum) {
+        if (courtTimers[courtNum].intervalId) { clearInterval(courtTimers[courtNum].intervalId); }
+        courtTimers[courtNum].intervalId = setInterval(() => {
+            const diffMs = new Date() - courtTimers[courtNum].startTime;
+            const m = Math.floor(diffMs / 60000);
+            const s = Math.floor((diffMs / 1000) % 60);
+            const label = document.getElementById(`c${courtNum}-timer-label`);
+            if (label) label.innerHTML = `🟢 Main: <strong>${m}m ${s}s</strong>`;
+        }, 1000);
+    }
+
+    function restoreTimers() {
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            if (courtTimers[i] && courtTimers[i].startTime) {
+                runTimerDOM(i);
+                const startBtn = document.getElementById(`c${i}-start-btn`);
+                const finishBtn = document.getElementById(`c${i}-finish-btn`);
+                if(startBtn) {
+                    startBtn.innerHTML = `❌ Batal`;
+                    startBtn.style.backgroundColor = 'var(--danger)';
+                }
+                if(finishBtn) finishBtn.disabled = false;
+            }
+        }
+    }
+
+    function saveCourtMatch(courtNum) {
+        const a1 = document.getElementById(`c${courtNum}-a1`).value;
+        const a2 = document.getElementById(`c${courtNum}-a2`).value;
+        const b1 = document.getElementById(`c${courtNum}-b1`).value;
+        const b2 = document.getElementById(`c${courtNum}-b2`).value;
+        const sA = document.getElementById(`c${courtNum}-scoreA`).value;
+        const sB = document.getElementById(`c${courtNum}-scoreB`).value;
+
+        if (sA === "" || sB === "") { showMsg("Isi skor terlebih dahulu!"); return; }
+
+        const playersInMatch = [a1, a2, b1, b2].filter(p => p !== "");
+        playersInMatch.forEach(p => {
+            if (playersData[p]) {
+                playersData[p].mp = (playersData[p].mp || 0) + 1;
+            }
+        });
+
+        const timeEnd = new Date();
+        const timeStart = courtTimers[courtNum].startTime || new Date(); 
+        const durationMin = Math.floor((timeEnd - timeStart) / 60000);
+        
+        const pA = [a1, a2].filter(p => p !== "");
+        const pB = [b1, b2].filter(p => p !== "");
+
+        matchesHistory.unshift({
+            court: courtNum,
+            time: `${timeStart.getHours()}.${String(timeStart.getMinutes()).padStart(2, '0')} - ${timeEnd.getHours()}.${String(timeEnd.getMinutes()).padStart(2, '0')}`,
+            duration: `${durationMin} Menit`,
+            teamA: a2 ? `${a1} / ${a2}` : a1,
+            teamB: b2 ? `${b1} / ${b2}` : b1,
+            playersA: pA,
+            playersB: pB,
+            scoreA: parseInt(sA),
+            scoreB: parseInt(sB)
+        });
+
+        if(courtTimers[courtNum].intervalId) clearInterval(courtTimers[courtNum].intervalId);
+        courtTimers[courtNum] = { startTime: null, intervalId: null };
+        delete savedTimersState[courtNum];
+
+        document.getElementById(`c${courtNum}-timer-label`).innerHTML = "Status: Selesai";
+        const btn = document.getElementById(`c${courtNum}-start-btn`);
+        btn.innerHTML = `⏱️ Mulai`;
+        btn.style.backgroundColor = 'var(--success)';
+        document.getElementById(`c${courtNum}-finish-btn`).disabled = true;
+
+        ['a1','a2','b1','b2','scoreA','scoreB'].forEach(p => document.getElementById(`c${courtNum}-${p}`).value = "");
+
+        delete savedCourtsSetup[courtNum];
+        applyCourtLockUI(courtNum, false);
+
+        saveDataLocally();
+        updatePlayerTable();
+        updateAllSelectOptions(); 
+        updateHistoryDOM();
+    }
+
+    function updateHistoryDOM() {
+        const container = document.getElementById('history-container');
+        container.innerHTML = "";
+        
+        if (matchesHistory.length === 0) {
+            container.innerHTML = `<li style="text-align:center; color:#94a3b8; font-size:12px; padding:15px;">Belum ada riwayat pertandingan</li>`;
+            return;
+        }
+
+        matchesHistory.forEach((match) => {
+            const isAWin = match.scoreA > match.scoreB;
+            container.innerHTML += `
+                <li class="history-item">
+                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Lap ${match.court} • ${match.time} (${match.duration})</div>
+                    <div style="font-size:13px;">
+                        <span style="${isAWin ? 'color:var(--success); font-weight:bold;' : ''}">${match.teamA} (${match.scoreA})</span>
+                        <span style="color:#94a3b8; margin:0 4px; font-weight:bold;">vs</span> 
+                        <span style="${!isAWin ? 'color:var(--success); font-weight:bold;' : ''}">(${match.scoreB}) ${match.teamB}</span>
+                    </div>
+                </li>
+            `;
+        });
+    }
+
+    function saveDataLocally() {
+        try {
+            localStorage.setItem('mabar_players', JSON.stringify(playersData));
+            localStorage.setItem('mabar_history', JSON.stringify(matchesHistory));
+            localStorage.setItem('mabar_courts', String(totalCourtsActive));
+            localStorage.setItem('mabar_timers', JSON.stringify(savedTimersState));
+            localStorage.setItem('mabar_court_setups', JSON.stringify(savedCourtsSetup));
+            localStorage.setItem('mabar_rules', JSON.stringify(gradingRules));
+            localStorage.setItem('mabar_initial_score', String(initialNewPlayerScore));
+            localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
+        } catch (e) {
+            console.warn('Gagal menyimpan cache lokal:', e);
+        }
+
+        if (window.firebaseBackendReady && typeof window.firebaseSaveAppData === 'function') {
+            window.firebaseSaveAppData();
+        }
+    }
+
+    // --- MODERN KAS STATE & CONTROLLERS ---
+    let kasSearchQuery = "";
+    let kasFilterStatus = "all";
+
+    function syncPemainKas() {
+        const inputIuran = document.getElementById('iuran-pemain');
+        const nominalDefault = inputIuran ? (parseInt(inputIuran.value) || 20000) : 20000;
+        let kasMap = {};
+        
+        dataPemainKas.forEach(p => { kasMap[p.nama] = p; });
+        let newDataPemainKas = [];
+        
+        Object.keys(playersData).forEach(name => {
+            if (kasMap[name]) {
+                newDataPemainKas.push(kasMap[name]);
+            } else {
+                newDataPemainKas.push({ id: Date.now() + Math.random(), nama: name, nominal: nominalDefault, metode: "Tunai", lunas: false });
+            }
+        });
+
+        dataPemainKas = newDataPemainKas;
+        urutkanDanRenderKas();
+    }
+
+    function terapkanNominalKas() {
+        const nominalBaru = parseInt(document.getElementById('iuran-pemain').value) || 20000;
+        dataPemainKas.forEach(p => {
+            if (p.metode !== "Sponsor") {
+                p.nominal = nominalBaru;
+            }
+        });
+        saveDataLocally();
+        renderPemainKas();
+        showMsg("Nominal kas default berhasil diterapkan ke pemain yang belum berstatus sponsor!");
+    }
+
+    function urutkanDanRenderKas() {
+        dataPemainKas.sort((a, b) => a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' }));
+        renderPemainKas();
+    }
+
+    function onKasSearch(query) {
+        kasSearchQuery = (query || "").trim().toLowerCase();
+        renderPemainKasListOnly();
+    }
+
+    function setKasFilter(filter, btnEl) {
+        kasFilterStatus = filter;
+        document.querySelectorAll('.kas-pill-btn').forEach(b => b.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        renderPemainKasListOnly();
+    }
+
+    function renderPemainKas() {
+        // Hitung total keseluruhan untuk dashboard akuntansi
+        rekapSistemKas = { totalTunai: 0, totalTransfer: 0, totalBelum: 0, totalKeseluruhan: 0, countHadir: dataPemainKas.length, countTunai: 0, countQris: 0, countSponsor: 0, countBelum: 0 };
+        let countLunas = 0;
+
+        dataPemainKas.forEach(pemain => {
+            if (pemain.lunas) {
+                countLunas++;
+                if (pemain.metode === "Tunai") { 
+                    rekapSistemKas.totalTunai += pemain.nominal; 
+                    rekapSistemKas.countTunai++; 
+                } else if (pemain.metode === "QRIS") { 
+                    rekapSistemKas.totalTransfer += pemain.nominal; 
+                    rekapSistemKas.countQris++; 
+                } else if (pemain.metode === "Sponsor") { 
+                    rekapSistemKas.countSponsor++; 
+                }
+            } else {
+                rekapSistemKas.totalBelum += pemain.nominal;
+                rekapSistemKas.countBelum++;
+            }
+        });
+
+        rekapSistemKas.totalKeseluruhan = rekapSistemKas.totalTunai + rekapSistemKas.totalTransfer;
+
+        // Perbarui metrik dashboard
+        const elTunai = document.getElementById('total-tunai');
+        const elTf = document.getElementById('total-transfer');
+        const elBelum = document.getElementById('total-belum');
+        const elAll = document.getElementById('total-keseluruhan');
+
+        if (elTunai) elTunai.innerText = `Rp ${rekapSistemKas.totalTunai.toLocaleString('id-ID')}`;
+        if (elTf) elTf.innerText = `Rp ${rekapSistemKas.totalTransfer.toLocaleString('id-ID')}`;
+        if (elBelum) elBelum.innerText = `Rp ${rekapSistemKas.totalBelum.toLocaleString('id-ID')}`;
+        if (elAll) elAll.innerText = `Rp ${rekapSistemKas.totalKeseluruhan.toLocaleString('id-ID')}`;
+
+        const cTunai = document.getElementById('box-count-tunai');
+        const cQris = document.getElementById('box-count-qris');
+        const cBelum = document.getElementById('box-count-belum');
+        const cHadir = document.getElementById('count-hadir');
+        const cSponsor = document.getElementById('count-sponsor');
+
+        if (cTunai) cTunai.innerText = `(${rekapSistemKas.countTunai})`;
+        if (cQris) cQris.innerText = `(${rekapSistemKas.countQris})`;
+        if (cBelum) cBelum.innerText = `(${rekapSistemKas.countBelum})`;
+        if (cHadir) cHadir.innerText = rekapSistemKas.countHadir;
+        if (cSponsor) cSponsor.innerText = rekapSistemKas.countSponsor;
+
+        // Progress bar dan persentase lunas
+        const percent = dataPemainKas.length > 0 ? Math.round((countLunas / dataPemainKas.length) * 100) : 0;
+        const barEl = document.getElementById('kas-progress-bar');
+        const textEl = document.getElementById('kas-progress-text');
+        const percentEl = document.getElementById('kas-progress-percent');
+
+        if (barEl) barEl.style.width = `${percent}%`;
+        if (textEl) textEl.innerText = `Terkumpul: ${countLunas} dari ${dataPemainKas.length} Pemain`;
+        if (percentEl) percentEl.innerText = `${percent}% Lunas`;
+
+        localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
+        renderPemainKasListOnly();
+    }
+
+    function renderPemainKasListOnly() {
+        const listContainer = document.getElementById('daftar-pemain-kas');
+        if (!listContainer) return;
+        listContainer.innerHTML = '';
+
+        const filtered = dataPemainKas.filter(pemain => {
+            const matchSearch = pemain.nama.toLowerCase().includes(kasSearchQuery);
+            if (!matchSearch) return false;
+            if (kasFilterStatus === 'belum') return !pemain.lunas;
+            if (kasFilterStatus === 'lunas') return pemain.lunas;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding: 24px 16px; background:white; border-radius:14px; border:1px dashed #cbd5e1; color:#94a3b8; font-size:12.5px;">
+                    Tidak ada nama pemain yang cocok dengan pencarian / filter ini.
+                </div>
+            `;
+            return;
+        }
+
+        filtered.forEach(pemain => {
+            const initials = pemain.nama.slice(0, 2).toUpperCase();
+            const li = document.createElement('li');
+            li.className = `kas-player-card ${pemain.lunas ? 'is-paid' : ''}`;
+            
+            let nominalDisplay = `Rp ${pemain.nominal.toLocaleString('id-ID')}`;
+            if (pemain.metode === 'Sponsor') {
+                nominalDisplay = `🤝 Free / Sponsor`;
+            }
+
+            li.innerHTML = `
+                <div class="kas-player-info">
+                    <div class="kas-avatar">${initials}</div>
+                    <div class="kas-player-details">
+                        <div class="kas-player-name" title="${pemain.nama}">
+                            ${pemain.nama}
+                            ${pemain.lunas ? '<span style="color:#16a34a; font-size:12px;">✅</span>' : ''}
+                        </div>
+                        <div class="kas-player-amount">${nominalDisplay}</div>
+                    </div>
+                </div>
+                <div class="kas-player-actions">
+                    <select class="kas-method-select" onchange="gantiMetodeKas(${pemain.id}, this.value)">
+                        <option value="Tunai" ${pemain.metode === 'Tunai' ? 'selected' : ''}>💵 Tunai</option>
+                        <option value="QRIS" ${pemain.metode === 'QRIS' ? 'selected' : ''}>📱 QRIS/TF</option>
+                        <option value="Sponsor" ${pemain.metode === 'Sponsor' ? 'selected' : ''}>🤝 Sponsor</option>
+                    </select>
+                    <button class="kas-action-toggle ${pemain.lunas ? 'paid' : ''}" onclick="toggleLunasKas(${pemain.id})">
+                        ${pemain.lunas ? '✅ LUNAS' : '⏳ BELUM'}
+                    </button>
+                </div>
+            `;
+            listContainer.appendChild(li);
+        });
+    }
+
+    function toggleLunasKas(id) {
+        const pemain = dataPemainKas.find(p => String(p.id) === String(id));
+        if (pemain) {
+            pemain.lunas = pemain.lunas === true ? false : true;
+            // Simpan perubahan status LUNAS ke localStorage + Firestore.
+            saveDataLocally();
+            renderPemainKas();
+        }
+    }
+    
+    function gantiMetodeKas(id, metodeBaru) {
+        const pemain = dataPemainKas.find(p => String(p.id) === String(id));
+        if (pemain) {
+            pemain.metode = metodeBaru;
+            if (metodeBaru === "Sponsor") { 
+                pemain.nominal = 0; 
+                pemain.lunas = true;
+            } else if (pemain.nominal === 0) { 
+                pemain.nominal = parseInt(document.getElementById('iuran-pemain').value) || 20000; 
+            }
+            // Simpan perubahan metode/nominal/status ke localStorage + Firestore.
+            saveDataLocally();
+            renderPemainKas();
+        }
+    }
+
+    function tandaiSemuaLunasKas() {
+        if (dataPemainKas.length === 0) {
+            showMsg("Tidak ada pemain di dalam daftar Kas!");
+            return;
+        }
+        showConfirm("Tandai SEMUA pemain sebagai LUNAS?", () => {
+            dataPemainKas.forEach(p => p.lunas = true);
+            saveDataLocally();
+            renderPemainKas();
+            showMsg("Semua pemain telah ditandai Lunas! 🎉");
+        });
+    }
+
+    function salinRekapKasWA() {
+        if (dataPemainKas.length === 0) {
+            showMsg("Data kas masih kosong!");
+            return;
+        }
+        const belumList = dataPemainKas.filter(p => !p.lunas).map(p => p.nama);
+        const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        
+        let text = `🏸 *LAPORAN KAS MABAR BADMINTON*\n📅 ${dateStr}\n`;
+        text += `━━━━━━━━━━━━━━━━━━━━\n`;
+        text += `💰 *Total Terkumpul: Rp ${rekapSistemKas.totalKeseluruhan.toLocaleString('id-ID')}*\n`;
+        text += `💵 Tunai (${rekapSistemKas.countTunai}): Rp ${rekapSistemKas.totalTunai.toLocaleString('id-ID')}\n`;
+        text += `📱 QRIS / TF (${rekapSistemKas.countQris}): Rp ${rekapSistemKas.totalTransfer.toLocaleString('id-ID')}\n`;
+        text += `🤝 Sponsor / Free: ${rekapSistemKas.countSponsor} orang\n`;
+        text += `⏳ Belum Bayar (${rekapSistemKas.countBelum}): Rp ${rekapSistemKas.totalBelum.toLocaleString('id-ID')}\n`;
+        
+        if (belumList.length > 0) {
+            text += `\n*Daftar Belum Bayar:*\n`;
+            belumList.forEach((n, idx) => {
+                text += `${idx + 1}. ${n}\n`;
+            });
+        } else {
+            text += `\n🎉 *Semua pemain sudah lunas!*\n`;
+        }
+        text += `━━━━━━━━━━━━━━━━━━━━\n_Mabar App_`;
+
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        try {
+            document.execCommand('copy');
+            showMsg("📋 Rekap Kas berhasil disalin! Silakan tempel (paste) di WhatsApp.");
+        } catch(err) {
+            showMsg("Gagal menyalin teks.");
+        }
+        document.body.removeChild(el);
+    }
+
+    function exportKeExcelMabar() {
+        if (!pastikanAdmin()) return;
+        if (matchesHistory.length === 0) { showMsg("Belum ada pertandingan selesai!"); return; }
+        
+        let rows = [["No", "Lapangan", "Waktu", "Durasi", "Tim A", "Skor A", "Skor B", "Tim B", "Menang"]];
+        matchesHistory.slice().reverse().forEach((m, i) => {
+            rows.push([i+1, m.court, m.time, m.duration, m.teamA, m.scoreA, m.scoreB, m.teamB, m.scoreA > m.scoreB ? "Tim A" : "Tim B"]);
+        });
+
+        rows.push([], ["DATA PEMAIN"], ["Nama", "Skor (Poin)", "Grade", "Jumlah Main (MP)"]);
+        Object.keys(playersData).forEach(name => {
+            const p = playersData[name];
+            rows.push([name, p.score, getGradeFromScore(p.score), p.mp || 0]);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Rekap Mabar");
+        XLSX.writeFile(wb, "Rekap_Mabar_Grading.xlsx");
+    }
+
+    function exportKeExcelKas() {
+        if (!pastikanAdmin()) return;
+        if (dataPemainKas.length === 0) { showMsg("Data Kas kosong!"); return; }
+        let csv = "\ufeffNo,Nama,Status,Metode,Nominal\n";
+        dataPemainKas.forEach((p, i) => { csv += `${i + 1},"${p.nama}",${p.lunas ? "LUNAS" : "BELUM"},${p.metode},${p.nominal}\n`; });
+        
+        csv += `\n\n,,TOTAL KESELURUHAN,Rp ${rekapSistemKas.totalKeseluruhan}\n`;
+        csv += `,,TOTAL TUNAI,Rp ${rekapSistemKas.totalTunai}\n`;
+        csv += `,,TOTAL QRIS,Rp ${rekapSistemKas.totalTransfer}\n`;
+        csv += `,,TOTAL BELUM,Rp ${rekapSistemKas.totalBelum}\n`;
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+        link.download = `Rekap_Kas_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.csv`;
+        link.click();
+    }
+
+    function resetSemuaData() {
+        bukaModalResetChoice();
+    }
+
+    window.onload = async () => {
+        for(let i = 1; i <= totalCourtsActive; i++) {
+            if (savedTimersState[i] && savedTimersState[i].startTime) {
+                courtTimers[i] = { startTime: new Date(savedTimersState[i].startTime), intervalId: null };
+            } else {
+                courtTimers[i] = { startTime: null, intervalId: null };
+            }
+        }
+
+        renderGradingSettings();
+        generateCourtsDOM();
+        restoreCourtsStateDOM();
+        updatePlayerTable();
+        updateAllSelectOptions();
+        updateHistoryDOM();
+        restoreTimers();
+        syncPemainKas();
+        renderDatabasePemain();
+
+        if (typeof window.firebaseLoadAppData === 'function') {
+            try {
+                await window.firebaseLoadAppData();
+
+                for (let i = 1; i <= totalCourtsActive; i++) {
+                    if (savedTimersState[i] && savedTimersState[i].startTime) {
+                        courtTimers[i] = { startTime: new Date(savedTimersState[i].startTime), intervalId: null };
+                    } else if (!courtTimers[i]) {
+                        courtTimers[i] = { startTime: null, intervalId: null };
+                    }
+                }
+
+                renderGradingSettings();
+                generateCourtsDOM();
+                restoreCourtsStateDOM();
+                updatePlayerTable();
+                updateAllSelectOptions();
+                updateHistoryDOM();
+                restoreTimers();
+                syncPemainKas();
+                renderDatabasePemain();
+            } catch (error) {
+                console.warn('Firebase tidak dapat dimuat. Menggunakan cache lokal.', error);
+            }
+        }
+    };
+</script>
+
+<!-- ============================================================
+     FIREBASE BACKEND - FIRESTORE
+     Aktifkan Firestore Database dan Authentication > Anonymous.
+     Isi FIREBASE_CONFIG dengan konfigurasi Web App Firebase Anda.
+     ============================================================ -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import {
+        getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyDnb5sgKrI3FGRDgXK4gEQlkztLXmWvBiA",
+        authDomain: "newton-be.firebaseapp.com",
+        projectId: "newton-be",
+        storageBucket: "newton-be.firebasestorage.app",
+        messagingSenderId: "492563082006",
+        appId: "1:492563082006:web:028b54c97aa43b6aef3e37"
+    };
+
+    const FIREBASE_CONFIG_READY =
+        !!FIREBASE_CONFIG.apiKey &&
+        !FIREBASE_CONFIG.apiKey.startsWith("ISI_") &&
+        !!FIREBASE_CONFIG.projectId &&
+        !FIREBASE_CONFIG.projectId.startsWith("ISI_") &&
+        !!FIREBASE_CONFIG.appId &&
+        !FIREBASE_CONFIG.appId.startsWith("ISI_");
+
+    let db = null;
+    let firebaseInitPromise = null;
+    let firebaseSaveTimer = null;
+    let firebaseSaving = false;
+    let firebaseSaveAgain = false;
+
+    const APP_DOC = "newton/appState";
+
+    function appSnapshot() {
+        return {
+            playersData: playersData || {},
+            matchesHistory: Array.isArray(matchesHistory) ? matchesHistory : [],
+            totalCourtsActive: Number(totalCourtsActive) || 3,
+            savedTimersState: savedTimersState || {},
+            savedCourtsSetup: savedCourtsSetup || {},
+            gradingRules: gradingRules || {},
+            initialNewPlayerScore: Number(initialNewPlayerScore) || 1,
+            dataPemainKas: Array.isArray(dataPemainKas) ? dataPemainKas : [],
+            updatedAt: serverTimestamp()
+        };
+    }
+
+    function cacheFirebaseData(data) {
+        if (!data) return;
+
+        playersData = data.playersData || {};
+        matchesHistory = Array.isArray(data.matchesHistory) ? data.matchesHistory : [];
+        totalCourtsActive = Number(data.totalCourtsActive) || 3;
+        savedTimersState = data.savedTimersState || {};
+        savedCourtsSetup = data.savedCourtsSetup || {};
+        gradingRules = data.gradingRules || gradingRules;
+        initialNewPlayerScore = Number(data.initialNewPlayerScore) || 1;
+        dataPemainKas = Array.isArray(data.dataPemainKas) ? data.dataPemainKas.map(p => ({
+            ...p,
+            id: p.id ?? (Date.now() + Math.random()),
+            nama: p.nama || '',
+            nominal: Number(p.nominal) || 0,
+            metode: p.metode || 'Tunai',
+            lunas: p.lunas === true || p.lunas === 'true' || p.lunas === 1
+        })) : [];
+
+        try {
+            localStorage.setItem('mabar_players', JSON.stringify(playersData));
+            localStorage.setItem('mabar_history', JSON.stringify(matchesHistory));
+            localStorage.setItem('mabar_courts', String(totalCourtsActive));
+            localStorage.setItem('mabar_timers', JSON.stringify(savedTimersState));
+            localStorage.setItem('mabar_court_setups', JSON.stringify(savedCourtsSetup));
+            localStorage.setItem('mabar_rules', JSON.stringify(gradingRules));
+            localStorage.setItem('mabar_initial_score', String(initialNewPlayerScore));
+            localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
+        } catch (e) {
+            console.warn('Cache Firebase gagal disimpan:', e);
+        }
+    }
+
+    function initFirebase() {
+        if (firebaseInitPromise) return firebaseInitPromise;
+
+        firebaseInitPromise = (async () => {
+            if (!FIREBASE_CONFIG_READY) {
+                console.warn("Firebase belum dikonfigurasi. Aplikasi menggunakan localStorage.");
+                return false;
+            }
+
+            try {
+                const app = initializeApp(FIREBASE_CONFIG);
+                db = getFirestore(app);
+                const auth = getAuth(app);
+                await signInAnonymously(auth);
+
+                window.firebaseBackendReady = true;
+                console.info("Firebase Firestore backend aktif.");
+                return true;
+            } catch (error) {
+                window.firebaseBackendReady = false;
+                console.error("Firebase init gagal:", error);
+                return false;
+            }
+        })();
+
+        return firebaseInitPromise;
+    }
+
+    window.firebaseLoadAppData = async function() {
+        const ready = await initFirebase();
+        if (!ready) return false;
+
+        const snap = await getDoc(doc(db, APP_DOC));
+
+        if (!snap.exists()) {
+            await setDoc(doc(db, APP_DOC), appSnapshot());
+            return true;
+        }
+
+        cacheFirebaseData(snap.data());
+        return true;
+    };
+
+    window.firebaseSaveAppData = function() {
+        if (!window.firebaseBackendReady || !db) return;
+
+        clearTimeout(firebaseSaveTimer);
+
+        firebaseSaveTimer = setTimeout(async () => {
+            if (firebaseSaving) {
+                firebaseSaveAgain = true;
+                return;
+            }
+
+            firebaseSaving = true;
+
+            try {
+                await setDoc(doc(db, APP_DOC), appSnapshot(), { merge: false });
+            } catch (error) {
+                console.error("Firebase save gagal:", error);
+            } finally {
+                firebaseSaving = false;
+
+                if (firebaseSaveAgain) {
+                    firebaseSaveAgain = false;
+                    window.firebaseSaveAppData();
+                }
+            }
+        }, 500);
+    };
+
+    window.firebaseResetDatabase = async function() {
+        if (!window.firebaseBackendReady || !db) return;
+        await deleteDoc(doc(db, APP_DOC));
+    };
+
+    // Mulai inisialisasi tanpa menghalangi tampilan awal.
+    initFirebase();
+</script>
+
+</body>
+</html>
