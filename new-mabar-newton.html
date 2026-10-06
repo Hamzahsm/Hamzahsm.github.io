@@ -1215,7 +1215,29 @@
             display: none !important;
         }
 
-    </style>
+    
+/* NEWTON_Klasemen_CSS_START */
+.klasemen-filter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.kl-btn{border:1px solid #dbe3ee;background:#fff;color:#334155;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.kl-btn:hover{background:#f8fafc}
+.kl-period{flex:1;min-width:150px;text-align:center;font-weight:800;color:#0f172a;font-size:14px}
+.klasemen-table{width:100%;border-collapse:collapse;font-size:12px}
+.klasemen-table th{background:#f8fafc;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.03em;padding:10px 7px;border-bottom:1px solid #e2e8f0}
+.klasemen-table td{padding:10px 7px;border-bottom:1px solid #eef2f7;text-align:center}
+.klasemen-table th:nth-child(2),.klasemen-table td:nth-child(2){text-align:left}
+.kl-rank{font-weight:900;color:#475569}
+.kl-name{font-weight:800;color:#0f172a}
+.kl-empty{text-align:center!important;color:#94a3b8;padding:20px!important}
+.kl-top{font-weight:900}
+@media(max-width:600px){
+  .kl-btn{font-size:11px;padding:7px 8px}
+  .kl-period{font-size:12px;min-width:110px}
+  .klasemen-table{font-size:11px}
+  .klasemen-table th,.klasemen-table td{padding:8px 5px}
+}
+/* NEWTON_Klasemen_CSS_END */
+
+</style>
 </head>
 <body class="app-locked" onclick="closeExportDropdown(event)">
 
@@ -1418,6 +1440,10 @@
         <span class="nav-icon">🏸</span>
         <span>Mabar</span>
     </button>
+    <button class="menu-item" onclick="switchView('view-klasemen', this)">
+        <span class="nav-icon">🏆</span>
+        <span>Klasemen</span>
+    </button>
     <button class="menu-item admin-only-menu" onclick="switchView('view-kas', this)">
         <span class="nav-icon">💰</span>
         <span>Kas</span>
@@ -1518,7 +1544,56 @@
 
     </div>
 
-    <div id="view-kas" class="view-section">
+    
+<!-- NEWTON_KLASemen_START -->
+<div id="view-klasemen" class="view-section">
+    <div class="reg-hero">
+        <h2>🏆 Klasemen</h2>
+        <p>Klasemen mingguan dan rekap klasemen bulanan berdasarkan hasil pertandingan.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header-title">
+            <span>📅 Klasemen Mingguan</span>
+            <span class="quick-badge-tip">Menang 3 poin</span>
+        </div>
+        <div class="klasemen-filter">
+            <button type="button" class="kl-btn" onclick="ubahMingguKlasemen(-1)">‹ Sebelumnya</button>
+            <div class="kl-period" id="kl-week-label">-</div>
+            <button type="button" class="kl-btn" onclick="ubahMingguKlasemen(1)">Berikutnya ›</button>
+        </div>
+        <div class="table-responsive">
+            <table class="klasemen-table">
+                <thead><tr>
+                    <th>#</th><th>Pemain</th><th>MP</th><th>W</th><th>L</th><th>Win %</th><th>Selisih</th><th>Poin</th>
+                </tr></thead>
+                <tbody id="kl-week-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header-title">
+            <span>📊 Rekap Klasemen Bulanan</span>
+        </div>
+        <div class="klasemen-filter">
+            <button type="button" class="kl-btn" onclick="ubahBulanKlasemen(-1)">‹ Sebelumnya</button>
+            <div class="kl-period" id="kl-month-label">-</div>
+            <button type="button" class="kl-btn" onclick="ubahBulanKlasemen(1)">Berikutnya ›</button>
+        </div>
+        <div class="table-responsive">
+            <table class="klasemen-table">
+                <thead><tr>
+                    <th>#</th><th>Pemain</th><th>MP</th><th>W</th><th>L</th><th>Win %</th><th>Selisih</th><th>Poin</th>
+                </tr></thead>
+                <tbody id="kl-month-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- NEWTON_KLASemen_END -->
+
+<div id="view-kas" class="view-section">
         <!-- 1. MODERN FINTECH WALLET HERO -->
         <div class="kas-hero-wallet">
             <div class="kas-wallet-top">
@@ -1745,7 +1820,7 @@
             }
             courtTimers = {};
             savedTimersState = {};
-            matchesHistory = [];
+            // Riwayat pertandingan dipertahankan untuk klasemen mingguan/bulanan.
             savedCourtsSetup = {};
             localStorage.removeItem('mabar_court_setups');
 
@@ -1997,8 +2072,8 @@
     const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
 
     function switchView(viewId, menuElement) {
-        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar') {
-            showMsg('Member hanya memiliki akses ke menu Mabar.');
+        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar' && viewId !== 'view-klasemen') {
+            showMsg('Member hanya memiliki akses ke menu Mabar dan Klasemen.');
             return;
         }
 
@@ -2748,6 +2823,7 @@
         const pB = [b1, b2].filter(p => p !== "");
 
         matchesHistory.unshift({
+            date: new Date().toISOString(),
             court: courtNum,
             time: `${timeStart.getHours()}.${String(timeStart.getMinutes()).padStart(2, '0')} - ${timeEnd.getHours()}.${String(timeEnd.getMinutes()).padStart(2, '0')}`,
             duration: `${durationMin} Menit`,
@@ -3327,6 +3403,75 @@
 
     // Mulai inisialisasi tanpa menghalangi tampilan awal.
     initFirebase();
+
+// NEWTON_Klasemen_JS_START
+let klWeekDate = new Date();
+let klMonthDate = new Date();
+
+function klDate(value){
+    if(!value) return null;
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+}
+function klStartWeek(d){
+    const x = new Date(d); x.setHours(0,0,0,0);
+    const day = x.getDay();
+    x.setDate(x.getDate() + (day === 0 ? -6 : 1-day));
+    return x;
+}
+function klEndWeek(d){
+    const x = klStartWeek(d);
+    x.setDate(x.getDate()+6); x.setHours(23,59,59,999);
+    return x;
+}
+function klStartMonth(d){return new Date(d.getFullYear(),d.getMonth(),1,0,0,0,0)}
+function klEndMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59,999)}
+function klDateText(d){return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
+function klNames(m,side){
+    const arr=side==='A'?m.playersA:m.playersB;
+    if(Array.isArray(arr)&&arr.length)return arr.filter(Boolean);
+    const team=side==='A'?m.teamA:m.teamB;
+    return team?String(team).split('/').map(x=>x.trim()).filter(Boolean):[];
+}
+function klStats(start,end){
+    const out={};
+    (Array.isArray(matchesHistory)?matchesHistory:[]).forEach(m=>{
+        const d=klDate(m.date||m.matchDate||m.timestamp||m.createdAt);
+        if(!d||d<start||d>end)return;
+        const A=klNames(m,'A'),B=klNames(m,'B'),sa=Number(m.scoreA),sb=Number(m.scoreB);
+        if(!isFinite(sa)||!isFinite(sb))return;
+        A.concat(B).forEach(n=>{if(!out[n])out[n]={name:n,mp:0,w:0,l:0,draw:0,scored:0,conceded:0,points:0}});
+        A.forEach(n=>{
+            const s=out[n];s.mp++;s.scored+=sa;s.conceded+=sb;
+            if(sa>sb){s.w++;s.points+=3}else if(sa<sb)s.l++;else{s.draw++;s.points++}
+        });
+        B.forEach(n=>{
+            const s=out[n];s.mp++;s.scored+=sb;s.conceded+=sa;
+            if(sb>sa){s.w++;s.points+=3}else if(sb<sa)s.l++;else{s.draw++;s.points++}
+        });
+    });
+    return Object.values(out).map(s=>{s.diff=s.scored-s.conceded;s.winPct=s.mp?s.w/s.mp*100:0;return s})
+      .sort((a,b)=>b.points-a.points||b.w-a.w||b.diff-a.diff||b.mp-a.mp||a.name.localeCompare(b.name,'id'));
+}
+function klRender(id,rows){
+    const el=document.getElementById(id);if(!el)return;
+    if(!rows.length){el.innerHTML='<tr><td colspan="8" class="kl-empty">Belum ada pertandingan pada periode ini.</td></tr>';return}
+    el.innerHTML=rows.map((s,i)=>`<tr class="${i<3?'kl-top':''}">
+      <td class="kl-rank">${i+1}</td><td class="kl-name">${s.name}</td><td>${s.mp}</td><td>${s.w}</td><td>${s.l}</td>
+      <td>${s.winPct.toFixed(0)}%</td><td>${s.diff>0?'+':''}${s.diff}</td><td><strong>${s.points}</strong></td></tr>`).join('');
+}
+function renderKlasemen(){
+    const ws=klStartWeek(klWeekDate),we=klEndWeek(klWeekDate),ms=klStartMonth(klMonthDate),me=klEndMonth(klMonthDate);
+    const w=document.getElementById('kl-week-label'),m=document.getElementById('kl-month-label');
+    if(w)w.textContent=`${klDateText(ws)} – ${klDateText(we)}`;
+    if(m)m.textContent=ms.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+    klRender('kl-week-body',klStats(ws,we));klRender('kl-month-body',klStats(ms,me));
+}
+function ubahMingguKlasemen(n){klWeekDate.setDate(klWeekDate.getDate()+n*7);renderKlasemen()}
+function ubahBulanKlasemen(n){klMonthDate=new Date(klMonthDate.getFullYear(),klMonthDate.getMonth()+n,1);renderKlasemen()}
+document.addEventListener('DOMContentLoaded',renderKlasemen);
+// NEWTON_Klasemen_JS_END
+
 </script>
 
 </body>
