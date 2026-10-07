@@ -2854,6 +2854,12 @@
         updatePlayerTable();
         updateAllSelectOptions(); 
         updateHistoryDOM();
+
+        // Klasemen langsung dihitung ulang setelah pertandingan selesai.
+        // Tidak perlu refresh halaman / membuka ulang menu.
+        if (typeof renderKlasemen === 'function') {
+            renderKlasemen();
+        }
     }
 
     function updateHistoryDOM() {
@@ -3232,6 +3238,7 @@
                 restoreTimers();
                 syncPemainKas();
                 renderDatabasePemain();
+                if (typeof renderKlasemen === 'function') renderKlasemen();
             } catch (error) {
                 console.warn('Firebase tidak dapat dimuat. Menggunakan cache lokal.', error);
             }
@@ -3461,6 +3468,10 @@ function klRender(id,rows){
       <td>${s.winPct.toFixed(0)}%</td><td>${s.diff>0?'+':''}${s.diff}</td><td><strong>${s.points}</strong></td></tr>`).join('');
 }
 function renderKlasemen(){
+    // Selalu baca matchesHistory terbaru agar hasil pertandingan terakhir
+    // langsung masuk ke klasemen mingguan dan bulanan.
+    if (!Array.isArray(matchesHistory)) matchesHistory = [];
+
     const ws=klStartWeek(klWeekDate),we=klEndWeek(klWeekDate),ms=klStartMonth(klMonthDate),me=klEndMonth(klMonthDate);
     const w=document.getElementById('kl-week-label'),m=document.getElementById('kl-month-label');
     if(w)w.textContent=`${klDateText(ws)} – ${klDateText(we)}`;
