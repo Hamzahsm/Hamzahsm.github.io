@@ -3395,7 +3395,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import {
-        getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp
+        getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp, onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
@@ -3421,6 +3421,9 @@
     let firebaseSaveTimer = null;
     let firebaseSaving = false;
     let firebaseSaveAgain = false;
+    let realtimeUnsubscribe = null;
+    let lastRealtimeSnapshotJSON = "";
+    let realtimeRefreshQueued = false;
 
     const APP_DOC = "newton/appState";
 
@@ -3499,6 +3502,63 @@
         return firebaseInitPromise;
     }
 
+    function refreshUIFromRealtimeData() {
+        // Jangan menggandakan interval timer saat data remote masuk.
+        Object.values(courtTimers || {}).forEach(timer => {
+            if (timer && timer.intervalId) clearInterval(timer.intervalId);
+        });
+
+        courtTimers = {};
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            const saved = savedTimersState && savedTimersState[i];
+            courtTimers[i] = {
+                startTime: saved && saved.startTime ? new Date(saved.startTime) : null,
+                intervalId: null
+            };
+        }
+
+        renderGradingSettings();
+        generateCourtsDOM();
+        restoreCourtsStateDOM();
+        updatePlayerTable();
+        updateAllSelectOptions();
+        updateHistoryDOM();
+        restoreTimers();
+        syncPemainKas();
+        renderDatabasePemain();
+        renderKlasemen();
+        aturTabelMabarUntukRole();
+    }
+
+    function startRealtimeListener() {
+        if (!db || realtimeUnsubscribe) return;
+
+        realtimeUnsubscribe = onSnapshot(doc(db, APP_DOC), (snap) => {
+            if (!snap.exists()) return;
+            const incoming = snap.data();
+            // Abaikan event duplikat; updatedAt timestamp Firestore tidak perlu dibandingkan.
+            let comparable = {};
+            try {
+                comparable = JSON.parse(JSON.stringify(incoming));
+                delete comparable.updatedAt;
+            } catch (e) {}
+            const incomingJSON = JSON.stringify(comparable);
+            if (incomingJSON === lastRealtimeSnapshotJSON) return;
+            lastRealtimeSnapshotJSON = incomingJSON;
+
+            cacheFirebaseData(incoming);
+            if (realtimeRefreshQueued) return;
+            realtimeRefreshQueued = true;
+            requestAnimationFrame(() => {
+                realtimeRefreshQueued = false;
+                refreshUIFromRealtimeData();
+                console.info('Data NEWTON disinkronkan secara realtime.');
+            });
+        }, (error) => {
+            console.error('Listener realtime Firebase gagal:', error);
+        });
+    }
+
     window.firebaseLoadAppData = async function() {
         const ready = await initFirebase();
         if (!ready) return false;
@@ -3507,10 +3567,18 @@
 
         if (!snap.exists()) {
             await setDoc(doc(db, APP_DOC), appSnapshot());
+            startRealtimeListener();
             return true;
         }
 
         cacheFirebaseData(snap.data());
+        let comparable = {};
+        try {
+            comparable = JSON.parse(JSON.stringify(snap.data()));
+            delete comparable.updatedAt;
+        } catch (e) {}
+        lastRealtimeSnapshotJSON = JSON.stringify(comparable);
+        startRealtimeListener();
         return true;
     };
 
