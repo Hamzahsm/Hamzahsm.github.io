@@ -21,7 +21,7 @@
             --border-color: #e2e8f0;
             --text-muted: #64748b;
             --kas-bg: #ecfdf5;
-            --nav-height: 68px;
+            --nav-height: 68px; 
         }
 
         * {
@@ -445,14 +445,20 @@
 
         .courts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            /* Satu lapangan per baris pada desktop maupun mobile */
+            grid-template-columns: minmax(0, 1fr);
             gap: 14px;
+            align-items: start;
+            width: 100%;
         }
 
         .court-card {
             border: 1px solid #cbd5e1;
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 14px;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             background: #ffffff;
             border-top: 5px solid var(--secondary);
             box-shadow: 0 2px 6px rgba(0,0,0,0.03);
@@ -504,27 +510,70 @@
         }
 
         .match-setup {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
+            width: 100%;
         }
 
         .team-col {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            flex: 1;
+            gap: 8px;
+            min-width: 0;
+            width: 100%;
         }
 
         .team-col select {
+            display: block;
             width: 100%;
-            padding: 6px 8px;
-            font-size: 11.5px;
-            text-overflow: ellipsis;
-            overflow: hidden;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 9px 10px;
+            font-size: 14px;
+            line-height: 1.4;
             font-weight: 600;
+        }
+
+        .vs-center {
+            font-weight: 900;
+            font-size: 14px;
+            color: #94a3b8;
+            padding: 0 4px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .court-card { padding: 12px; }
+            .court-title { font-size: 14px; }
+            .court-lock-btn { padding: 6px 9px; font-size: 11px; }
+            .match-setup {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 10px;
+            }
+            .team-col { gap: 8px; }
+            .team-col select {
+                font-size: 16px;
+                padding: 10px;
+                min-height: 42px;
+            }
+            .vs-center { padding: 0; }
+            .team-col input { min-height: 42px; font-size: 16px; }
+            .timer-btn-group { gap: 6px; }
+            .timer-btn-group button { min-height: 40px; }
+        }
+
+        @media (max-width: 360px) {
+            .courts-grid { gap: 10px; }
+            .court-card { padding: 9px; }
+            .court-title { font-size: 13px; }
+            .court-lock-btn { padding: 5px 7px; font-size: 10px; }
+            .team-col select { font-size: 15px; padding: 9px 7px; }
+            .timer-btn-group { gap: 4px; }
+            .timer-btn-group button { font-size: 11px; padding: 8px 4px; }
         }
 
         .team-col input {
@@ -1215,29 +1264,7 @@
             display: none !important;
         }
 
-    
-/* NEWTON_Klasemen_CSS_START */
-.klasemen-filter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.kl-btn{border:1px solid #dbe3ee;background:#fff;color:#334155;border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;cursor:pointer}
-.kl-btn:hover{background:#f8fafc}
-.kl-period{flex:1;min-width:150px;text-align:center;font-weight:800;color:#0f172a;font-size:14px}
-.klasemen-table{width:100%;border-collapse:collapse;font-size:12px}
-.klasemen-table th{background:#f8fafc;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.03em;padding:10px 7px;border-bottom:1px solid #e2e8f0}
-.klasemen-table td{padding:10px 7px;border-bottom:1px solid #eef2f7;text-align:center}
-.klasemen-table th:nth-child(2),.klasemen-table td:nth-child(2){text-align:left}
-.kl-rank{font-weight:900;color:#475569}
-.kl-name{font-weight:800;color:#0f172a}
-.kl-empty{text-align:center!important;color:#94a3b8;padding:20px!important}
-.kl-top{font-weight:900}
-@media(max-width:600px){
-  .kl-btn{font-size:11px;padding:7px 8px}
-  .kl-period{font-size:12px;min-width:110px}
-  .klasemen-table{font-size:11px}
-  .klasemen-table th,.klasemen-table td{padding:8px 5px}
-}
-/* NEWTON_Klasemen_CSS_END */
-
-</style>
+    </style>
 </head>
 <body class="app-locked" onclick="closeExportDropdown(event)">
 
@@ -1544,56 +1571,29 @@
 
     </div>
 
-    
-<!-- NEWTON_KLASemen_START -->
-<div id="view-klasemen" class="view-section">
-    <div class="reg-hero">
-        <h2>🏆 Klasemen</h2>
-        <p>Klasemen mingguan dan rekap klasemen bulanan berdasarkan hasil pertandingan.</p>
-    </div>
-
-    <div class="card">
-        <div class="card-header-title">
-            <span>📅 Klasemen Mingguan</span>
-            <span class="quick-badge-tip">Menang 3 poin</span>
+    <div id="view-klasemen" class="view-section">
+        <div class="reg-hero">
+            <h2>🏆 Klasemen NEWTON</h2>
+            <p>Peringkat diperbarui otomatis setiap pertandingan selesai berdasarkan riwayat pertandingan.</p>
         </div>
-        <div class="klasemen-filter">
-            <button type="button" class="kl-btn" onclick="ubahMingguKlasemen(-1)">‹ Sebelumnya</button>
-            <div class="kl-period" id="kl-week-label">-</div>
-            <button type="button" class="kl-btn" onclick="ubahMingguKlasemen(1)">Berikutnya ›</button>
-        </div>
-        <div class="table-responsive">
-            <table class="klasemen-table">
-                <thead><tr>
-                    <th>#</th><th>Pemain</th><th>MP</th><th>W</th><th>L</th><th>Win %</th><th>Selisih</th><th>Poin</th>
-                </tr></thead>
-                <tbody id="kl-week-body"></tbody>
-            </table>
+        <div class="card">
+            <div class="card-header-title"><span>Periode Klasemen</span></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                <button id="btn-klasemen-mingguan" onclick="switchKlasemenPeriode('mingguan')" style="background:var(--primary);">📅 Mingguan</button>
+                <button id="btn-klasemen-bulanan" onclick="switchKlasemenPeriode('bulanan')" style="background:#e2e8f0;color:#334155;">🗓️ Bulanan</button>
+            </div>
+            <div id="klasemen-periode-label" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;"></div>
+            <div style="overflow-x:auto;">
+                <table class="player-table" style="min-width:520px;">
+                    <thead><tr><th style="width:44px;">Rank</th><th>Nama Pemain</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Selisih Poin</th></tr></thead>
+                    <tbody id="klasemen-table-body"><tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr></tbody>
+                </table>
+            </div>
+            <p style="font-size:11px;color:#64748b;margin:12px 0 0;">Peringkat diurutkan berdasarkan jumlah menang, selisih poin, lalu jumlah pertandingan.</p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header-title">
-            <span>📊 Rekap Klasemen Bulanan</span>
-        </div>
-        <div class="klasemen-filter">
-            <button type="button" class="kl-btn" onclick="ubahBulanKlasemen(-1)">‹ Sebelumnya</button>
-            <div class="kl-period" id="kl-month-label">-</div>
-            <button type="button" class="kl-btn" onclick="ubahBulanKlasemen(1)">Berikutnya ›</button>
-        </div>
-        <div class="table-responsive">
-            <table class="klasemen-table">
-                <thead><tr>
-                    <th>#</th><th>Pemain</th><th>MP</th><th>W</th><th>L</th><th>Win %</th><th>Selisih</th><th>Poin</th>
-                </tr></thead>
-                <tbody id="kl-month-body"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-<!-- NEWTON_KLASemen_END -->
-
-<div id="view-kas" class="view-section">
+    <div id="view-kas" class="view-section">
         <!-- 1. MODERN FINTECH WALLET HERO -->
         <div class="kas-hero-wallet">
             <div class="kas-wallet-top">
@@ -1820,7 +1820,7 @@
             }
             courtTimers = {};
             savedTimersState = {};
-            // Riwayat pertandingan dipertahankan untuk klasemen mingguan/bulanan.
+            matchesHistory = [];
             savedCourtsSetup = {};
             localStorage.removeItem('mabar_court_setups');
 
@@ -2072,8 +2072,8 @@
     const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
 
     function switchView(viewId, menuElement) {
-        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar' && viewId !== 'view-klasemen') {
-            showMsg('Member hanya memiliki akses ke menu Mabar dan Klasemen.');
+        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar') {
+            showMsg('Member hanya memiliki akses ke menu Mabar.');
             return;
         }
 
@@ -2823,8 +2823,8 @@
         const pB = [b1, b2].filter(p => p !== "");
 
         matchesHistory.unshift({
-            date: new Date().toISOString(),
             court: courtNum,
+            playedAt: timeEnd.toISOString(),
             time: `${timeStart.getHours()}.${String(timeStart.getMinutes()).padStart(2, '0')} - ${timeEnd.getHours()}.${String(timeEnd.getMinutes()).padStart(2, '0')}`,
             duration: `${durationMin} Menit`,
             teamA: a2 ? `${a1} / ${a2}` : a1,
@@ -2854,12 +2854,97 @@
         updatePlayerTable();
         updateAllSelectOptions(); 
         updateHistoryDOM();
+        renderKlasemen();
+    }
 
-        // Klasemen langsung dihitung ulang setelah pertandingan selesai.
-        // Tidak perlu refresh halaman / membuka ulang menu.
-        if (typeof renderKlasemen === 'function') {
-            renderKlasemen();
+    let klasemenPeriodeAktif = 'mingguan';
+
+    function tanggalPertandingan(match) {
+        const raw = match.playedAt || match.dateISO || match.createdAt || match.date || '';
+        if (!raw) return null;
+        const date = new Date(raw);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function switchKlasemenPeriode(periode) {
+        klasemenPeriodeAktif = periode === 'bulanan' ? 'bulanan' : 'mingguan';
+        const mingguan = document.getElementById('btn-klasemen-mingguan');
+        const bulanan = document.getElementById('btn-klasemen-bulanan');
+        if (mingguan) {
+            mingguan.style.background = klasemenPeriodeAktif === 'mingguan' ? 'var(--primary)' : '#e2e8f0';
+            mingguan.style.color = klasemenPeriodeAktif === 'mingguan' ? '#fff' : '#334155';
         }
+        if (bulanan) {
+            bulanan.style.background = klasemenPeriodeAktif === 'bulanan' ? 'var(--primary)' : '#e2e8f0';
+            bulanan.style.color = klasemenPeriodeAktif === 'bulanan' ? '#fff' : '#334155';
+        }
+        renderKlasemen();
+    }
+
+    function renderKlasemen() {
+        const tbody = document.getElementById('klasemen-table-body');
+        const label = document.getElementById('klasemen-periode-label');
+        if (!tbody || !label) return;
+
+        const now = new Date();
+        let start, end;
+        if (klasemenPeriodeAktif === 'bulanan') {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            label.textContent = 'Periode: ' + now.toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+        } else {
+            start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const day = (start.getDay() + 6) % 7;
+            start.setDate(start.getDate() - day);
+            end = new Date(start);
+            end.setDate(end.getDate() + 7);
+            const last = new Date(end.getTime() - 1);
+            label.textContent = 'Periode: ' + start.toLocaleDateString('id-ID', {day:'numeric', month:'short'}) + ' – ' +
+                last.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) + ' (Senin–Minggu)';
+        }
+
+        const stats = {};
+        (matchesHistory || []).forEach(match => {
+            const date = tanggalPertandingan(match);
+            if (!date || date < start || date >= end) return;
+            const a = Number(match.scoreA) || 0;
+            const b = Number(match.scoreB) || 0;
+            const playersA = Array.isArray(match.playersA) ? match.playersA : String(match.teamA || '').split(' / ').filter(Boolean);
+            const playersB = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').filter(Boolean);
+            const all = [...new Set([...playersA, ...playersB].filter(Boolean))];
+            all.forEach(name => {
+                if (!stats[name]) stats[name] = {name, played:0, wins:0, losses:0, pointsFor:0, pointsAgainst:0};
+                const row = stats[name];
+                row.played++;
+                const onA = playersA.includes(name);
+                row.pointsFor += onA ? a : b;
+                row.pointsAgainst += onA ? b : a;
+                if (a === b) return;
+                const won = onA ? a > b : b > a;
+                if (won) row.wins++; else row.losses++;
+            });
+        });
+
+        const rows = Object.values(stats).sort((a,b) =>
+            b.wins - a.wins ||
+            ((b.pointsFor-b.pointsAgainst) - (a.pointsFor-a.pointsAgainst)) ||
+            b.played - a.played ||
+            a.name.localeCompare(b.name, 'id')
+        );
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map((p, i) => {
+            const diff = p.pointsFor - p.pointsAgainst;
+            const diffText = diff > 0 ? '+' + diff : String(diff);
+            const medal = i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
+            return `<tr><td style="font-weight:800;">${medal}${i+1}</td><td style="font-weight:700;">${escapeHTMLKlasemen(p.name)}</td><td style="text-align:center;">${p.played}</td><td style="text-align:center;color:#15803d;font-weight:800;">${p.wins}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${p.losses}</td><td style="text-align:center;font-weight:700;">${diffText}</td></tr>`;
+        }).join('');
+    }
+
+    function escapeHTMLKlasemen(value) {
+        return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     }
 
     function updateHistoryDOM() {
@@ -3238,7 +3323,6 @@
                 restoreTimers();
                 syncPemainKas();
                 renderDatabasePemain();
-                if (typeof renderKlasemen === 'function') renderKlasemen();
             } catch (error) {
                 console.warn('Firebase tidak dapat dimuat. Menggunakan cache lokal.', error);
             }
@@ -3410,79 +3494,6 @@
 
     // Mulai inisialisasi tanpa menghalangi tampilan awal.
     initFirebase();
-
-// NEWTON_Klasemen_JS_START
-let klWeekDate = new Date();
-let klMonthDate = new Date();
-
-function klDate(value){
-    if(!value) return null;
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? null : d;
-}
-function klStartWeek(d){
-    const x = new Date(d); x.setHours(0,0,0,0);
-    const day = x.getDay();
-    x.setDate(x.getDate() + (day === 0 ? -6 : 1-day));
-    return x;
-}
-function klEndWeek(d){
-    const x = klStartWeek(d);
-    x.setDate(x.getDate()+6); x.setHours(23,59,59,999);
-    return x;
-}
-function klStartMonth(d){return new Date(d.getFullYear(),d.getMonth(),1,0,0,0,0)}
-function klEndMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59,999)}
-function klDateText(d){return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
-function klNames(m,side){
-    const arr=side==='A'?m.playersA:m.playersB;
-    if(Array.isArray(arr)&&arr.length)return arr.filter(Boolean);
-    const team=side==='A'?m.teamA:m.teamB;
-    return team?String(team).split('/').map(x=>x.trim()).filter(Boolean):[];
-}
-function klStats(start,end){
-    const out={};
-    (Array.isArray(matchesHistory)?matchesHistory:[]).forEach(m=>{
-        const d=klDate(m.date||m.matchDate||m.timestamp||m.createdAt);
-        if(!d||d<start||d>end)return;
-        const A=klNames(m,'A'),B=klNames(m,'B'),sa=Number(m.scoreA),sb=Number(m.scoreB);
-        if(!isFinite(sa)||!isFinite(sb))return;
-        A.concat(B).forEach(n=>{if(!out[n])out[n]={name:n,mp:0,w:0,l:0,draw:0,scored:0,conceded:0,points:0}});
-        A.forEach(n=>{
-            const s=out[n];s.mp++;s.scored+=sa;s.conceded+=sb;
-            if(sa>sb){s.w++;s.points+=3}else if(sa<sb)s.l++;else{s.draw++;s.points++}
-        });
-        B.forEach(n=>{
-            const s=out[n];s.mp++;s.scored+=sb;s.conceded+=sa;
-            if(sb>sa){s.w++;s.points+=3}else if(sb<sa)s.l++;else{s.draw++;s.points++}
-        });
-    });
-    return Object.values(out).map(s=>{s.diff=s.scored-s.conceded;s.winPct=s.mp?s.w/s.mp*100:0;return s})
-      .sort((a,b)=>b.points-a.points||b.w-a.w||b.diff-a.diff||b.mp-a.mp||a.name.localeCompare(b.name,'id'));
-}
-function klRender(id,rows){
-    const el=document.getElementById(id);if(!el)return;
-    if(!rows.length){el.innerHTML='<tr><td colspan="8" class="kl-empty">Belum ada pertandingan pada periode ini.</td></tr>';return}
-    el.innerHTML=rows.map((s,i)=>`<tr class="${i<3?'kl-top':''}">
-      <td class="kl-rank">${i+1}</td><td class="kl-name">${s.name}</td><td>${s.mp}</td><td>${s.w}</td><td>${s.l}</td>
-      <td>${s.winPct.toFixed(0)}%</td><td>${s.diff>0?'+':''}${s.diff}</td><td><strong>${s.points}</strong></td></tr>`).join('');
-}
-function renderKlasemen(){
-    // Selalu baca matchesHistory terbaru agar hasil pertandingan terakhir
-    // langsung masuk ke klasemen mingguan dan bulanan.
-    if (!Array.isArray(matchesHistory)) matchesHistory = [];
-
-    const ws=klStartWeek(klWeekDate),we=klEndWeek(klWeekDate),ms=klStartMonth(klMonthDate),me=klEndMonth(klMonthDate);
-    const w=document.getElementById('kl-week-label'),m=document.getElementById('kl-month-label');
-    if(w)w.textContent=`${klDateText(ws)} – ${klDateText(we)}`;
-    if(m)m.textContent=ms.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
-    klRender('kl-week-body',klStats(ws,we));klRender('kl-month-body',klStats(ms,me));
-}
-function ubahMingguKlasemen(n){klWeekDate.setDate(klWeekDate.getDate()+n*7);renderKlasemen()}
-function ubahBulanKlasemen(n){klMonthDate=new Date(klMonthDate.getFullYear(),klMonthDate.getMonth()+n,1);renderKlasemen()}
-document.addEventListener('DOMContentLoaded',renderKlasemen);
-// NEWTON_Klasemen_JS_END
-
 </script>
 
 </body>
