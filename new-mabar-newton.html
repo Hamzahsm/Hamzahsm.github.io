@@ -1995,6 +1995,8 @@
         if (resetBtn) resetBtn.style.display = role === 'admin' ? 'flex' : 'none';
 
         aturTabelMabarUntukRole();
+        updateHistoryDOM(); // tombol edit/hapus hanya tampil saat Admin login
+        renderKlasemen();
 
         if (role === 'member') {
             const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
@@ -2068,12 +2070,12 @@
         return true;
     }
 
-    // Member hanya boleh membuka Mabar.
+    // Member dapat membuka Mabar dan Klasemen; menu lain khusus Admin.
     const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
 
     function switchView(viewId, menuElement) {
-        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar') {
-            showMsg('Member hanya memiliki akses ke menu Mabar.');
+        if (newtonCurrentRole === 'member' && !['view-mabar', 'view-klasemen'].includes(viewId)) {
+            showMsg('Member hanya memiliki akses ke menu Mabar dan Klasemen.');
             return;
         }
 
@@ -2088,6 +2090,8 @@
 
         if (viewId === 'view-mabar') {
             updateAllSelectOptions();
+        } else if (viewId === 'view-klasemen') {
+            renderKlasemen();
         } else if (viewId === 'view-database') {
             renderDatabasePemain();
             renderGradingSettings();
@@ -2956,18 +2960,69 @@
             return;
         }
 
-        matchesHistory.forEach((match) => {
-            const isAWin = match.scoreA > match.scoreB;
+        matchesHistory.forEach((match, index) => {
+            const isAWin = Number(match.scoreA) > Number(match.scoreB);
+            const isAdmin = newtonCurrentRole === 'admin';
+            const actionButtons = isAdmin ? `
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;">
+                    <button type="button" onclick="editMatchResult(${index})" style="padding:5px 9px;font-size:11px;background:#e0f2fe;color:#075985;border-radius:7px;">✏️ Edit Skor</button>
+                    <button type="button" onclick="deleteMatchResult(${index})" style="padding:5px 9px;font-size:11px;background:#fee2e2;color:#991b1b;border-radius:7px;">🗑️ Hapus</button>
+                </div>` : '';
             container.innerHTML += `
                 <li class="history-item">
-                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Lap ${match.court} • ${match.time} (${match.duration})</div>
+                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Lap ${escapeHTMLKlasemen(match.court ?? '-')} • ${escapeHTMLKlasemen(match.time || '-')} (${escapeHTMLKlasemen(match.duration || '-')})</div>
                     <div style="font-size:13px;">
-                        <span style="${isAWin ? 'color:var(--success); font-weight:bold;' : ''}">${match.teamA} (${match.scoreA})</span>
-                        <span style="color:#94a3b8; margin:0 4px; font-weight:bold;">vs</span> 
-                        <span style="${!isAWin ? 'color:var(--success); font-weight:bold;' : ''}">(${match.scoreB}) ${match.teamB}</span>
+                        <span style="${isAWin ? 'color:var(--success); font-weight:bold;' : ''}">${escapeHTMLKlasemen(match.teamA || '-')} (${Number(match.scoreA) || 0})</span>
+                        <span style="color:#94a3b8; margin:0 4px; font-weight:bold;">vs</span>
+                        <span style="${!isAWin ? 'color:var(--success); font-weight:bold;' : ''}">(${Number(match.scoreB) || 0}) ${escapeHTMLKlasemen(match.teamB || '-')}</span>
                     </div>
+                    ${actionButtons}
                 </li>
             `;
+        });
+    }
+
+    function editMatchResult(index) {
+        if (!pastikanAdmin()) return;
+        const match = matchesHistory[index];
+        if (!match) { showMsg('Hasil pertandingan tidak ditemukan.'); return; }
+
+        const scoreAInput = prompt(`Edit skor Tim A — ${match.teamA || 'Tim A'}\nMasukkan skor baru:`, String(match.scoreA ?? 0));
+        if (scoreAInput === null) return;
+        const scoreBInput = prompt(`Edit skor Tim B — ${match.teamB || 'Tim B'}\nMasukkan skor baru:`, String(match.scoreB ?? 0));
+        if (scoreBInput === null) return;
+        const scoreA = Number(scoreAInput.trim());
+        const scoreB = Number(scoreBInput.trim());
+        if (scoreAInput.trim() === '' || scoreBInput.trim() === '' || !Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) {
+            showMsg('Skor harus berupa bilangan bulat nol atau lebih.');
+            return;
+        }
+
+        matchesHistory[index] = { ...match, scoreA, scoreB };
+        saveDataLocally();
+        updateHistoryDOM();
+        updatePlayerTable();
+        renderKlasemen();
+        showMsg('Skor pertandingan berhasil diperbarui.');
+    }
+
+    function deleteMatchResult(index) {
+        if (!pastikanAdmin()) return;
+        const match = matchesHistory[index];
+        if (!match) { showMsg('Hasil pertandingan tidak ditemukan.'); return; }
+        showConfirm(`Hapus hasil pertandingan ${match.teamA || 'Tim A'} ${match.scoreA ?? 0} vs ${match.scoreB ?? 0} ${match.teamB || 'Tim B'}? Data ini juga akan dihapus dari perhitungan klasemen.`, () => {
+            const playersA = Array.isArray(match.playersA) ? match.playersA : String(match.teamA || '').split(' / ').filter(Boolean);
+            const playersB = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').filter(Boolean);
+            [...new Set([...playersA, ...playersB].filter(Boolean))].forEach(name => {
+                if (playersData[name]) playersData[name].mp = Math.max(0, (Number(playersData[name].mp) || 0) - 1);
+            });
+            matchesHistory.splice(index, 1);
+            saveDataLocally();
+            updateHistoryDOM();
+            updatePlayerTable();
+            renderKlasemen();
+            updateAllSelectOptions();
+            showMsg('Hasil pertandingan berhasil dihapus.');
         });
     }
 
