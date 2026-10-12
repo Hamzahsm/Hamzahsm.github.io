@@ -1995,6 +1995,7 @@
         if (resetBtn) resetBtn.style.display = role === 'admin' ? 'flex' : 'none';
 
         aturTabelMabarUntukRole();
+        aturKontrolLapanganUntukRole();
         updateHistoryDOM(); // tombol edit/hapus hanya tampil saat Admin login
         renderKlasemen();
 
@@ -2483,7 +2484,42 @@
         tbody.innerHTML = html;
     }
 
+    // Hanya Admin yang dapat mengatur pemain dan pertandingan di lapangan.
+    // Member tetap dapat melihat susunan pemain, skor, dan status lapangan.
+    function aturKontrolLapanganUntukRole() {
+        const isMember = newtonCurrentRole === 'member';
+        document.querySelectorAll('#view-mabar #courts-container select, #view-mabar #courts-container input').forEach(el => {
+            el.disabled = isMember;
+        });
+        document.querySelectorAll('#view-mabar #courts-container button').forEach(btn => {
+            if (isMember) btn.disabled = true;
+        });
+        document.querySelectorAll('button[onclick="kurangiLapangan()"], button[onclick="tambahLapanganBaru()"]')
+            .forEach(btn => { btn.disabled = isMember; });
+
+        // Saat Admin login, kembalikan aturan kunci lapangan dan status tombol yang berlaku.
+        if (!isMember) {
+            for (let i = 1; i <= totalCourtsActive; i++) {
+                const locked = !!(savedCourtsSetup[i] && savedCourtsSetup[i].locked);
+                applyCourtLockUI(i, locked);
+                const lockBtn = document.getElementById(`c${i}-lock-btn`);
+                const autoBtn = document.getElementById(`c${i}-auto-btn`);
+                if (lockBtn) lockBtn.disabled = false;
+                if (autoBtn) autoBtn.disabled = locked;
+                ['a1','a2','b1','b2'].forEach(pos => {
+                    const el = document.getElementById(`c${i}-${pos}`);
+                    if (el) el.disabled = locked;
+                });
+                ['scoreA','scoreB'].forEach(pos => {
+                    const el = document.getElementById(`c${i}-${pos}`);
+                    if (el) el.disabled = false;
+                });
+            }
+        }
+    }
+
     function tambahLapanganBaru() {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         totalCourtsActive++;
         courtTimers[totalCourtsActive] = { startTime: null, intervalId: null };
         saveDataLocally();
@@ -2493,6 +2529,7 @@
     }
 
     function kurangiLapangan() {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (totalCourtsActive <= 1) return;
         if (courtTimers[totalCourtsActive] && courtTimers[totalCourtsActive].intervalId) {
             clearInterval(courtTimers[totalCourtsActive].intervalId);
@@ -2545,9 +2582,11 @@
                 </div>
             `;
         }
+        aturKontrolLapanganUntukRole();
     }
 
     function toggleCourtLock(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
         const isCurrentlyLocked = !!savedCourtsSetup[courtNum].locked;
         const newLockState = !isCurrentlyLocked;
@@ -2593,6 +2632,7 @@
     }
 
     function onCourtPlayerChange(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
         ['a1', 'a2', 'b1', 'b2'].forEach(p => {
             const el = document.getElementById(`c${courtNum}-${p}`);
@@ -2603,6 +2643,7 @@
     }
 
     function onCourtScoreChange(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
         const sA = document.getElementById(`c${courtNum}-scoreA`);
         const sB = document.getElementById(`c${courtNum}-scoreB`);
@@ -2669,6 +2710,7 @@
     }
 
     function autoDraft(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         let available = [];
         let currentlySelected = new Set();
         const positions = ['a1', 'a2', 'b1', 'b2'];
@@ -2745,6 +2787,7 @@
     }
 
     function toggleCourtTimer(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         const state = courtTimers[courtNum];
         if (state && state.intervalId) {
             clearInterval(state.intervalId);
@@ -2803,6 +2846,7 @@
     }
 
     function saveCourtMatch(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         const a1 = document.getElementById(`c${courtNum}-a1`).value;
         const a2 = document.getElementById(`c${courtNum}-a2`).value;
         const b1 = document.getElementById(`c${courtNum}-b1`).value;
