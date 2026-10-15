@@ -1361,6 +1361,7 @@
     </div>
 </div>
 
+<div id="modal-tambah-pemain-mabar" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.65); z-index:10000; justify-content:center; align-items:center; padding:18px;"><div class="modal-box" style="max-width:380px; width:100%; text-align:left; padding:20px;"><h3 style="margin:0 0 8px; color:#1e293b; font-size:16px; font-weight:800;">＋ Tambahkan Pemain ke Mabar</h3><p style="font-size:12px; color:#64748b; line-height:1.5;">Pilih pemain dari Database. Data pemain di Database tidak akan dihapus saat dikeluarkan dari Mabar.</p><label for="pilih-pemain-database-mabar" style="display:block; font-size:12px; font-weight:700; margin:10px 0 6px;">Pemain Database</label><select id="pilih-pemain-database-mabar" style="width:100%; margin-bottom:14px;"></select><div style="display:flex; justify-content:flex-end; gap:8px;"><button type="button" onclick="tutupModalTambahPemainMabar()" style="background:#e2e8f0;color:#334155;">Batal</button><button type="button" onclick="tambahPemainDariDatabaseKeMabar()">Tambahkan</button></div></div></div>
 <div id="modal-edit-player" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.65); backdrop-filter:blur(3px); z-index:9999; justify-content:center; align-items:center;">
     <div class="modal-box" style="max-width:320px; width:88%; text-align:left; padding:20px;">
         <h3 style="margin:0 0 10px 0; color:#1e293b; font-size:15px; font-weight:800; display:flex; align-items:center; gap:6px;">
@@ -1479,13 +1480,13 @@
         <span class="nav-icon">🗄️</span>
         <span>Database</span>
     </button>
-    <div class="watermark-ct" title="Designed & Crafted by CT">
+    <!-- <div class="watermark-ct" title="Designed & Crafted by CT">
         <div class="wm-icon-badge">⚡</div>
         <div class="wm-text-block">
             <span class="wm-line-sub">Made by</span>
             <span class="wm-line-name">C.T</span>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <div class="main-content">
@@ -1520,7 +1521,7 @@
                 <strong style="color: var(--primary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
                     👥 Daftar Pemain (<span id="total-players">0</span>)
                 </strong>
-                <span style="font-size: 11.5px; color: var(--text-muted);">Klik 'Absen' saat pemain hadir</span>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;"><span style="font-size: 11.5px; color: var(--text-muted);">Klik 'Absen' saat pemain hadir</span><button type="button" onclick="bukaModalTambahPemainMabar()" style="padding:8px 10px; font-size:11px;">＋ Tambah Pemain</button></div>
             </div>
             <div class="player-table-wrapper" style="border: none; border-radius: 0;">
                 <table class="player-table">
@@ -1885,6 +1886,7 @@
     };
 
     let playersData = safeJSON('mabar_players', {});
+    Object.keys(playersData).forEach(name => { if (typeof playersData[name].inMabar === 'undefined') playersData[name].inMabar = true; });
     let matchesHistory = safeJSON('mabar_history', []);
     let totalCourtsActive = parseInt(localStorage.getItem('mabar_courts')) || 3;
     let savedTimersState = safeJSON('mabar_timers', {});
@@ -2220,7 +2222,7 @@
             return;
         }
 
-        playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0 };
+        playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0, inMabar: false };
         input.value = "";
         saveDataLocally();
         updatePlayerTable();
@@ -2238,7 +2240,7 @@
         lines.forEach(line => {
             let cleanName = line.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
             if (cleanName !== "" && !playersData.hasOwnProperty(cleanName)) {
-                playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0 };
+                playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0, inMabar: false };
                 count++;
             }
         });
@@ -2253,6 +2255,41 @@
         } else {
             showMsg("Masukkan nama pemain terlebih dahulu.");
         }
+    }
+
+    function bukaModalTambahPemainMabar() {
+        if (!pastikanAdmin()) return;
+        const select = document.getElementById('pilih-pemain-database-mabar');
+        const names = Object.keys(playersData).filter(name => playersData[name].inMabar === false).sort((a,b) => a.localeCompare(b));
+        select.innerHTML = names.length ? names.map(name => `<option value="${name}">${name}</option>`).join('') : '<option value="">Semua pemain Database sudah ada di Mabar</option>';
+        select.disabled = names.length === 0;
+        document.getElementById('modal-tambah-pemain-mabar').style.display = 'flex';
+    }
+    function tutupModalTambahPemainMabar() { document.getElementById('modal-tambah-pemain-mabar').style.display = 'none'; }
+    function tambahPemainDariDatabaseKeMabar() {
+        if (!pastikanAdmin()) return;
+        const name = document.getElementById('pilih-pemain-database-mabar').value;
+        if (!name || !playersData[name]) { showMsg('Tidak ada pemain Database yang bisa ditambahkan. Tambahkan nama melalui menu Database terlebih dahulu.'); return; }
+        playersData[name].inMabar = true;
+        if (typeof playersData[name].checkInTime === 'undefined') playersData[name].checkInTime = '';
+        if (typeof playersData[name].mp === 'undefined') playersData[name].mp = 0;
+        saveDataLocally(); updatePlayerTable(); updateAllSelectOptions(); syncPemainKas(); renderDatabasePemain();
+        tutupModalTambahPemainMabar(); showMsg(`${name} berhasil ditambahkan ke Mabar.`);
+    }
+    function keluarkanPemainDariMabar(name) {
+        if (!pastikanAdmin()) return;
+        showConfirm(`Keluarkan ${name} dari daftar Mabar? Data di Database, poin, dan riwayat tidak dihapus.`, () => {
+            if (!playersData[name]) return;
+            playersData[name].inMabar = false;
+            for (let c in savedCourtsSetup) ['a1','a2','b1','b2'].forEach(pos => {
+                if (savedCourtsSetup[c] && savedCourtsSetup[c][pos] === name) {
+                    savedCourtsSetup[c][pos] = '';
+                    const el = document.getElementById(`c${c}-${pos}`); if (el) el.value = '';
+                }
+            });
+            saveDataLocally(); updatePlayerTable(); updateAllSelectOptions(); renderDatabasePemain();
+            showMsg(`${name} dikeluarkan dari Mabar. Data Database tetap tersimpan.`);
+        });
     }
 
     function hapusPemain(name) {
@@ -2454,7 +2491,7 @@
 
     function updatePlayerTable() {
         const tbody = document.getElementById('player-table-body');
-        const sortedNames = Object.keys(playersData).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+        const sortedNames = Object.keys(playersData).filter(name => playersData[name].inMabar !== false).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
         document.getElementById('total-players').innerText = sortedNames.length;
         
         let html = "";
@@ -2476,7 +2513,7 @@
                     <td style="text-align:center;">${wlHistoryHtml}</td>
                     <td style="text-align:center; white-space:nowrap;">
                         <button style="background:transparent; color:var(--secondary); padding:2px 4px; font-size:13px;" onclick="bukaModalEditPemain('${name}')" title="Edit Nama Pemain">✏️</button>
-                        <button style="background:transparent; color:#ef4444; padding:2px 4px; font-size:13px;" onclick="hapusPemain('${name}')" title="Hapus Pemain">🗑️</button>
+                        <button style="background:transparent; color:#ef4444; padding:2px 4px; font-size:13px;" onclick="keluarkanPemainDariMabar('${name}')" title="Keluarkan dari Mabar (Database tetap tersimpan)">🗑️</button>
                     </td>
                 </tr>
             `;
@@ -2679,7 +2716,7 @@
             });
         }
 
-        const sortedNames = Object.keys(playersData).sort((a,b) => a.localeCompare(b));
+        const sortedNames = Object.keys(playersData).filter(name => playersData[name].inMabar !== false).sort((a,b) => a.localeCompare(b));
 
         for (let i = 1; i <= totalCourtsActive; i++) {
             positions.forEach(p => {
