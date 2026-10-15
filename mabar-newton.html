@@ -21,7 +21,7 @@
             --border-color: #e2e8f0;
             --text-muted: #64748b;
             --kas-bg: #ecfdf5;
-            --nav-height: 68px;
+            --nav-height: 68px; 
         }
 
         * {
@@ -1467,6 +1467,10 @@
         <span class="nav-icon">🏸</span>
         <span>Mabar</span>
     </button>
+    <button class="menu-item" onclick="switchView('view-klasemen', this)">
+        <span class="nav-icon">🏆</span>
+        <span>Klasemen</span>
+    </button>
     <button class="menu-item admin-only-menu" onclick="switchView('view-kas', this)">
         <span class="nav-icon">💰</span>
         <span>Kas</span>
@@ -1565,6 +1569,28 @@
             </ul>
         </div>
 
+    </div>
+
+    <div id="view-klasemen" class="view-section">
+        <div class="reg-hero">
+            <h2>🏆 Klasemen NEWTON</h2>
+            <p>Peringkat diperbarui otomatis setiap pertandingan selesai berdasarkan riwayat pertandingan.</p>
+        </div>
+        <div class="card">
+            <div class="card-header-title"><span>Periode Klasemen</span></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                <button id="btn-klasemen-mingguan" onclick="switchKlasemenPeriode('mingguan')" style="background:var(--primary);">📅 Mingguan</button>
+                <button id="btn-klasemen-bulanan" onclick="switchKlasemenPeriode('bulanan')" style="background:#e2e8f0;color:#334155;">🗓️ Bulanan</button>
+            </div>
+            <div id="klasemen-periode-label" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;"></div>
+            <div style="overflow-x:auto;">
+                <table class="player-table" style="min-width:520px;">
+                    <thead><tr><th style="width:44px;">Rank</th><th>Nama Pemain</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Selisih Poin</th></tr></thead>
+                    <tbody id="klasemen-table-body"><tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr></tbody>
+                </table>
+            </div>
+            <p style="font-size:11px;color:#64748b;margin:12px 0 0;">Peringkat diurutkan berdasarkan jumlah menang, selisih poin, lalu jumlah pertandingan.</p>
+        </div>
     </div>
 
     <div id="view-kas" class="view-section">
@@ -1969,6 +1995,9 @@
         if (resetBtn) resetBtn.style.display = role === 'admin' ? 'flex' : 'none';
 
         aturTabelMabarUntukRole();
+        aturKontrolLapanganUntukRole();
+        updateHistoryDOM(); // tombol edit/hapus hanya tampil saat Admin login
+        renderKlasemen();
 
         if (role === 'member') {
             const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
@@ -2042,12 +2071,12 @@
         return true;
     }
 
-    // Member hanya boleh membuka Mabar.
+    // Member dapat membuka Mabar dan Klasemen; menu lain khusus Admin.
     const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
 
     function switchView(viewId, menuElement) {
-        if (newtonCurrentRole === 'member' && viewId !== 'view-mabar') {
-            showMsg('Member hanya memiliki akses ke menu Mabar.');
+        if (newtonCurrentRole === 'member' && !['view-mabar', 'view-klasemen'].includes(viewId)) {
+            showMsg('Member hanya memiliki akses ke menu Mabar dan Klasemen.');
             return;
         }
 
@@ -2062,6 +2091,8 @@
 
         if (viewId === 'view-mabar') {
             updateAllSelectOptions();
+        } else if (viewId === 'view-klasemen') {
+            renderKlasemen();
         } else if (viewId === 'view-database') {
             renderDatabasePemain();
             renderGradingSettings();
@@ -2453,7 +2484,42 @@
         tbody.innerHTML = html;
     }
 
+    // Hanya Admin yang dapat mengatur pemain dan pertandingan di lapangan.
+    // Member tetap dapat melihat susunan pemain, skor, dan status lapangan.
+    function aturKontrolLapanganUntukRole() {
+        const isMember = newtonCurrentRole === 'member';
+        document.querySelectorAll('#view-mabar #courts-container select, #view-mabar #courts-container input').forEach(el => {
+            el.disabled = isMember;
+        });
+        document.querySelectorAll('#view-mabar #courts-container button').forEach(btn => {
+            if (isMember) btn.disabled = true;
+        });
+        document.querySelectorAll('button[onclick="kurangiLapangan()"], button[onclick="tambahLapanganBaru()"]')
+            .forEach(btn => { btn.disabled = isMember; });
+
+        // Saat Admin login, kembalikan aturan kunci lapangan dan status tombol yang berlaku.
+        if (!isMember) {
+            for (let i = 1; i <= totalCourtsActive; i++) {
+                const locked = !!(savedCourtsSetup[i] && savedCourtsSetup[i].locked);
+                applyCourtLockUI(i, locked);
+                const lockBtn = document.getElementById(`c${i}-lock-btn`);
+                const autoBtn = document.getElementById(`c${i}-auto-btn`);
+                if (lockBtn) lockBtn.disabled = false;
+                if (autoBtn) autoBtn.disabled = locked;
+                ['a1','a2','b1','b2'].forEach(pos => {
+                    const el = document.getElementById(`c${i}-${pos}`);
+                    if (el) el.disabled = locked;
+                });
+                ['scoreA','scoreB'].forEach(pos => {
+                    const el = document.getElementById(`c${i}-${pos}`);
+                    if (el) el.disabled = false;
+                });
+            }
+        }
+    }
+
     function tambahLapanganBaru() {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         totalCourtsActive++;
         courtTimers[totalCourtsActive] = { startTime: null, intervalId: null };
         saveDataLocally();
@@ -2463,6 +2529,7 @@
     }
 
     function kurangiLapangan() {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (totalCourtsActive <= 1) return;
         if (courtTimers[totalCourtsActive] && courtTimers[totalCourtsActive].intervalId) {
             clearInterval(courtTimers[totalCourtsActive].intervalId);
@@ -2515,9 +2582,11 @@
                 </div>
             `;
         }
+        aturKontrolLapanganUntukRole();
     }
 
     function toggleCourtLock(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
         const isCurrentlyLocked = !!savedCourtsSetup[courtNum].locked;
         const newLockState = !isCurrentlyLocked;
@@ -2563,6 +2632,7 @@
     }
 
     function onCourtPlayerChange(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
         ['a1', 'a2', 'b1', 'b2'].forEach(p => {
             const el = document.getElementById(`c${courtNum}-${p}`);
@@ -2573,6 +2643,7 @@
     }
 
     function onCourtScoreChange(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         if (!savedCourtsSetup[courtNum]) savedCourtsSetup[courtNum] = {};
         const sA = document.getElementById(`c${courtNum}-scoreA`);
         const sB = document.getElementById(`c${courtNum}-scoreB`);
@@ -2639,6 +2710,7 @@
     }
 
     function autoDraft(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         let available = [];
         let currentlySelected = new Set();
         const positions = ['a1', 'a2', 'b1', 'b2'];
@@ -2715,6 +2787,7 @@
     }
 
     function toggleCourtTimer(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         const state = courtTimers[courtNum];
         if (state && state.intervalId) {
             clearInterval(state.intervalId);
@@ -2773,6 +2846,7 @@
     }
 
     function saveCourtMatch(courtNum) {
+        if (newtonCurrentRole !== 'admin') { showMsg('Hanya Admin yang dapat mengatur pemain dan pertandingan.'); return; }
         const a1 = document.getElementById(`c${courtNum}-a1`).value;
         const a2 = document.getElementById(`c${courtNum}-a2`).value;
         const b1 = document.getElementById(`c${courtNum}-b1`).value;
@@ -2798,6 +2872,7 @@
 
         matchesHistory.unshift({
             court: courtNum,
+            playedAt: timeEnd.toISOString(),
             time: `${timeStart.getHours()}.${String(timeStart.getMinutes()).padStart(2, '0')} - ${timeEnd.getHours()}.${String(timeEnd.getMinutes()).padStart(2, '0')}`,
             duration: `${durationMin} Menit`,
             teamA: a2 ? `${a1} / ${a2}` : a1,
@@ -2827,6 +2902,97 @@
         updatePlayerTable();
         updateAllSelectOptions(); 
         updateHistoryDOM();
+        renderKlasemen();
+    }
+
+    let klasemenPeriodeAktif = 'mingguan';
+
+    function tanggalPertandingan(match) {
+        const raw = match.playedAt || match.dateISO || match.createdAt || match.date || '';
+        if (!raw) return null;
+        const date = new Date(raw);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function switchKlasemenPeriode(periode) {
+        klasemenPeriodeAktif = periode === 'bulanan' ? 'bulanan' : 'mingguan';
+        const mingguan = document.getElementById('btn-klasemen-mingguan');
+        const bulanan = document.getElementById('btn-klasemen-bulanan');
+        if (mingguan) {
+            mingguan.style.background = klasemenPeriodeAktif === 'mingguan' ? 'var(--primary)' : '#e2e8f0';
+            mingguan.style.color = klasemenPeriodeAktif === 'mingguan' ? '#fff' : '#334155';
+        }
+        if (bulanan) {
+            bulanan.style.background = klasemenPeriodeAktif === 'bulanan' ? 'var(--primary)' : '#e2e8f0';
+            bulanan.style.color = klasemenPeriodeAktif === 'bulanan' ? '#fff' : '#334155';
+        }
+        renderKlasemen();
+    }
+
+    function renderKlasemen() {
+        const tbody = document.getElementById('klasemen-table-body');
+        const label = document.getElementById('klasemen-periode-label');
+        if (!tbody || !label) return;
+
+        const now = new Date();
+        let start, end;
+        if (klasemenPeriodeAktif === 'bulanan') {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            label.textContent = 'Periode: ' + now.toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+        } else {
+            start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const day = (start.getDay() + 6) % 7;
+            start.setDate(start.getDate() - day);
+            end = new Date(start);
+            end.setDate(end.getDate() + 7);
+            const last = new Date(end.getTime() - 1);
+            label.textContent = 'Periode: ' + start.toLocaleDateString('id-ID', {day:'numeric', month:'short'}) + ' – ' +
+                last.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) + ' (Senin–Minggu)';
+        }
+
+        const stats = {};
+        (matchesHistory || []).forEach(match => {
+            const date = tanggalPertandingan(match);
+            if (!date || date < start || date >= end) return;
+            const a = Number(match.scoreA) || 0;
+            const b = Number(match.scoreB) || 0;
+            const playersA = Array.isArray(match.playersA) ? match.playersA : String(match.teamA || '').split(' / ').filter(Boolean);
+            const playersB = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').filter(Boolean);
+            const all = [...new Set([...playersA, ...playersB].filter(Boolean))];
+            all.forEach(name => {
+                if (!stats[name]) stats[name] = {name, played:0, wins:0, losses:0, pointsFor:0, pointsAgainst:0};
+                const row = stats[name];
+                row.played++;
+                const onA = playersA.includes(name);
+                row.pointsFor += onA ? a : b;
+                row.pointsAgainst += onA ? b : a;
+                if (a === b) return;
+                const won = onA ? a > b : b > a;
+                if (won) row.wins++; else row.losses++;
+            });
+        });
+
+        const rows = Object.values(stats).sort((a,b) =>
+            b.wins - a.wins ||
+            ((b.pointsFor-b.pointsAgainst) - (a.pointsFor-a.pointsAgainst)) ||
+            b.played - a.played ||
+            a.name.localeCompare(b.name, 'id')
+        );
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map((p, i) => {
+            const diff = p.pointsFor - p.pointsAgainst;
+            const diffText = diff > 0 ? '+' + diff : String(diff);
+            const medal = i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
+            return `<tr><td style="font-weight:800;">${medal}${i+1}</td><td style="font-weight:700;">${escapeHTMLKlasemen(p.name)}</td><td style="text-align:center;">${p.played}</td><td style="text-align:center;color:#15803d;font-weight:800;">${p.wins}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${p.losses}</td><td style="text-align:center;font-weight:700;">${diffText}</td></tr>`;
+        }).join('');
+    }
+
+    function escapeHTMLKlasemen(value) {
+        return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     }
 
     function updateHistoryDOM() {
@@ -2838,18 +3004,69 @@
             return;
         }
 
-        matchesHistory.forEach((match) => {
-            const isAWin = match.scoreA > match.scoreB;
+        matchesHistory.forEach((match, index) => {
+            const isAWin = Number(match.scoreA) > Number(match.scoreB);
+            const isAdmin = newtonCurrentRole === 'admin';
+            const actionButtons = isAdmin ? `
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;">
+                    <button type="button" onclick="editMatchResult(${index})" style="padding:5px 9px;font-size:11px;background:#e0f2fe;color:#075985;border-radius:7px;">✏️ Edit Skor</button>
+                    <button type="button" onclick="deleteMatchResult(${index})" style="padding:5px 9px;font-size:11px;background:#fee2e2;color:#991b1b;border-radius:7px;">🗑️ Hapus</button>
+                </div>` : '';
             container.innerHTML += `
                 <li class="history-item">
-                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Lap ${match.court} • ${match.time} (${match.duration})</div>
+                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Lap ${escapeHTMLKlasemen(match.court ?? '-')} • ${escapeHTMLKlasemen(match.time || '-')} (${escapeHTMLKlasemen(match.duration || '-')})</div>
                     <div style="font-size:13px;">
-                        <span style="${isAWin ? 'color:var(--success); font-weight:bold;' : ''}">${match.teamA} (${match.scoreA})</span>
-                        <span style="color:#94a3b8; margin:0 4px; font-weight:bold;">vs</span> 
-                        <span style="${!isAWin ? 'color:var(--success); font-weight:bold;' : ''}">(${match.scoreB}) ${match.teamB}</span>
+                        <span style="${isAWin ? 'color:var(--success); font-weight:bold;' : ''}">${escapeHTMLKlasemen(match.teamA || '-')} (${Number(match.scoreA) || 0})</span>
+                        <span style="color:#94a3b8; margin:0 4px; font-weight:bold;">vs</span>
+                        <span style="${!isAWin ? 'color:var(--success); font-weight:bold;' : ''}">(${Number(match.scoreB) || 0}) ${escapeHTMLKlasemen(match.teamB || '-')}</span>
                     </div>
+                    ${actionButtons}
                 </li>
             `;
+        });
+    }
+
+    function editMatchResult(index) {
+        if (!pastikanAdmin()) return;
+        const match = matchesHistory[index];
+        if (!match) { showMsg('Hasil pertandingan tidak ditemukan.'); return; }
+
+        const scoreAInput = prompt(`Edit skor Tim A — ${match.teamA || 'Tim A'}\nMasukkan skor baru:`, String(match.scoreA ?? 0));
+        if (scoreAInput === null) return;
+        const scoreBInput = prompt(`Edit skor Tim B — ${match.teamB || 'Tim B'}\nMasukkan skor baru:`, String(match.scoreB ?? 0));
+        if (scoreBInput === null) return;
+        const scoreA = Number(scoreAInput.trim());
+        const scoreB = Number(scoreBInput.trim());
+        if (scoreAInput.trim() === '' || scoreBInput.trim() === '' || !Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < 0 || scoreB < 0) {
+            showMsg('Skor harus berupa bilangan bulat nol atau lebih.');
+            return;
+        }
+
+        matchesHistory[index] = { ...match, scoreA, scoreB };
+        saveDataLocally();
+        updateHistoryDOM();
+        updatePlayerTable();
+        renderKlasemen();
+        showMsg('Skor pertandingan berhasil diperbarui.');
+    }
+
+    function deleteMatchResult(index) {
+        if (!pastikanAdmin()) return;
+        const match = matchesHistory[index];
+        if (!match) { showMsg('Hasil pertandingan tidak ditemukan.'); return; }
+        showConfirm(`Hapus hasil pertandingan ${match.teamA || 'Tim A'} ${match.scoreA ?? 0} vs ${match.scoreB ?? 0} ${match.teamB || 'Tim B'}? Data ini juga akan dihapus dari perhitungan klasemen.`, () => {
+            const playersA = Array.isArray(match.playersA) ? match.playersA : String(match.teamA || '').split(' / ').filter(Boolean);
+            const playersB = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').filter(Boolean);
+            [...new Set([...playersA, ...playersB].filter(Boolean))].forEach(name => {
+                if (playersData[name]) playersData[name].mp = Math.max(0, (Number(playersData[name].mp) || 0) - 1);
+            });
+            matchesHistory.splice(index, 1);
+            saveDataLocally();
+            updateHistoryDOM();
+            updatePlayerTable();
+            renderKlasemen();
+            updateAllSelectOptions();
+            showMsg('Hasil pertandingan berhasil dihapus.');
         });
     }
 
@@ -3222,7 +3439,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import {
-        getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp
+        getFirestore, doc, getDoc, setDoc, deleteDoc, serverTimestamp, onSnapshot
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
@@ -3248,6 +3465,9 @@
     let firebaseSaveTimer = null;
     let firebaseSaving = false;
     let firebaseSaveAgain = false;
+    let realtimeUnsubscribe = null;
+    let lastRealtimeSnapshotJSON = "";
+    let realtimeRefreshQueued = false;
 
     const APP_DOC = "newton/appState";
 
@@ -3326,6 +3546,63 @@
         return firebaseInitPromise;
     }
 
+    function refreshUIFromRealtimeData() {
+        // Jangan menggandakan interval timer saat data remote masuk.
+        Object.values(courtTimers || {}).forEach(timer => {
+            if (timer && timer.intervalId) clearInterval(timer.intervalId);
+        });
+
+        courtTimers = {};
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            const saved = savedTimersState && savedTimersState[i];
+            courtTimers[i] = {
+                startTime: saved && saved.startTime ? new Date(saved.startTime) : null,
+                intervalId: null
+            };
+        }
+
+        renderGradingSettings();
+        generateCourtsDOM();
+        restoreCourtsStateDOM();
+        updatePlayerTable();
+        updateAllSelectOptions();
+        updateHistoryDOM();
+        restoreTimers();
+        syncPemainKas();
+        renderDatabasePemain();
+        renderKlasemen();
+        aturTabelMabarUntukRole();
+    }
+
+    function startRealtimeListener() {
+        if (!db || realtimeUnsubscribe) return;
+
+        realtimeUnsubscribe = onSnapshot(doc(db, APP_DOC), (snap) => {
+            if (!snap.exists()) return;
+            const incoming = snap.data();
+            // Abaikan event duplikat; updatedAt timestamp Firestore tidak perlu dibandingkan.
+            let comparable = {};
+            try {
+                comparable = JSON.parse(JSON.stringify(incoming));
+                delete comparable.updatedAt;
+            } catch (e) {}
+            const incomingJSON = JSON.stringify(comparable);
+            if (incomingJSON === lastRealtimeSnapshotJSON) return;
+            lastRealtimeSnapshotJSON = incomingJSON;
+
+            cacheFirebaseData(incoming);
+            if (realtimeRefreshQueued) return;
+            realtimeRefreshQueued = true;
+            requestAnimationFrame(() => {
+                realtimeRefreshQueued = false;
+                refreshUIFromRealtimeData();
+                console.info('Data NEWTON disinkronkan secara realtime.');
+            });
+        }, (error) => {
+            console.error('Listener realtime Firebase gagal:', error);
+        });
+    }
+
     window.firebaseLoadAppData = async function() {
         const ready = await initFirebase();
         if (!ready) return false;
@@ -3334,10 +3611,18 @@
 
         if (!snap.exists()) {
             await setDoc(doc(db, APP_DOC), appSnapshot());
+            startRealtimeListener();
             return true;
         }
 
         cacheFirebaseData(snap.data());
+        let comparable = {};
+        try {
+            comparable = JSON.parse(JSON.stringify(snap.data()));
+            delete comparable.updatedAt;
+        } catch (e) {}
+        lastRealtimeSnapshotJSON = JSON.stringify(comparable);
+        startRealtimeListener();
         return true;
     };
 
