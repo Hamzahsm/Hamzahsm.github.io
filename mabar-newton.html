@@ -2012,14 +2012,15 @@
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             if (mabarMenu) mabarMenu.classList.add('active');
         } else {
-            const registrasiMenu = Array.from(document.querySelectorAll('.menu-item'))
-                .find(el => el.getAttribute('onclick')?.includes("'view-registrasi'"));
+            // Admin juga langsung masuk ke menu Mabar setelah login.
+            const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-mabar'"));
 
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
-            document.getElementById('view-registrasi')?.classList.add('active-view');
+            document.getElementById('view-mabar')?.classList.add('active-view');
 
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            if (registrasiMenu) registrasiMenu.classList.add('active');
+            if (mabarMenu) mabarMenu.classList.add('active');
         }
     }
 
