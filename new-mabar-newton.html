@@ -1492,7 +1492,7 @@
 
 <div class="main-content">
 
-    <!-- <div id="view-registrasi" class="view-section active-view">
+    <div id="view-registrasi" class="view-section active-view">
         <div class="reg-hero">
             <h2>Pendaftaran Pemain</h2>
             <p>Salin & tempel daftar peserta secara instan. Sistem otomatis menyaring nama, nomor, dan menyinkronkannya ke Kas & Database.</p>
@@ -1511,7 +1511,7 @@
                 ✨ Tambahkan Nama ke Mabar
             </button>
         </div>
-    </div> -->
+    </div>
 
     <!-- STREAMING_CHUNK:Rendering Mabar view in specified order: Players -> Court Control -> Match History -->
     <div id="view-mabar" class="view-section">
@@ -2012,14 +2012,15 @@
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             if (mabarMenu) mabarMenu.classList.add('active');
         } else {
-            const registrasiMenu = Array.from(document.querySelectorAll('.menu-item'))
-                .find(el => el.getAttribute('onclick')?.includes("'view-registrasi'"));
+            // Admin juga langsung masuk ke menu Mabar setelah login.
+            const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-mabar'"));
 
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
-            document.getElementById('view-registrasi')?.classList.add('active-view');
+            document.getElementById('view-mabar')?.classList.add('active-view');
 
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            if (registrasiMenu) registrasiMenu.classList.add('active');
+            if (mabarMenu) mabarMenu.classList.add('active');
         }
     }
 
