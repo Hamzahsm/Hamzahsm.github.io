@@ -2324,12 +2324,8 @@
                     const el = document.getElementById(`c${c}-${pos}`); if (el) el.value = '';
                 }
             });
-            saveDataLocally();
-            updatePlayerTable();
-            updateAllSelectOptions();
-            syncPemainKas();
-            renderDatabasePemain();
-            showMsg(`${name} dikeluarkan dari Mabar. Data Database tetap tersimpan dan pemain dihapus dari daftar Kas.`);
+            saveDataLocally(); updatePlayerTable(); updateAllSelectOptions(); renderDatabasePemain();
+            showMsg(`${name} dikeluarkan dari Mabar. Data Database tetap tersimpan.`);
         });
     }
 
@@ -3179,26 +3175,15 @@
         dataPemainKas.forEach(p => { kasMap[p.nama] = p; });
         let newDataPemainKas = [];
         
-        // Hanya pemain yang sedang terdaftar di menu Mabar yang wajib membayar kas.
-        // Pemain yang dikeluarkan dari Mabar tetap ada di Database, tetapi tidak muncul di Kas.
         Object.keys(playersData).forEach(name => {
-            if (playersData[name] && playersData[name].inMabar === true) {
-                if (kasMap[name]) {
-                    newDataPemainKas.push(kasMap[name]);
-                } else {
-                    newDataPemainKas.push({
-                        id: Date.now() + Math.random(),
-                        nama: name,
-                        nominal: nominalDefault,
-                        metode: "Tunai",
-                        lunas: false
-                    });
-                }
+            if (kasMap[name]) {
+                newDataPemainKas.push(kasMap[name]);
+            } else {
+                newDataPemainKas.push({ id: Date.now() + Math.random(), nama: name, nominal: nominalDefault, metode: "Tunai", lunas: false });
             }
         });
 
         dataPemainKas = newDataPemainKas;
-        saveDataLocally();
         urutkanDanRenderKas();
     }
 
