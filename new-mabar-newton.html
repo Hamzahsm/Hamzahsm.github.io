@@ -2310,7 +2310,7 @@
         playersData[name].inMabar = true;
         if (typeof playersData[name].checkInTime === 'undefined') playersData[name].checkInTime = '';
         if (typeof playersData[name].mp === 'undefined') playersData[name].mp = 0;
-        saveDataLocally(); updatePlayerTable(); updateAllSelectOptions(); syncPemainKas(); renderDatabasePemain();
+        syncPemainKas(); saveDataLocally(); updatePlayerTable(); updateAllSelectOptions(); renderDatabasePemain();
         tutupModalTambahPemainMabar(); showMsg(`${name} berhasil ditambahkan ke Mabar.`);
     }
     function keluarkanPemainDariMabar(name) {
@@ -2324,12 +2324,9 @@
                     const el = document.getElementById(`c${c}-${pos}`); if (el) el.value = '';
                 }
             });
-            saveDataLocally();
-            updatePlayerTable();
-            updateAllSelectOptions();
             syncPemainKas();
-            renderDatabasePemain();
-            showMsg(`${name} dikeluarkan dari Mabar. Data Database tetap tersimpan dan pemain dihapus dari daftar Kas.`);
+            saveDataLocally(); updatePlayerTable(); updateAllSelectOptions(); renderDatabasePemain();
+            showMsg(`${name} dikeluarkan dari Mabar & Kas. Data Database tetap tersimpan.`);
         });
     }
 
@@ -2346,10 +2343,10 @@
                     }
                 });
             }
+            syncPemainKas();
             saveDataLocally();
             updatePlayerTable();
             updateAllSelectOptions();
-            syncPemainKas();
             renderDatabasePemain();
         });
     }
@@ -2447,24 +2444,15 @@
     }
 
     function toggleAbsen(name) {
-        const pemain = playersData && playersData[name];
-        if (!pemain || pemain.inMabar === false) return;
-
-        if (pemain.checkInTime !== '') {
-            pemain.checkInTime = '';
+        if (playersData[name].checkInTime !== "") {
+            playersData[name].checkInTime = "";
         } else {
             const now = new Date();
-            pemain.checkInTime = now.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit'
-            }).replace(':', '.');
+            playersData[name].checkInTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}).replace(':', '.');
         }
-
-        // Simpan dan render tabel absensi tanpa membuat ulang kontrol lapangan.
         saveDataLocally();
         updatePlayerTable();
         updateAllSelectOptions();
-        aturTabelMabarUntukRole();
     }
 
     function updateScoreManual(name, inputEl) {
@@ -2755,62 +2743,43 @@
     }
 
     function updateAllSelectOptions() {
+        const currentlySelected = new Set();
         const positions = ['a1', 'a2', 'b1', 'b2'];
-        const selectedByControl = {};
-
-        // Simpan pilihan dari setiap dropdown sebelum opsi diperbarui.
+        
         for (let i = 1; i <= totalCourtsActive; i++) {
-            selectedByControl[i] = {};
-            positions.forEach(pos => {
-                const el = document.getElementById(`c${i}-${pos}`);
-                selectedByControl[i][pos] = (el && el.value) ||
-                    (savedCourtsSetup[i] && savedCourtsSetup[i][pos]) || '';
+            positions.forEach(p => {
+                const el = document.getElementById(`c${i}-${p}`);
+                const val = el && el.value ? el.value : (savedCourtsSetup[i] ? savedCourtsSetup[i][p] : "");
+                if (val) currentlySelected.add(val);
             });
         }
 
-        const sortedNames = Object.keys(playersData)
-            .filter(name => playersData[name] && playersData[name].inMabar !== false)
-            .sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+        const sortedNames = Object.keys(playersData).filter(name => playersData[name].inMabar !== false).sort((a,b) => a.localeCompare(b));
 
         for (let i = 1; i <= totalCourtsActive; i++) {
-            positions.forEach(pos => {
-                const selectEl = document.getElementById(`c${i}-${pos}`);
+            positions.forEach(p => {
+                const selectEl = document.getElementById(`c${i}-${p}`);
                 if (!selectEl) return;
-
-                const myValue = selectedByControl[i][pos] || '';
-                const occupiedByOtherControl = new Set();
-
-                for (let j = 1; j <= totalCourtsActive; j++) {
-                    positions.forEach(otherPos => {
-                        if (j === i && otherPos === pos) return;
-                        const otherValue = selectedByControl[j] && selectedByControl[j][otherPos];
-                        if (otherValue) occupiedByOtherControl.add(otherValue);
-                    });
+                
+                let myValue = selectEl.value;
+                if (!myValue && savedCourtsSetup[i] && savedCourtsSetup[i][p]) {
+                    myValue = savedCourtsSetup[i][p];
                 }
 
-                let html = '<option value="">Pilih Pemain</option>';
+                let html = `<option value="">Pilih Pemain</option>`;
+                
                 sortedNames.forEach(name => {
                     const stats = playersData[name];
-                    // Pemain yang hadir dapat dipilih; pilihan yang sudah terpasang tetap ada.
-                    if (stats.checkInTime !== '' || name === myValue) {
-                        if (!occupiedByOtherControl.has(name) || name === myValue) {
+                    if (stats.checkInTime !== "" || name === myValue) {
+                        if (!currentlySelected.has(name) || name === myValue) {
                             const grade = getGradeFromScore(stats.score);
                             html += `<option value="${name}">[MP:${stats.mp || 0}] ${name} (${grade})</option>`;
                         }
                     }
                 });
 
-                // Jangan hilangkan pemain yang sudah terpilih akibat perubahan status/refresh.
-                if (myValue && playersData[myValue] && playersData[myValue].inMabar !== false &&
-                    !sortedNames.some(name => name === myValue && (playersData[name].checkInTime !== '' || name === myValue))) {
-                    const stats = playersData[myValue];
-                    html += `<option value="${myValue}">[MP:${stats.mp || 0}] ${myValue} (${getGradeFromScore(stats.score)})</option>`;
-                }
-
-                if (selectEl.innerHTML !== html) selectEl.innerHTML = html;
+                selectEl.innerHTML = html;
                 selectEl.value = myValue;
-                if (!savedCourtsSetup[i]) savedCourtsSetup[i] = {};
-                savedCourtsSetup[i][pos] = selectEl.value;
             });
         }
     }
@@ -3207,26 +3176,16 @@
         dataPemainKas.forEach(p => { kasMap[p.nama] = p; });
         let newDataPemainKas = [];
         
-        // Hanya pemain yang sedang terdaftar di menu Mabar yang wajib membayar kas.
-        // Pemain yang dikeluarkan dari Mabar tetap ada di Database, tetapi tidak muncul di Kas.
-        Object.keys(playersData).forEach(name => {
-            if (playersData[name] && playersData[name].inMabar === true) {
-                if (kasMap[name]) {
-                    newDataPemainKas.push(kasMap[name]);
-                } else {
-                    newDataPemainKas.push({
-                        id: Date.now() + Math.random(),
-                        nama: name,
-                        nominal: nominalDefault,
-                        metode: "Tunai",
-                        lunas: false
-                    });
-                }
+        // Kas hanya mengikuti pemain yang ada di menu Mabar (inMabar !== false)
+        Object.keys(playersData).filter(name => playersData[name] && playersData[name].inMabar !== false).forEach(name => {
+            if (kasMap[name]) {
+                newDataPemainKas.push(kasMap[name]);
+            } else {
+                newDataPemainKas.push({ id: Date.now() + Math.random(), nama: name, nominal: nominalDefault, metode: "Tunai", lunas: false });
             }
         });
 
         dataPemainKas = newDataPemainKas;
-        saveDataLocally();
         urutkanDanRenderKas();
     }
 
@@ -3705,23 +3664,7 @@
             } catch (e) {}
             const incomingJSON = JSON.stringify(comparable);
             if (incomingJSON === lastRealtimeSnapshotJSON) return;
-
-            // Snapshot yang sama dengan state lokal tidak perlu merender ulang seluruh UI.
-            // Ini mencegah event Firestore dari penyimpanan perangkat sendiri mengganggu
-            // klik Absen dan pilihan pemain yang sedang diatur di kontrol lapangan.
-            const localComparable = {
-                playersData: playersData || {},
-                matchesHistory: Array.isArray(matchesHistory) ? matchesHistory : [],
-                totalCourtsActive: Number(totalCourtsActive) || 3,
-                savedTimersState: savedTimersState || {},
-                savedCourtsSetup: savedCourtsSetup || {},
-                gradingRules: gradingRules || {},
-                initialNewPlayerScore: Number(initialNewPlayerScore) || 1,
-                dataPemainKas: Array.isArray(dataPemainKas) ? dataPemainKas : []
-            };
-            const localJSON = JSON.stringify(localComparable);
             lastRealtimeSnapshotJSON = incomingJSON;
-            if (incomingJSON === localJSON) return;
 
             cacheFirebaseData(incoming);
             if (realtimeRefreshQueued) return;
