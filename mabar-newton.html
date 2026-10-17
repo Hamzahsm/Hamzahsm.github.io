@@ -228,8 +228,7 @@
 
         .menu-item.active {
             color: var(--secondary);
-            /* background-color: #f0f9ff; */
-            background: linear-gradient(90deg, #d6b66a, #f7e7ae);
+            background-color: #f0f9ff;
             font-weight: 700;
         }
 
@@ -1461,10 +1460,10 @@
 </div>
 
 <div class="sidebar">
-    <!-- <button class="menu-item admin-only-menu active" onclick="switchView('view-registrasi', this)">
+    <button class="menu-item admin-only-menu active" onclick="switchView('view-registrasi', this)">
         <span class="nav-icon">📋</span>
         <span>Registrasi</span>
-    </button> -->
+    </button>
     <button class="menu-item" onclick="switchView('view-mabar', this)">
         <span class="nav-icon">🏸</span>
         <span>Mabar</span>
@@ -2012,15 +2011,14 @@
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             if (mabarMenu) mabarMenu.classList.add('active');
         } else {
-            // Admin juga langsung masuk ke menu Mabar setelah login.
-            const mabarMenu = Array.from(document.querySelectorAll('.menu-item'))
-                .find(el => el.getAttribute('onclick')?.includes("'view-mabar'"));
+            const registrasiMenu = Array.from(document.querySelectorAll('.menu-item'))
+                .find(el => el.getAttribute('onclick')?.includes("'view-registrasi'"));
 
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
-            document.getElementById('view-mabar')?.classList.add('active-view');
+            document.getElementById('view-registrasi')?.classList.add('active-view');
 
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            if (mabarMenu) mabarMenu.classList.add('active');
+            if (registrasiMenu) registrasiMenu.classList.add('active');
         }
     }
 
@@ -2219,12 +2217,8 @@
             showMsg("Masukkan nama pemain terlebih dahulu!");
             return;
         }
-        const existingName = Object.keys(playersData).find(
-            name => name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanName.replace(/\s+/g, ' ')
-        );
-        if (existingName) {
-            showMsg(`Peringatan: pemain "${existingName}" sudah ada di Database. Nama tidak ditambahkan agar tidak duplikat.`);
-            input.select();
+        if (playersData.hasOwnProperty(cleanName)) {
+            showMsg(`Pemain ${cleanName} sudah ada di Database!`);
             return;
         }
 
@@ -2239,56 +2233,25 @@
 
     function addBulkPlayers() {
         if (!pastikanAdmin()) return;
-
         const textarea = document.getElementById('bulk-names');
         const lines = textarea.value.split(/[\n,]+/);
         let count = 0;
-        const duplicates = [];
-        const seenInInput = new Set();
 
         lines.forEach(line => {
-            const cleanName = line
-                .replace(/^[\d\s\.\)\-\*]+/g, '')
-                .trim()
-                .replace(/\s+/g, ' ')
-                .toUpperCase();
-
-            if (!cleanName) return;
-
-            // Cek database tanpa membedakan huruf besar/kecil dan spasi berlebih.
-            const existingName = Object.keys(playersData).find(
-                name => name.trim().replace(/\s+/g, ' ').toUpperCase() === cleanName
-            );
-
-            if (existingName || seenInInput.has(cleanName)) {
-                if (!duplicates.includes(cleanName)) duplicates.push(cleanName);
-                return;
+            let cleanName = line.replace(/^[\d\s\.\)\-\*]+/g, '').trim().toUpperCase();
+            if (cleanName !== "" && !playersData.hasOwnProperty(cleanName)) {
+                playersData[cleanName] = { score: initialNewPlayerScore, checkInTime: "", mp: 0, inMabar: false };
+                count++;
             }
-
-            seenInInput.add(cleanName);
-            playersData[cleanName] = {
-                score: initialNewPlayerScore,
-                checkInTime: "",
-                mp: 0,
-                inMabar: false
-            };
-            count++;
         });
 
         if (count > 0) {
+            textarea.value = "";
             saveDataLocally();
             updatePlayerTable();
             syncPemainKas();
             renderDatabasePemain();
-            textarea.value = "";
-        }
-
-        if (duplicates.length > 0 && count > 0) {
-            showMsg(`${count} pemain baru berhasil ditambahkan.\n\nPeringatan: nama berikut sudah ada di Database atau terduplikasi dalam daftar, sehingga tidak ditambahkan lagi: ${duplicates.join(', ')}`);
-        } else if (duplicates.length > 0) {
-            showMsg(`Peringatan: nama pemain berikut sudah ada di Database atau terduplikasi dalam daftar: ${duplicates.join(', ')}. Tidak ada pemain duplikat yang ditambahkan.`);
-        } else if (count > 0) {
-            showMsg(`${count} pemain berhasil ditambahkan ke Database.`);
+            showMsg(`${count} Pemain berhasil ditambahkan!`);
         } else {
             showMsg("Masukkan nama pemain terlebih dahulu.");
         }
