@@ -1,0 +1,921 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pencatatan Amplop Undangan</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Lato:wght@400;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --gold-1: #f9e7a0;
+            --gold-2: #e6c35c;
+            --gold-3: #d4af37;
+            --gold-4: #b8902a;
+            --gold-5: #8a6a14;
+            --ink: #14100a;
+            --ink-2: #1e1810;
+            --ivory: #fffcf3;
+            --gold-gradient: linear-gradient(135deg, #f9e7a0 0%, #e6c35c 28%, #d4af37 55%, #a67c00 100%);
+        }
+
+        body {
+            min-height: 100vh;
+            color: #2b2210;
+            font-family: 'Lato', 'Segoe UI', Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 0%, rgba(212, 175, 55, .18), transparent 45%),
+                radial-gradient(circle at 90% 100%, rgba(212, 175, 55, .12), transparent 40%),
+                linear-gradient(180deg, #14100a 0%, #1e1810 100%);
+            background-attachment: fixed;
+        }
+
+        h5, .navbar-brand {
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            letter-spacing: .06em;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar-custom {
+            background: var(--gold-gradient);
+            border-bottom: 2px solid var(--gold-5);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .45);
+            padding: 14px 0;
+        }
+
+        .navbar-custom .navbar-brand {
+            color: #2b1d00;
+            font-size: 1.3rem;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, .45);
+        }
+
+        .main-container {
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        /* ===== Card ===== */
+        .card {
+            background: var(--ivory);
+            border: 1px solid rgba(212, 175, 55, .55);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35),
+                        inset 0 0 0 1px rgba(255, 255, 255, .6);
+        }
+
+        .card h5 {
+            color: var(--gold-5);
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(212, 175, 55, .45);
+        }
+
+        /* ===== Ringkasan ===== */
+        .summary-card {
+            color: #2b1d00;
+            background: var(--gold-gradient);
+            border: 1px solid #fff2b8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::after {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -30%;
+            width: 40%;
+            height: 220%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent);
+            transform: rotate(20deg);
+            animation: kilau 5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes kilau {
+            0%   { left: -40%; }
+            60%, 100% { left: 130%; }
+        }
+
+        .summary-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .15em;
+            font-weight: 700;
+            opacity: .85;
+        }
+
+        .summary-value {
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            font-size: clamp(22px, 4vw, 32px);
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .count-card {
+            background: linear-gradient(145deg, #1e1810, #0f0c07);
+            border: 1px solid var(--gold-3);
+            color: var(--gold-2);
+        }
+
+        .count-card .summary-value {
+            color: var(--gold-1);
+            text-shadow: 0 0 18px rgba(212, 175, 55, .45);
+        }
+
+        .count-card .text-secondary {
+            color: rgba(249, 231, 160, .7) !important;
+        }
+
+        /* ===== Form ===== */
+        .form-label {
+            font-weight: 700;
+            color: var(--gold-5);
+            font-size: 14px;
+            letter-spacing: .03em;
+        }
+
+        .form-control,
+        .form-select,
+        .input-group-text {
+            background-color: #fffdf6;
+            border: 1px solid rgba(184, 144, 42, .55);
+            border-radius: 8px;
+        }
+
+        .input-group-text {
+            background: var(--gold-gradient);
+            color: #2b1d00;
+            font-weight: 700;
+            border-color: var(--gold-4);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #fff;
+            border-color: var(--gold-3);
+            box-shadow: 0 0 0 .25rem rgba(212, 175, 55, .3);
+        }
+
+        /* ===== Tombol ===== */
+        .btn {
+            border-radius: 8px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            transition: all .2s ease;
+        }
+
+        .btn-success,
+        .btn-warning {
+            color: #2b1d00;
+            background: var(--gold-gradient);
+            border: 1px solid var(--gold-4);
+            box-shadow: 0 3px 10px rgba(166, 124, 0, .35);
+        }
+
+        .btn-success:hover, .btn-success:focus,
+        .btn-warning:hover, .btn-warning:focus {
+            color: #2b1d00;
+            background: linear-gradient(135deg, #fff2b8, #f0d070 40%, #c99a1a);
+            border-color: var(--gold-5);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(166, 124, 0, .5);
+        }
+
+        .btn-secondary {
+            color: var(--gold-1);
+            background: var(--ink-2);
+            border: 1px solid var(--gold-4);
+        }
+
+        .btn-secondary:hover {
+            color: var(--ink);
+            background: var(--gold-2);
+            border-color: var(--gold-4);
+        }
+
+        .btn-outline-secondary,
+        .btn-outline-success {
+            color: var(--gold-5);
+            border: 1px solid var(--gold-4);
+            background: transparent;
+        }
+
+        .btn-outline-secondary:hover,
+        .btn-outline-success:hover {
+            color: #2b1d00;
+            background: var(--gold-gradient);
+            border-color: var(--gold-4);
+        }
+
+        .btn-danger {
+            color: var(--gold-1);
+            background: linear-gradient(135deg, #7a1f1f, #4d1010);
+            border: 1px solid #a33;
+        }
+
+        .btn-danger:hover {
+            color: #fff;
+            background: linear-gradient(135deg, #922626, #5e1414);
+        }
+
+        .btn-outline-danger {
+            color: #8a1f1f;
+            border-color: #8a1f1f;
+        }
+
+        .btn-outline-danger:hover {
+            color: var(--gold-1);
+            background: #6e1818;
+            border-color: #6e1818;
+        }
+
+        /* ===== Tabel ===== */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-border-color: rgba(184, 144, 42, .35);
+            --bs-table-hover-bg: rgba(230, 195, 92, .18);
+            --bs-table-hover-color: #2b2210;
+            border-color: rgba(184, 144, 42, .35);
+        }
+
+        .table th {
+            white-space: nowrap;
+            color: #2b1d00;
+            background: var(--gold-gradient);
+            border-color: var(--gold-4);
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            letter-spacing: .05em;
+            font-size: 13px;
+        }
+
+        .amount {
+            white-space: nowrap;
+            font-weight: 700;
+            color: var(--gold-5);
+        }
+
+        .barang-cell {
+            white-space: pre-line;
+            min-width: 180px;
+            max-width: 280px;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+        }
+
+        .form-text {
+            color: #8a7a52;
+        }
+
+        .empty-state {
+            padding: 30px 10px;
+            color: #8a7a52;
+            font-style: italic;
+        }
+
+        #totalFilter {
+            color: var(--gold-5);
+            font-family: 'Cinzel', 'Times New Roman', serif;
+        }
+
+        footer-note,
+        .main-container > p {
+            color: rgba(249, 231, 160, .65) !important;
+            letter-spacing: .08em;
+        }
+
+        ::selection {
+            background: var(--gold-2);
+            color: #2b1d00;
+        }
+
+        /* ===== Firebase login ===== */
+        .app-locked .navbar-custom,
+        .app-locked .main-container { display: none; }
+        .login-container {
+            max-width: 460px;
+            margin: 7vh auto 30px;
+            padding: 0 15px;
+        }
+        .login-card { padding: 28px; }
+        .login-note { color: #75643d; font-size: .92rem; }
+        #firebaseStatus { white-space: pre-wrap; overflow-wrap: anywhere; }
+        .navbar-custom .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+    </style>
+</head>
+
+<body class="app-locked">
+
+<nav class="navbar navbar-dark navbar-custom">
+    <div class="container">
+        <span class="navbar-brand fw-bold">
+            ✦ Pencatatan Amplop Undangan ✦
+        </span>
+        <button type="button" id="btnLogout" class="btn btn-secondary btn-sm d-none">
+            Keluar
+        </button>
+    </div>
+</nav>
+
+<div class="login-container" id="loginContainer">
+    <div class="card login-card">
+        <h5 class="fw-bold mb-3">Login Pencatatan Amplop</h5>
+        <p class="login-note">Gunakan akun email dan kata sandi yang sudah dibuat oleh administrator Firebase.</p>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="loginEmail" class="form-label">Email</label>
+                <input type="email" id="loginEmail" class="form-control" autocomplete="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="loginPassword" class="form-label">Kata sandi</label>
+                <input type="password" id="loginPassword" class="form-control" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100" id="btnLogin">Login</button>
+        </form>
+        <div id="firebaseStatus" class="alert alert-warning mt-3 mb-0" role="status">
+            Firebase belum dikonfigurasi. Ikuti petunjuk konfigurasi setelah mengunduh file ini.
+        </div>
+    </div>
+</div>
+
+<div class="container main-container">
+
+    <!-- Ringkasan -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-7">
+            <div class="card summary-card p-4 h-100">
+                <div class="summary-label">Total Uang Keseluruhan</div>
+                <div class="summary-value" id="totalUang">Rp0</div>
+                <div class="mt-2 small">Akumulasi seluruh nominal amplop</div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card count-card p-4 h-100">
+                <div class="summary-label">Jumlah Amplop</div>
+                <div class="summary-value" id="totalAmplop">0</div>
+                <div class="text-secondary small">Amplop telah dicatat</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Input -->
+    <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-3" id="judulForm">Tambah Data Amplop</h5>
+
+        <form id="formAmplop">
+            <input type="hidden" id="editId">
+
+            <div class="row g-3">
+
+        <div class="mb-3">
+            <label for="petugasAktif" class="form-label">
+                Petugas yang sedang input
+            </label>
+
+            <select id="petugasAktif" class="form-select">
+                <option value="Andi">Andi</option>
+                <option value="Budi">Budi</option>
+                <option value="Siti">Siti</option>
+            </select>
+        </div>
+
+<input type="hidden" id="namaPenginput">
+
+                <div class="col-md-4">
+                    <label for="namaAmplop" class="form-label">
+                        Nama pada Amplop
+                    </label>
+                    <input type="text" id="namaAmplop"
+                           class="form-control"
+                           placeholder="Nama pemberi amplop"
+                           maxlength="150" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="nominal" class="form-label">
+                        Nominal Amplop (Rp)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text"
+                            id="nominal"
+                            class="form-control"
+                            placeholder="0"
+                            inputmode="numeric"
+                            autocomplete="off">
+                    </div>
+                    <div class="form-text">Kosongkan jika tamu tidak membawa uang.</div>
+                </div>
+
+                <div class="col-12">
+                    <label for="barang" class="form-label">
+                        Sembako / Barang Bawaan
+                    </label>
+                    <textarea id="barang"
+                              class="form-control"
+                              rows="3"
+                              maxlength="500"
+                              placeholder="Contoh: Beras 5 kg, Gula 2 kg, Minyak goreng 2 liter"></textarea>
+                    <div class="form-text">
+                        Opsional. Isi nominal, sembako, atau keduanya
+                        &mdash; minimal salah satu harus terisi.
+                    </div>
+                </div>
+
+                <div class="col-12 d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-success"
+                            id="btnSimpan">
+                        Simpan Amplop
+                    </button>
+
+                    <button type="button" class="btn btn-secondary d-none"
+                            id="btnBatal" onclick="batalEdit()">
+                        Batal Edit
+                    </button>
+
+                    <button type="reset" class="btn btn-outline-secondary">
+                        Kosongkan Form
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Daftar Data -->
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center
+                    flex-wrap gap-2 mb-3">
+            <h5 class="fw-bold mb-0">Riwayat Amplop</h5>
+
+            <button class="btn btn-outline-success btn-sm"
+                    onclick="exportCSV()">
+                Export CSV
+            </button>
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-md-8">
+                <input type="search" id="cari"
+                       class="form-control"
+                       placeholder="Cari nama, penginput, atau sembako...">
+            </div>
+
+            <div class="col-md-4">
+                <select id="filterPenginput" class="form-select">
+                    <option value="">Semua Penginput</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Waktu Input</th>
+                        <th>Nama Penginput</th>
+                        <th>Nama Amplop</th>
+                        <th>Nominal</th>
+                        <th>Sembako / Barang</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="daftarAmplop"></tbody>
+            </table>
+        </div>
+
+        <div class="text-center empty-state d-none" id="dataKosong">
+            Belum ada data amplop yang dicatat.
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between gap-2 mt-2">
+            <div class="fw-bold">
+                Total hasil pencarian:
+                <span id="totalFilter">Rp0</span>
+            </div>
+
+            <button class="btn btn-outline-danger btn-sm"
+                    onclick="hapusSemua()">
+                Hapus Semua Data
+            </button>
+        </div>
+    </div>
+
+    <p class="text-center text-secondary small mt-4">
+        Pencatatan Amplop Undangan &copy; <span id="tahun"></span>
+    </p>
+</div>
+
+<script type="module">
+    /*
+     * LANGKAH WAJIB:
+     * 1. Buat project Firebase dan daftarkan aplikasi Web.
+     * 2. Ganti seluruh nilai di firebaseConfig dengan konfigurasi dari Firebase Console.
+     * 3. Aktifkan Authentication > Sign-in method > Email/Password.
+     * 4. Buat akun pengguna dari Firebase Console (jangan tambahkan fitur daftar akun publik).
+     * 5. Buat Firestore Database dan pasang Security Rules yang disediakan bersama panduan.
+     */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+    import {
+        getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+    } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+    import {
+        getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot,
+        writeBatch, getDocs
+    } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzk-Sm91qZG-K1sCevH-L4_8gNrV632xs",
+        authDomain: "amplop-pernikahan.firebaseapp.com",
+        projectId: "amplop-pernikahan",
+        storageBucket: "amplop-pernikahan.firebasestorage.app",
+        messagingSenderId: "572749507799",
+        appId: "1:572749507799:web:d0d8bc28e6f305473d9492"
+    };
+
+    const COLLECTION_NAME = "amplopUndangan";
+    const form = document.getElementById("formAmplop");
+    const inputPenginput = document.getElementById("namaPenginput");
+    const inputNama = document.getElementById("namaAmplop");
+    const inputNominal = document.getElementById("nominal");
+    const inputBarang = document.getElementById("barang");
+    const inputEditId = document.getElementById("editId");
+    const petugasAktif = document.getElementById("petugasAktif");
+    const loginForm = document.getElementById("loginForm");
+    const loginEmail = document.getElementById("loginEmail");
+    const loginPassword = document.getElementById("loginPassword");
+    const loginButton = document.getElementById("btnLogin");
+    const logoutButton = document.getElementById("btnLogout");
+    const firebaseStatus = document.getElementById("firebaseStatus");
+
+    let dataAmplop = [];
+    let db = null;
+    let auth = null;
+    let stopListening = null;
+    let saveInProgress = false;
+
+    function setStatus(message, type = "warning") {
+        firebaseStatus.className = `alert alert-${type} mt-3 mb-0`;
+        firebaseStatus.textContent = message;
+    }
+
+    function firebaseConfigReady() {
+        return firebaseConfig.apiKey !== "GANTI_API_KEY_DARI_FIREBASE"
+            && firebaseConfig.projectId !== "GANTI_PROJECT_ID"
+            && firebaseConfig.appId !== "GANTI_APP_ID"
+            && firebaseConfig.apiKey.trim() !== "";
+    }
+
+    // Petugas terakhir dipilih hanya disimpan di perangkat yang sedang dipakai.
+    try {
+        petugasAktif.value = localStorage.getItem("petugasAmplopAktif") || "Andi";
+    } catch (_) {
+        petugasAktif.value = "Andi";
+    }
+    inputPenginput.value = petugasAktif.value;
+
+    petugasAktif.addEventListener("change", function () {
+        try { localStorage.setItem("petugasAmplopAktif", this.value); } catch (_) {}
+        inputPenginput.value = this.value;
+    });
+
+    inputNominal.addEventListener("input", function () {
+        let angka = this.value.replace(/\D/g, "");
+        if (angka !== "") {
+            angka = angka.replace(/^0+(?=\d)/, "");
+            this.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        } else {
+            this.value = "";
+        }
+    });
+
+    function rupiah(angka) {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency", currency: "IDR", maximumFractionDigits: 0
+        }).format(Number(angka) || 0);
+    }
+
+    function escapeHTML(teks) {
+        return String(teks ?? "").replace(/[&<>"']/g, karakter => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+        })[karakter]);
+    }
+
+    function formatTanggal(iso) {
+        const tanggal = new Date(iso);
+        if (isNaN(tanggal.getTime())) return "-";
+        return tanggal.toLocaleString("id-ID", {
+            day: "2-digit", month: "short", year: "numeric",
+            hour: "2-digit", minute: "2-digit"
+        });
+    }
+
+    function render() {
+        const kataKunci = document.getElementById("cari").value.trim().toLowerCase();
+        const penginputDipilih = document.getElementById("filterPenginput").value;
+        const daftar = [...dataAmplop].sort((a, b) =>
+            new Date(b.waktu || 0) - new Date(a.waktu || 0)
+        );
+
+        const hasil = daftar.filter(item => {
+            const nama = String(item.nama || "").toLowerCase();
+            const penginput = String(item.penginput || "").toLowerCase();
+            const barang = String(item.barang || "").toLowerCase();
+            const cocokKata = nama.includes(kataKunci)
+                || penginput.includes(kataKunci) || barang.includes(kataKunci);
+            const cocokPenginput = !penginputDipilih || item.penginput === penginputDipilih;
+            return cocokKata && cocokPenginput;
+        });
+
+        document.getElementById("totalUang").textContent =
+            rupiah(dataAmplop.reduce((total, item) => total + (Number(item.nominal) || 0), 0));
+        document.getElementById("totalAmplop").textContent = dataAmplop.length;
+        document.getElementById("totalFilter").textContent =
+            rupiah(hasil.reduce((total, item) => total + (Number(item.nominal) || 0), 0));
+
+        const tbody = document.getElementById("daftarAmplop");
+        tbody.innerHTML = hasil.map((item, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${escapeHTML(formatTanggal(item.waktu))}</td>
+                <td>${escapeHTML(item.penginput || "")}</td>
+                <td>${escapeHTML(item.nama || "")}</td>
+                <td class="amount">${Number(item.nominal) > 0
+                    ? rupiah(Number(item.nominal))
+                    : '<span class="text-muted">-</span>'}</td>
+                <td class="barang-cell">${item.barang
+                    ? escapeHTML(item.barang)
+                    : '<span class="text-muted">-</span>'}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-warning btn-sm" onclick="editData('${escapeHTML(item.id)}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="hapusData('${escapeHTML(item.id)}')">Hapus</button>
+                    </div>
+                </td>
+            </tr>
+        `).join("");
+
+        document.getElementById("dataKosong").classList.toggle("d-none", hasil.length !== 0);
+
+        const namaPenginput = [...new Set(dataAmplop.map(item => item.penginput).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, "id"));
+        const filter = document.getElementById("filterPenginput");
+        const nilaiLama = filter.value;
+        filter.innerHTML = '<option value="">Semua Penginput</option>';
+        namaPenginput.forEach(nama => {
+            const option = document.createElement("option");
+            option.value = nama;
+            option.textContent = nama;
+            filter.appendChild(option);
+        });
+        if (namaPenginput.includes(nilaiLama)) filter.value = nilaiLama;
+    }
+
+    function listenToCloudData() {
+        if (stopListening) stopListening();
+        const records = collection(db, COLLECTION_NAME);
+        stopListening = onSnapshot(records, snapshot => {
+            dataAmplop = snapshot.docs.map(record => ({
+                id: record.id,
+                ...record.data()
+            }));
+            render();
+            setStatus("Terhubung ke Firebase. Data tersinkronisasi otomatis.", "success");
+        }, error => {
+            console.error(error);
+            setStatus("Gagal membaca data Firestore: " + error.message
+                + ". Periksa Security Rules dan konfigurasi Firebase.", "danger");
+        });
+    }
+
+    loginForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!firebaseConfigReady() || !auth) {
+            setStatus("Konfigurasi Firebase belum diisi. Ganti nilai firebaseConfig di file HTML terlebih dahulu.", "warning");
+            return;
+        }
+        loginButton.disabled = true;
+        loginButton.textContent = "Memeriksa...";
+        try {
+            await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+            loginPassword.value = "";
+        } catch (error) {
+            console.error(error);
+            setStatus("Login gagal. Periksa email/kata sandi dan pastikan metode Email/Password aktif di Firebase Authentication.", "danger");
+        } finally {
+            loginButton.disabled = false;
+            loginButton.textContent = "Login";
+        }
+    });
+
+    logoutButton.addEventListener("click", async () => {
+        if (!confirm("Keluar dari aplikasi?")) return;
+        try {
+            if (stopListening) stopListening();
+            stopListening = null;
+            await signOut(auth);
+        } catch (error) {
+            console.error(error);
+            alert("Tidak dapat keluar: " + error.message);
+        }
+    });
+
+    function activateAuthenticatedUser(user) {
+        document.body.classList.remove("app-locked");
+        logoutButton.classList.remove("d-none");
+        document.getElementById("loginContainer").style.display = "none";
+        setStatus("Login berhasil. Memuat data...", "success");
+        listenToCloudData();
+    }
+
+    function deactivateUser() {
+        if (stopListening) stopListening();
+        stopListening = null;
+        dataAmplop = [];
+        render();
+        document.body.classList.add("app-locked");
+        logoutButton.classList.add("d-none");
+        document.getElementById("loginContainer").style.display = "";
+    }
+
+    // Nominal disimpan sebagai angka, bukan teks berformat rupiah.
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (saveInProgress) return;
+
+        const penginput = inputPenginput.value.trim();
+        const nama = inputNama.value.trim();
+        const nominal = Number(inputNominal.value.replace(/\./g, ""));
+        const barang = inputBarang.value.trim();
+        const editId = inputEditId.value;
+
+        if (!penginput || !nama || !Number.isSafeInteger(nominal)
+            || nominal < 0 || nominal > 1000000000000) {
+            alert("Periksa kembali nama dan nominal amplop.");
+            return;
+        }
+        if (nominal === 0 && !barang) {
+            alert("Isi nominal uang, sembako/barang, atau keduanya.");
+            return;
+        }
+
+        const button = document.getElementById("btnSimpan");
+        saveInProgress = true;
+        button.disabled = true;
+        const labelLama = button.textContent;
+        button.textContent = "Menyimpan...";
+        try {
+            const payload = { penginput, nama, nominal, barang };
+            if (editId) {
+                const lama = dataAmplop.find(item => item.id === editId);
+                if (!lama) throw new Error("Data tidak ditemukan. Muat ulang daftar lalu coba lagi.");
+                payload.waktu = lama.waktu || new Date().toISOString();
+                payload.diperbaruiPada = new Date().toISOString();
+                await setDoc(doc(db, COLLECTION_NAME, editId), payload, { merge: true });
+            } else {
+                payload.waktu = new Date().toISOString();
+                payload.dibuatPada = new Date().toISOString();
+                const newRef = doc(collection(db, COLLECTION_NAME));
+                await setDoc(newRef, payload);
+            }
+            form.reset();
+            inputPenginput.value = petugasAktif.value;
+            batalEdit();
+        } catch (error) {
+            console.error(error);
+            alert("Data gagal disimpan ke Firebase: " + error.message);
+        } finally {
+            saveInProgress = false;
+            button.disabled = false;
+            button.textContent = labelLama;
+        }
+    });
+
+    window.editData = function (id) {
+        const item = dataAmplop.find(row => row.id === id);
+        if (!item) return;
+        inputEditId.value = item.id;
+        inputPenginput.value = item.penginput || petugasAktif.value;
+        inputNama.value = item.nama || "";
+        inputNominal.value = Number(item.nominal) > 0
+            ? Number(item.nominal).toLocaleString("id-ID") : "";
+        inputBarang.value = item.barang || "";
+        document.getElementById("judulForm").textContent = "Edit Data Amplop";
+        document.getElementById("btnSimpan").textContent = "Simpan Perubahan";
+        document.getElementById("btnBatal").classList.remove("d-none");
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    window.batalEdit = function () {
+        inputEditId.value = "";
+        document.getElementById("judulForm").textContent = "Tambah Data Amplop";
+        document.getElementById("btnSimpan").textContent = "Simpan Amplop";
+        document.getElementById("btnBatal").classList.add("d-none");
+    };
+
+    window.hapusData = async function (id) {
+        const item = dataAmplop.find(row => row.id === id);
+        if (!item || !confirm(`Hapus amplop atas nama "${item.nama}"?`)) return;
+        try {
+            await deleteDoc(doc(db, COLLECTION_NAME, id));
+            if (inputEditId.value === id) {
+                form.reset();
+                inputPenginput.value = petugasAktif.value;
+                batalEdit();
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Data gagal dihapus: " + error.message);
+        }
+    };
+
+    window.hapusSemua = async function () {
+        if (!dataAmplop.length) {
+            alert("Belum ada data untuk dihapus.");
+            return;
+        }
+        if (!confirm("Yakin ingin menghapus SEMUA data amplop di Firebase? Tindakan ini tidak dapat dibatalkan.")) return;
+        try {
+            // Firestore batch memiliki batas 500 operasi; pecah menjadi beberapa batch.
+            const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+            for (let i = 0; i < snapshot.docs.length; i += 450) {
+                const batch = writeBatch(db);
+                snapshot.docs.slice(i, i + 450).forEach(record => batch.delete(record.ref));
+                await batch.commit();
+            }
+            form.reset();
+            inputPenginput.value = petugasAktif.value;
+            batalEdit();
+        } catch (error) {
+            console.error(error);
+            alert("Penghapusan data gagal: " + error.message);
+        }
+    };
+
+    window.exportCSV = function () {
+        if (!dataAmplop.length) {
+            alert("Belum ada data untuk diekspor.");
+            return;
+        }
+        const kolom = ["Waktu Input", "Nama Penginput", "Nama Amplop", "Nominal (Rp)", "Sembako / Barang"];
+        const baris = dataAmplop.map(item => [
+            formatTanggal(item.waktu), item.penginput, item.nama, item.nominal,
+            (item.barang || "").replace(/\r?\n/g, " ")
+        ]);
+        const csv = [kolom, ...baris].map(row =>
+            row.map(value => '"' + String(value ?? "").replace(/"/g, '""') + '"').join(";")
+        ).join("\r\n");
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "data-amplop-undangan.csv";
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    document.getElementById("cari").addEventListener("input", render);
+    document.getElementById("filterPenginput").addEventListener("change", render);
+    document.getElementById("tahun").textContent = new Date().getFullYear();
+
+    if (!firebaseConfigReady()) {
+        setStatus("File sudah disiapkan, tetapi belum terhubung: ganti nilai firebaseConfig dengan konfigurasi dari Firebase Console. Setelah itu aktifkan Email/Password Authentication dan buat akun pengguna.", "warning");
+    } else {
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    activateAuthenticatedUser(user);
+                } else {
+                    deactivateUser();
+                    setStatus("Silakan login menggunakan akun yang sudah dibuat administrator Firebase.", "info");
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            setStatus("Inisialisasi Firebase gagal: " + error.message, "danger");
+        }
+    }
+</script>
+
+</body>
+</html>
