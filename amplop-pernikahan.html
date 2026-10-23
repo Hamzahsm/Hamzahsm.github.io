@@ -580,9 +580,30 @@
             && firebaseConfig.apiKey.trim() !== "";
     }
 
-    // Nama petugas mengikuti profil Firebase; jika belum ada, gunakan nama dari bagian email sebelum @.
+    // function firebaseConfigReady() {
+    //     return firebaseConfig.apiKey !== "GANTI_API_KEY_DARI_FIREBASE"
+    //         && firebaseConfig.projectId !== "GANTI_PROJECT_ID"
+    //         && firebaseConfig.appId !== "GANTI_APP_ID"
+    //         && firebaseConfig.apiKey.trim() !== "";
+    // }
+
+    // Pemetaan UID Firebase ke nama asli petugas.
+    // Ubah nilai nama di bawah sesuai nama orang yang benar.
+    // UID digunakan karena tetap sama walaupun alamat email akun berubah.
+    const NAMA_PETUGAS_BY_UID = {
+        "TAcUhIXBMyPAwd8PErkweztWbyt2": "Anggi Puspita",
+        "TC82P0snlufYMdMdjGLfXA": "Hamzah Saiful Madjid"
+    };
+
+    // Prioritas: nama yang ditentukan admin berdasarkan UID, lalu profil Firebase,
+    // lalu nama perkiraan dari email jika akun belum didaftarkan di pemetaan.
     function getNamaPetugas(user) {
         if (!user) return "";
+
+        const namaTerdaftar = NAMA_PETUGAS_BY_UID[user.uid];
+        if (namaTerdaftar && namaTerdaftar.trim()) {
+            return namaTerdaftar.trim();
+        }
 
         if (user.displayName && user.displayName.trim()) {
             return user.displayName.trim();
