@@ -317,6 +317,52 @@
             gap: 12px;
         }
 
+        /* ===== Riwayat aktivitas, rekap, rekonsiliasi ===== */
+        .card h6 {
+            color: var(--gold-5);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .scroll-box { max-height: 460px; overflow: auto; }
+        .scroll-box thead th { position: sticky; top: 0; z-index: 1; }
+
+        .log-waktu { white-space: nowrap; font-size: .92rem; }
+        .log-ket {
+            white-space: pre-line;
+            min-width: 240px;
+            overflow-wrap: anywhere;
+            font-size: .92rem;
+        }
+
+        .rekap-total td { font-weight: 700; background: rgba(230, 195, 92, .28); }
+        .rekap-subtotal td { font-weight: 700; background: rgba(230, 195, 92, .12); }
+
+        .status-cocok { color: #1e6b35; font-weight: 700; }
+        .status-kurang { color: #922626; font-weight: 700; }
+        .status-lebih { color: #8a5a00; font-weight: 700; }
+
+        .fisik-input { min-width: 150px; }
+
+        .btn-check:checked + .btn-outline-secondary {
+            color: #2b1d00;
+            background: var(--gold-gradient);
+            border-color: var(--gold-4);
+        }
+
+        details.kalkulator {
+            border: 1px dashed rgba(184, 144, 42, .6);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+        }
+
+        details.kalkulator summary {
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--gold-5);
+        }
+
     </style>
 </head>
 
@@ -512,6 +558,206 @@
                     onclick="hapusSemua()">
                 Hapus Semua Data
             </button>
+        </div>
+    </div>
+
+    <!-- Rekap per Petugas dan Tanggal -->
+    <div class="card p-4 mt-4" id="cardRekap">
+        <div class="d-flex justify-content-between align-items-center
+                    flex-wrap gap-2 mb-3">
+            <h5 class="fw-bold mb-0">Rekap per Petugas dan Tanggal</h5>
+
+            <button class="btn btn-outline-success btn-sm"
+                    onclick="exportRekapCSV()">
+                Export Rekap CSV
+            </button>
+        </div>
+
+        <div class="row g-2 mb-4">
+            <div class="col-6 col-md-3">
+                <label for="rekapDari" class="form-label">Dari tanggal</label>
+                <input type="date" id="rekapDari" class="form-control">
+            </div>
+            <div class="col-6 col-md-3">
+                <label for="rekapSampai" class="form-label">Sampai tanggal</label>
+                <input type="date" id="rekapSampai" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label for="rekapPetugas" class="form-label">Petugas</label>
+                <select id="rekapPetugas" class="form-select">
+                    <option value="">Semua petugas</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-outline-secondary w-100" id="rekapReset">
+                    Atur ulang
+                </button>
+            </div>
+        </div>
+
+        <h6>Total per petugas</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Petugas</th>
+                        <th>Jumlah amplop</th>
+                        <th>Berisi uang</th>
+                        <th>Hanya barang</th>
+                        <th>Total uang</th>
+                    </tr>
+                </thead>
+                <tbody id="rekapPetugasBody"></tbody>
+            </table>
+        </div>
+
+        <h6>Rincian per tanggal</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Petugas</th>
+                        <th>Jumlah amplop</th>
+                        <th>Berisi uang</th>
+                        <th>Hanya barang</th>
+                        <th>Total uang</th>
+                    </tr>
+                </thead>
+                <tbody id="rekapTanggalBody"></tbody>
+            </table>
+        </div>
+        <div class="text-center empty-state d-none" id="rekapKosong">
+            Tidak ada amplop pada tanggal atau petugas yang dipilih.
+        </div>
+    </div>
+
+    <!-- Rekonsiliasi Uang Fisik -->
+    <div class="card p-4 mt-4" id="cardRekon">
+        <h5 class="fw-bold mb-2">Rekonsiliasi Uang Fisik</h5>
+        <p class="form-text mb-3">
+            Hitung uang tunai yang ada, isi hasilnya, lalu bandingkan dengan total
+            yang tercatat di aplikasi. Hasil yang disimpan masuk ke Riwayat Aktivitas.
+        </p>
+
+        <div class="btn-group mb-3" role="group" aria-label="Cara menghitung uang fisik">
+            <input type="radio" class="btn-check" name="rekonMode" id="modePetugas"
+                   value="petugas" checked>
+            <label class="btn btn-outline-secondary btn-sm" for="modePetugas">
+                Hitung per petugas
+            </label>
+            <input type="radio" class="btn-check" name="rekonMode" id="modeGabungan"
+                   value="gabungan">
+            <label class="btn btn-outline-secondary btn-sm" for="modeGabungan">
+                Hitung satu total gabungan
+            </label>
+        </div>
+
+        <div class="mb-3 d-none" id="rekonGabunganWrap">
+            <label for="fisikGabungan" class="form-label">Total uang fisik (semua petugas)</label>
+            <div class="input-group" style="max-width: 360px;">
+                <span class="input-group-text">Rp</span>
+                <input type="text" id="fisikGabungan" class="form-control"
+                       inputmode="numeric" autocomplete="off" placeholder="Belum dihitung">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Petugas</th>
+                        <th>Tercatat</th>
+                        <th>Uang fisik</th>
+                        <th>Selisih</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="rekonBody"></tbody>
+                <tfoot id="rekonFoot"></tfoot>
+            </table>
+        </div>
+
+        <div id="rekonRingkas" class="alert alert-success mt-3 mb-3 d-none" role="status"></div>
+
+        <details class="kalkulator mt-3">
+            <summary>Kalkulator pecahan uang</summary>
+            <p class="form-text mt-2 mb-2">
+                Isi jumlah lembar atau keping untuk setiap pecahan, lalu pindahkan totalnya
+                ke kolom uang fisik.
+            </p>
+            <div class="row g-2" id="pecahanGrid"></div>
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                <div class="fw-bold me-2">Total hitungan: <span id="pecahanTotal">Rp0</span></div>
+                <select id="pecahanTujuan" class="form-select form-select-sm w-auto"
+                        aria-label="Isikan total ke"></select>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        id="btnPecahanTerapkan">Isikan ke uang fisik</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        id="btnPecahanReset">Ulangi hitungan</button>
+            </div>
+        </details>
+
+        <label for="rekonCatatan" class="form-label">Catatan (opsional)</label>
+        <textarea id="rekonCatatan" class="form-control mb-3" rows="2" maxlength="300"
+                  placeholder="Contoh: selisih Rp50.000 sedang ditelusuri"></textarea>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-success" id="btnSimpanRekon">
+                Simpan Hasil Rekonsiliasi
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="btnResetRekon">
+                Kosongkan Hitungan
+            </button>
+        </div>
+    </div>
+
+    <!-- Riwayat Aktivitas -->
+    <div class="card p-4 mt-4" id="cardRiwayat">
+        <div class="d-flex justify-content-between align-items-center
+                    flex-wrap gap-2 mb-2">
+            <h5 class="fw-bold mb-0">Riwayat Aktivitas</h5>
+
+            <select id="filterAksiRiwayat" class="form-select form-select-sm w-auto"
+                    aria-label="Filter jenis aktivitas">
+                <option value="">Semua aktivitas</option>
+                <option value="tambah">Tambah</option>
+                <option value="ubah">Ubah</option>
+                <option value="hapus">Hapus</option>
+                <option value="hapus_semua">Hapus semua</option>
+                <option value="pulihkan">Pemulihan</option>
+                <option value="rekonsiliasi">Rekonsiliasi</option>
+            </select>
+        </div>
+        <p class="form-text mb-3">
+            Setiap tambah, ubah, hapus, pemulihan, dan rekonsiliasi dicatat otomatis.
+            Data yang terhapus atau berubah bisa dipulihkan dari sini.
+        </p>
+
+        <div id="riwayatGalat" class="alert alert-danger d-none" role="alert"></div>
+
+        <div class="table-responsive scroll-box">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Petugas</th>
+                        <th>Aktivitas</th>
+                        <th>Keterangan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="riwayatBody"></tbody>
+            </table>
+        </div>
+
+        <div class="text-center empty-state d-none" id="riwayatKosong">
+            Belum ada aktivitas yang tercatat.
+        </div>
+
+        <div class="text-center mt-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm d-none"
+                    id="btnRiwayatLagi">Tampilkan lebih banyak</button>
         </div>
     </div>
 
@@ -720,12 +966,763 @@
             filter.appendChild(option);
         });
         if (namaPenginput.includes(nilaiLama)) filter.value = nilaiLama;
+
+        renderRekap();
+        renderRekon();
+        renderRiwayat();
     }
+
+    // =====================================================================
+    // RIWAYAT AKTIVITAS, PEMULIHAN, REKAP, DAN REKONSILIASI
+    //
+    // Fitur riwayat memakai koleksi Firestore baru "riwayatAktivitas".
+    // Tambahkan aturan ini di Firestore Security Rules (di dalam
+    // match /databases/{database}/documents { ... }) SEBELUM dipakai,
+    // kalau tidak, simpan/ubah/hapus data akan ditolak:
+    //
+    //   match /riwayatAktivitas/{logId} {
+    //     allow read: if request.auth != null;
+    //     allow create: if request.auth != null
+    //                   && request.resource.data.uid == request.auth.uid;
+    //     allow update, delete: if false;   // riwayat tidak boleh diubah/dihapus
+    //   }
+    // =====================================================================
+    const LOG_COLLECTION = "riwayatAktivitas";
+    const NAMA_KOSONG = "(Tanpa nama)";
+    const FIELD_DATA = ["penginput", "nama", "nominal", "barang", "waktu", "dibuatPada", "diperbaruiPada"];
+    const BATAS_OPERASI = 400; // genap, agar pasangan data + log tidak terpisah antar batch
+    const PECAHAN = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 200, 100];
+    const LABEL_AKSI = {
+        tambah: ["Tambah", "success"],
+        ubah: ["Ubah", "warning"],
+        hapus: ["Hapus", "danger"],
+        hapus_semua: ["Hapus semua", "danger"],
+        pulihkan: ["Pemulihan", "info"],
+        rekonsiliasi: ["Rekonsiliasi", "dark"]
+    };
+
+    const riwayatBody = document.getElementById("riwayatBody");
+    const riwayatKosong = document.getElementById("riwayatKosong");
+    const riwayatGalat = document.getElementById("riwayatGalat");
+    const filterAksiRiwayat = document.getElementById("filterAksiRiwayat");
+    const btnRiwayatLagi = document.getElementById("btnRiwayatLagi");
+    const rekapDari = document.getElementById("rekapDari");
+    const rekapSampai = document.getElementById("rekapSampai");
+    const rekapPetugas = document.getElementById("rekapPetugas");
+    const rekapPetugasBody = document.getElementById("rekapPetugasBody");
+    const rekapTanggalBody = document.getElementById("rekapTanggalBody");
+    const rekapKosong = document.getElementById("rekapKosong");
+    const rekonBody = document.getElementById("rekonBody");
+    const rekonFoot = document.getElementById("rekonFoot");
+    const rekonRingkas = document.getElementById("rekonRingkas");
+    const rekonGabunganWrap = document.getElementById("rekonGabunganWrap");
+    const inputFisikGabungan = document.getElementById("fisikGabungan");
+    const rekonCatatan = document.getElementById("rekonCatatan");
+    const pecahanGrid = document.getElementById("pecahanGrid");
+    const pecahanTotal = document.getElementById("pecahanTotal");
+    const pecahanTujuan = document.getElementById("pecahanTujuan");
+
+    let riwayat = [];
+    let riwayatBatas = 50;
+    let pemulihanBerjalan = false;
+    let rekapPetugasSig = null;
+    let rekapTerakhir = { baris: [], total: null };
+    let rekonMode = "petugas";
+    let rekonSignature = null;
+    const fisikPerPetugas = new Map();
+
+    // ---------- Pembantu umum ----------
+    function salinData(sumber) {
+        const hasil = {};
+        FIELD_DATA.forEach(kunci => {
+            if (sumber && sumber[kunci] !== undefined) hasil[kunci] = sumber[kunci];
+        });
+        return hasil;
+    }
+
+    function buatLog(aksi, data = {}) {
+        const user = auth && auth.currentUser;
+        return Object.assign({
+            aksi,
+            waktu: new Date().toISOString(),
+            petugas: getNamaPetugas(user),
+            uid: user ? user.uid : ""
+        }, data);
+    }
+
+    const opSet = (ref, data) => ({ ref, data });
+    const opHapus = ref => ({ ref, hapus: true });
+
+    async function commitOps(ops) {
+        for (let i = 0; i < ops.length; i += BATAS_OPERASI) {
+            const batch = writeBatch(db);
+            ops.slice(i, i + BATAS_OPERASI).forEach(op => {
+                if (op.hapus) batch.delete(op.ref); else batch.set(op.ref, op.data);
+            });
+            await batch.commit();
+        }
+    }
+
+    function pesanGalat(error) {
+        if (error && error.code === "permission-denied") {
+            return "Akses ditolak oleh Firestore. Periksa Security Rules, termasuk aturan untuk koleksi \""
+                + LOG_COLLECTION + "\" (lihat komentar di dalam script).";
+        }
+        return (error && error.message) || String(error);
+    }
+
+    function kunciTanggal(iso) {
+        const tanggal = new Date(iso);
+        if (isNaN(tanggal.getTime())) return "";
+        const dua = angka => String(angka).padStart(2, "0");
+        return `${tanggal.getFullYear()}-${dua(tanggal.getMonth() + 1)}-${dua(tanggal.getDate())}`;
+    }
+
+    function labelTanggal(kunci) {
+        if (!kunci) return "Tanpa tanggal";
+        const [tahun, bulan, hari] = kunci.split("-").map(Number);
+        return new Date(tahun, bulan - 1, hari).toLocaleDateString("id-ID", {
+            weekday: "long", day: "2-digit", month: "long", year: "numeric"
+        });
+    }
+
+    function formatWaktuLengkap(iso) {
+        const tanggal = new Date(iso);
+        if (isNaN(tanggal.getTime())) return "-";
+        return tanggal.toLocaleString("id-ID", {
+            day: "2-digit", month: "short", year: "numeric",
+            hour: "2-digit", minute: "2-digit", second: "2-digit"
+        });
+    }
+
+    function bacaAngka(teks) {
+        const digit = String(teks ?? "").replace(/\D/g, "");
+        if (digit === "") return null;
+        const angka = Number(digit);
+        return Number.isSafeInteger(angka) ? angka : null;
+    }
+
+    function formatRibuanInput(input) {
+        const angka = bacaAngka(input.value);
+        input.value = angka === null ? "" : angka.toLocaleString("id-ID");
+    }
+
+    function daftarPetugas() {
+        const nama = new Set(Object.values(NAMA_PETUGAS_BY_UID)
+            .map(item => String(item).trim()).filter(Boolean));
+        dataAmplop.forEach(item => nama.add(item.penginput || NAMA_KOSONG));
+        return [...nama].sort((a, b) => a.localeCompare(b, "id"));
+    }
+
+    function unduhCSV(namaFile, kolom, baris) {
+        const csv = [kolom, ...baris].map(row =>
+            row.map(value => '"' + String(value ?? "").replace(/"/g, '""') + '"').join(";")
+        ).join("\r\n");
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = namaFile;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ---------- Rekap per petugas dan tanggal ----------
+    function agregat() {
+        return { jumlah: 0, denganUang: 0, hanyaBarang: 0, uang: 0 };
+    }
+
+    function tambahAgregat(a, item) {
+        const nominal = Number(item.nominal) || 0;
+        a.jumlah += 1;
+        if (nominal > 0) a.denganUang += 1;
+        else if (item.barang) a.hanyaBarang += 1;
+        a.uang += nominal;
+    }
+
+    function renderRekap() {
+        const semuaPetugas = daftarPetugas();
+        const sig = semuaPetugas.join("|");
+        if (sig !== rekapPetugasSig) {
+            const nilaiLama = rekapPetugas.value;
+            rekapPetugasSig = sig;
+            rekapPetugas.innerHTML = '<option value="">Semua petugas</option>'
+                + semuaPetugas.map(nama =>
+                    `<option value="${escapeHTML(nama)}">${escapeHTML(nama)}</option>`).join("");
+            rekapPetugas.value = semuaPetugas.includes(nilaiLama) ? nilaiLama : "";
+        }
+
+        const dari = rekapDari.value;
+        const sampai = rekapSampai.value;
+        const pilih = rekapPetugas.value;
+
+        const terpilih = dataAmplop.filter(item => {
+            const kunci = kunciTanggal(item.waktu);
+            if (dari && (!kunci || kunci < dari)) return false;
+            if (sampai && (!kunci || kunci > sampai)) return false;
+            if (pilih && (item.penginput || NAMA_KOSONG) !== pilih) return false;
+            return true;
+        });
+
+        const perPetugas = new Map(semuaPetugas
+            .filter(nama => !pilih || nama === pilih)
+            .map(nama => [nama, agregat()]));
+        const perTanggal = new Map();
+        const total = agregat();
+
+        terpilih.forEach(item => {
+            const nama = item.penginput || NAMA_KOSONG;
+            const kunci = kunciTanggal(item.waktu);
+            if (!perPetugas.has(nama)) perPetugas.set(nama, agregat());
+            tambahAgregat(perPetugas.get(nama), item);
+            if (!perTanggal.has(kunci)) perTanggal.set(kunci, new Map());
+            const hari = perTanggal.get(kunci);
+            if (!hari.has(nama)) hari.set(nama, agregat());
+            tambahAgregat(hari.get(nama), item);
+            tambahAgregat(total, item);
+        });
+
+        const sel = a => `<td>${a.jumlah}</td><td>${a.denganUang}</td>`
+            + `<td>${a.hanyaBarang}</td><td class="amount">${rupiah(a.uang)}</td>`;
+
+        rekapPetugasBody.innerHTML = [...perPetugas].map(([nama, a]) =>
+            `<tr><td>${escapeHTML(nama)}</td>${sel(a)}</tr>`).join("")
+            + `<tr class="rekap-total"><td>Total</td>${sel(total)}</tr>`;
+
+        const kunciUrut = [...perTanggal.keys()].sort((a, b) =>
+            !a ? 1 : !b ? -1 : a.localeCompare(b));
+        const baris = [];
+        let html = "";
+        kunciUrut.forEach(kunci => {
+            const hari = perTanggal.get(kunci);
+            const namaUrut = [...hari.keys()].sort((a, b) => a.localeCompare(b, "id"));
+            const subtotal = agregat();
+            const label = escapeHTML(labelTanggal(kunci));
+            namaUrut.forEach(nama => {
+                const a = hari.get(nama);
+                subtotal.jumlah += a.jumlah;
+                subtotal.denganUang += a.denganUang;
+                subtotal.hanyaBarang += a.hanyaBarang;
+                subtotal.uang += a.uang;
+                html += `<tr><td>${label}</td><td>${escapeHTML(nama)}</td>${sel(a)}</tr>`;
+                baris.push([kunci || "Tanpa tanggal", nama, a.jumlah, a.denganUang, a.hanyaBarang, a.uang]);
+            });
+            if (namaUrut.length > 1) {
+                html += `<tr class="rekap-subtotal"><td>${label}</td><td>Total tanggal</td>${sel(subtotal)}</tr>`;
+            }
+        });
+        if (terpilih.length) {
+            html += `<tr class="rekap-total"><td colspan="2">Total</td>${sel(total)}</tr>`;
+        }
+        rekapTanggalBody.innerHTML = html;
+        rekapKosong.classList.toggle("d-none", terpilih.length !== 0);
+        rekapTerakhir = { baris, total };
+    }
+
+    window.exportRekapCSV = function () {
+        if (!rekapTerakhir.baris.length) {
+            alert("Belum ada data rekap untuk diekspor.");
+            return;
+        }
+        const t = rekapTerakhir.total;
+        const kolom = ["Tanggal", "Petugas", "Jumlah Amplop", "Berisi Uang", "Hanya Barang", "Total Uang (Rp)"];
+        const baris = [...rekapTerakhir.baris,
+            ["TOTAL", "", t.jumlah, t.denganUang, t.hanyaBarang, t.uang]];
+        unduhCSV("rekap-amplop-per-petugas-tanggal.csv", kolom, baris);
+    };
+
+    [rekapDari, rekapSampai].forEach(el => el.addEventListener("input", renderRekap));
+    rekapPetugas.addEventListener("change", renderRekap);
+    document.getElementById("rekapReset").addEventListener("click", () => {
+        rekapDari.value = "";
+        rekapSampai.value = "";
+        rekapPetugas.value = "";
+        renderRekap();
+    });
+
+    // ---------- Rekonsiliasi uang fisik ----------
+    function hitungRekon() {
+        const petugas = daftarPetugas();
+        const tercatat = new Map(petugas.map(nama => [nama, 0]));
+        let totalTercatat = 0;
+        dataAmplop.forEach(item => {
+            const nominal = Number(item.nominal) || 0;
+            const nama = item.penginput || NAMA_KOSONG;
+            tercatat.set(nama, (tercatat.get(nama) || 0) + nominal);
+            totalTercatat += nominal;
+        });
+
+        const gabungan = rekonMode === "gabungan";
+        const baris = petugas.map(nama => {
+            const fisik = gabungan || !fisikPerPetugas.has(nama) ? null : fisikPerPetugas.get(nama);
+            const nilai = tercatat.get(nama);
+            return { petugas: nama, tercatat: nilai, fisik, selisih: fisik === null ? null : fisik - nilai };
+        });
+
+        let totalFisik = null;
+        let terisi = 0;
+        let lengkap = false;
+        if (gabungan) {
+            totalFisik = bacaAngka(inputFisikGabungan.value);
+            lengkap = totalFisik !== null;
+            terisi = lengkap ? 1 : 0;
+        } else {
+            baris.forEach(b => {
+                if (b.fisik !== null) {
+                    terisi += 1;
+                    totalFisik = (totalFisik || 0) + b.fisik;
+                }
+            });
+            lengkap = baris.length > 0 && terisi === baris.length;
+        }
+        const selisih = lengkap ? totalFisik - totalTercatat : null;
+        return { mode: rekonMode, baris, totalTercatat, totalFisik, terisi, lengkap, selisih };
+    }
+
+    function infoSelisih(selisih) {
+        if (selisih === null) return { teks: "-", status: "Belum dihitung", kelas: "text-muted" };
+        if (selisih === 0) return { teks: rupiah(0), status: "Cocok", kelas: "status-cocok" };
+        if (selisih < 0) return { teks: "-" + rupiah(-selisih), status: "Kurang " + rupiah(-selisih), kelas: "status-kurang" };
+        return { teks: "+" + rupiah(selisih), status: "Lebih " + rupiah(selisih), kelas: "status-lebih" };
+    }
+
+    function renderRekon() {
+        const hasil = hitungRekon();
+        const gabungan = rekonMode === "gabungan";
+
+        // Baris dibangun ulang hanya jika daftar petugas/mode berubah,
+        // supaya angka yang sedang diketik tidak hilang saat data tersinkron.
+        const sig = hasil.baris.map(b => b.petugas).join("|") + "#" + rekonMode;
+        if (sig !== rekonSignature) {
+            rekonSignature = sig;
+            rekonBody.innerHTML = hasil.baris.length ? hasil.baris.map(b => {
+                const nilaiAwal = fisikPerPetugas.has(b.petugas)
+                    ? fisikPerPetugas.get(b.petugas).toLocaleString("id-ID") : "";
+                const kolomFisik = gabungan ? "" : `
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text" class="form-control fisik-input" inputmode="numeric"
+                               autocomplete="off" placeholder="Belum dihitung"
+                               aria-label="Uang fisik ${escapeHTML(b.petugas)}"
+                               value="${escapeHTML(nilaiAwal)}">
+                    </div>`;
+                return `<tr data-petugas="${escapeHTML(b.petugas)}">
+                    <td>${escapeHTML(b.petugas)}</td>
+                    <td class="amount" data-col="tercatat"></td>
+                    <td>${kolomFisik}</td>
+                    <td data-col="selisih"></td>
+                    <td data-col="status"></td>
+                </tr>`;
+            }).join("") : '<tr><td colspan="5" class="text-center empty-state">Belum ada data petugas.</td></tr>';
+
+            const pilihanLama = pecahanTujuan.value;
+            pecahanTujuan.innerHTML = gabungan
+                ? '<option value="">Total gabungan</option>'
+                : hasil.baris.map(b =>
+                    `<option value="${escapeHTML(b.petugas)}">${escapeHTML(b.petugas)}</option>`).join("");
+            if (!gabungan && hasil.baris.some(b => b.petugas === pilihanLama)) {
+                pecahanTujuan.value = pilihanLama;
+            }
+        }
+
+        rekonBody.querySelectorAll("tr[data-petugas]").forEach(tr => {
+            const b = hasil.baris.find(item => item.petugas === tr.dataset.petugas);
+            if (!b) return;
+            tr.querySelector('[data-col="tercatat"]').textContent = rupiah(b.tercatat);
+            const selisihSel = tr.querySelector('[data-col="selisih"]');
+            const statusSel = tr.querySelector('[data-col="status"]');
+            if (gabungan) {
+                selisihSel.textContent = "";
+                statusSel.textContent = "";
+                statusSel.className = "";
+            } else {
+                const info = infoSelisih(b.selisih);
+                selisihSel.textContent = info.teks;
+                statusSel.textContent = info.status;
+                statusSel.className = info.kelas;
+            }
+        });
+
+        const info = infoSelisih(hasil.selisih);
+        let statusTotal = info.status;
+        let kelasTotal = info.kelas;
+        if (hasil.totalFisik !== null && !hasil.lengkap) {
+            statusTotal = `Belum lengkap (${hasil.terisi} dari ${hasil.baris.length} petugas)`;
+            kelasTotal = "status-lebih";
+        }
+        rekonFoot.innerHTML = `<tr class="rekap-total">
+            <td>Total</td>
+            <td class="amount">${rupiah(hasil.totalTercatat)}</td>
+            <td>${hasil.totalFisik === null ? "-" : rupiah(hasil.totalFisik)}</td>
+            <td>${hasil.selisih === null ? "-" : escapeHTML(info.teks)}</td>
+            <td class="${kelasTotal}">${escapeHTML(statusTotal)}</td>
+        </tr>`;
+
+        if (!hasil.lengkap) {
+            rekonRingkas.classList.add("d-none");
+        } else {
+            rekonRingkas.classList.remove("d-none");
+            if (hasil.selisih === 0) {
+                rekonRingkas.className = "alert alert-success mt-3 mb-3";
+                rekonRingkas.textContent = "Cocok: uang fisik sama dengan total yang tercatat.";
+            } else {
+                rekonRingkas.className = "alert alert-warning mt-3 mb-3";
+                rekonRingkas.textContent = `Uang fisik ${hasil.selisih < 0 ? "kurang" : "lebih"} `
+                    + `${rupiah(Math.abs(hasil.selisih))} dari catatan. Hitung ulang uangnya, lalu periksa `
+                    + "apakah ada amplop yang belum dicatat, salah ketik nominal, atau tercatat dua kali.";
+            }
+        }
+    }
+
+    rekonBody.addEventListener("input", event => {
+        const input = event.target.closest(".fisik-input");
+        if (!input) return;
+        formatRibuanInput(input);
+        const nama = input.closest("tr").dataset.petugas;
+        const angka = bacaAngka(input.value);
+        if (angka === null) fisikPerPetugas.delete(nama); else fisikPerPetugas.set(nama, angka);
+        renderRekon();
+    });
+
+    inputFisikGabungan.addEventListener("input", () => {
+        formatRibuanInput(inputFisikGabungan);
+        renderRekon();
+    });
+
+    document.querySelectorAll('input[name="rekonMode"]').forEach(radio => {
+        radio.addEventListener("change", () => {
+            if (!radio.checked) return;
+            rekonMode = radio.value;
+            rekonGabunganWrap.classList.toggle("d-none", rekonMode !== "gabungan");
+            renderRekon();
+        });
+    });
+
+    // Kalkulator pecahan
+    function bangunPecahan() {
+        pecahanGrid.innerHTML = PECAHAN.map(nilai => `
+            <div class="col-6 col-md-4 col-lg-3">
+                <label class="form-label mb-1" for="pecahan_${nilai}">${rupiah(nilai)}</label>
+                <input type="number" min="0" step="1" inputmode="numeric" placeholder="0"
+                       id="pecahan_${nilai}" data-nilai="${nilai}"
+                       class="form-control form-control-sm pecahan-input">
+                <div class="form-text" id="pecahanSub_${nilai}">= ${rupiah(0)}</div>
+            </div>`).join("");
+    }
+
+    function hitungPecahan() {
+        let total = 0;
+        pecahanGrid.querySelectorAll(".pecahan-input").forEach(input => {
+            const nilai = Number(input.dataset.nilai);
+            const jumlah = Math.max(0, Math.floor(Number(input.value) || 0));
+            total += jumlah * nilai;
+            document.getElementById("pecahanSub_" + nilai).textContent = "= " + rupiah(jumlah * nilai);
+        });
+        pecahanTotal.textContent = rupiah(total);
+        return total;
+    }
+
+    function kosongkanPecahan() {
+        pecahanGrid.querySelectorAll(".pecahan-input").forEach(input => { input.value = ""; });
+        hitungPecahan();
+    }
+
+    pecahanGrid.addEventListener("input", hitungPecahan);
+    document.getElementById("btnPecahanReset").addEventListener("click", kosongkanPecahan);
+
+    document.getElementById("btnPecahanTerapkan").addEventListener("click", () => {
+        const total = hitungPecahan();
+        if (total <= 0) {
+            alert("Isi jumlah lembar atau keping uang terlebih dahulu.");
+            return;
+        }
+        if (rekonMode === "gabungan") {
+            inputFisikGabungan.value = total.toLocaleString("id-ID");
+        } else {
+            const nama = pecahanTujuan.value;
+            if (!nama) {
+                alert("Pilih petugas tujuan terlebih dahulu.");
+                return;
+            }
+            fisikPerPetugas.set(nama, total);
+            const baris = [...rekonBody.querySelectorAll("tr[data-petugas]")]
+                .find(tr => tr.dataset.petugas === nama);
+            const input = baris && baris.querySelector(".fisik-input");
+            if (input) input.value = total.toLocaleString("id-ID");
+        }
+        renderRekon();
+    });
+
+    document.getElementById("btnResetRekon").addEventListener("click", () => {
+        if (!confirm("Kosongkan semua hitungan uang fisik?")) return;
+        fisikPerPetugas.clear();
+        inputFisikGabungan.value = "";
+        rekonCatatan.value = "";
+        rekonSignature = null;
+        kosongkanPecahan();
+        renderRekon();
+    });
+
+    document.getElementById("btnSimpanRekon").addEventListener("click", async event => {
+        const tombol = event.currentTarget;
+        const hasil = hitungRekon();
+        if (!db || !auth || !auth.currentUser) {
+            alert("Login terlebih dahulu.");
+            return;
+        }
+        if (hasil.totalFisik === null) {
+            alert("Isi uang fisik terlebih dahulu.");
+            return;
+        }
+        if (!hasil.lengkap && !confirm(
+            `Baru ${hasil.terisi} dari ${hasil.baris.length} petugas yang dihitung. Simpan hasil sementara ini?`)) {
+            return;
+        }
+        tombol.disabled = true;
+        try {
+            const detail = {
+                mode: hasil.mode,
+                totalTercatat: hasil.totalTercatat,
+                totalFisik: hasil.totalFisik,
+                selisih: hasil.selisih,
+                lengkap: hasil.lengkap,
+                jumlahAmplop: dataAmplop.length,
+                catatan: rekonCatatan.value.trim(),
+                baris: hasil.baris.map(b => ({
+                    petugas: b.petugas, tercatat: b.tercatat, fisik: b.fisik, selisih: b.selisih
+                }))
+            };
+            await setDoc(doc(collection(db, LOG_COLLECTION)), buatLog("rekonsiliasi", { detail }));
+            alert("Hasil rekonsiliasi tersimpan di Riwayat Aktivitas.");
+        } catch (error) {
+            console.error(error);
+            alert("Hasil rekonsiliasi gagal disimpan: " + pesanGalat(error));
+        } finally {
+            tombol.disabled = false;
+        }
+    });
+
+    // ---------- Riwayat aktivitas dan pemulihan ----------
+    function bedaData(sebelum, sesudah) {
+        const a = sebelum || {};
+        const b = sesudah || {};
+        const baris = [];
+        if ((a.nama || "") !== (b.nama || "")) {
+            baris.push(`Nama: "${a.nama || ""}" → "${b.nama || ""}"`);
+        }
+        if ((Number(a.nominal) || 0) !== (Number(b.nominal) || 0)) {
+            baris.push(`Nominal: ${rupiah(a.nominal)} → ${rupiah(b.nominal)}`);
+        }
+        if ((a.barang || "") !== (b.barang || "")) {
+            baris.push(`Barang: "${a.barang || "-"}" → "${b.barang || "-"}"`);
+        }
+        if ((a.penginput || "") !== (b.penginput || "")) {
+            baris.push(`Petugas pencatat: ${a.penginput || "-"} → ${b.penginput || "-"}`);
+        }
+        return baris;
+    }
+
+    function keteranganLog(log) {
+        const sebelum = log.sebelum || {};
+        const sesudah = log.sesudah || {};
+        const nama = log.nama || sesudah.nama || sebelum.nama || "";
+        const uang = nilai => Number(nilai) > 0 ? rupiah(nilai) : "tanpa uang";
+
+        switch (log.aksi) {
+            case "tambah": {
+                let teks = `Menambah amplop "${nama}" (${uang(sesudah.nominal)})`;
+                if (sesudah.barang) teks += `\nBarang: ${sesudah.barang}`;
+                return teks;
+            }
+            case "ubah":
+                return `Mengubah amplop "${nama}"\n` + bedaData(sebelum, sesudah).join("\n");
+            case "hapus": {
+                let teks = `Menghapus amplop "${nama}" (${uang(sebelum.nominal)})`;
+                if (sebelum.barang) teks += `\nBarang: ${sebelum.barang}`;
+                return teks;
+            }
+            case "hapus_semua":
+                return `Menghapus semua data: ${log.jumlah || 0} amplop, total ${rupiah(log.totalNominal)}`;
+            case "pulihkan":
+                if (log.jenisAsal === "hapus_semua") {
+                    return `Memulihkan ${log.jumlah || 0} amplop dari penghapusan semua data (total ${rupiah(log.totalNominal)})`;
+                }
+                if (log.jenisAsal === "ubah") return `Mengembalikan amplop "${nama}" ke isi sebelum diubah`;
+                return `Memulihkan amplop "${nama}" yang terhapus`;
+            case "rekonsiliasi": {
+                const d = log.detail || {};
+                let teks = `Tercatat ${rupiah(d.totalTercatat)}, uang fisik ${rupiah(d.totalFisik)}`;
+                if (d.selisih === null || d.selisih === undefined) teks += " (belum semua petugas dihitung)";
+                else if (d.selisih === 0) teks += ": cocok";
+                else teks += `: ${d.selisih < 0 ? "kurang" : "lebih"} ${rupiah(Math.abs(d.selisih))}`;
+                if (d.catatan) teks += `\nCatatan: ${d.catatan}`;
+                return teks;
+            }
+            default:
+                return "";
+        }
+    }
+
+    function sudahDipulihkan() {
+        return new Set(riwayat.filter(l => l.aksi === "pulihkan" && l.merujuk).map(l => l.merujuk));
+    }
+
+    function targetPemulihanBatch(log) {
+        const sudah = sudahDipulihkan();
+        const ada = new Set(dataAmplop.map(item => item.id));
+        return riwayat.filter(l => l.aksi === "hapus" && l.bagianBatch
+            && l.batchId === log.batchId && !ada.has(l.docId) && !sudah.has(l.id));
+    }
+
+    function tombolPemulihan(log, sudah) {
+        const id = escapeHTML(log.id);
+        const tombol = teks =>
+            `<button class="btn btn-warning btn-sm" onclick="pulihkanLog('${id}')">${teks}</button>`;
+        const badge = '<span class="badge text-bg-secondary">Sudah dipulihkan</span>';
+        if (log.aksi === "hapus" || log.aksi === "ubah") {
+            return sudah.has(log.id) ? badge : tombol("Pulihkan");
+        }
+        if (log.aksi === "hapus_semua") {
+            const sisa = targetPemulihanBatch(log).length;
+            return sisa ? tombol(`Pulihkan (${sisa})`) : badge;
+        }
+        return "";
+    }
+
+    function renderRiwayat() {
+        const filter = filterAksiRiwayat.value;
+        const sudah = sudahDipulihkan();
+        const tampil = riwayat
+            .filter(l => !l.bagianBatch && (!filter || l.aksi === filter))
+            .sort((a, b) => String(b.waktu || "").localeCompare(String(a.waktu || "")));
+
+        riwayatBody.innerHTML = tampil.slice(0, riwayatBatas).map(log => {
+            const [label, warna] = LABEL_AKSI[log.aksi] || [log.aksi || "-", "secondary"];
+            return `<tr>
+                <td class="log-waktu">${escapeHTML(formatWaktuLengkap(log.waktu))}</td>
+                <td>${escapeHTML(log.petugas || "-")}</td>
+                <td><span class="badge text-bg-${warna}">${escapeHTML(label)}</span></td>
+                <td class="log-ket">${escapeHTML(keteranganLog(log))}</td>
+                <td>${tombolPemulihan(log, sudah)}</td>
+            </tr>`;
+        }).join("");
+
+        riwayatKosong.classList.toggle("d-none", tampil.length !== 0);
+        btnRiwayatLagi.classList.toggle("d-none", tampil.length <= riwayatBatas);
+    }
+
+    filterAksiRiwayat.addEventListener("change", () => {
+        riwayatBatas = 50;
+        renderRiwayat();
+    });
+    btnRiwayatLagi.addEventListener("click", () => {
+        riwayatBatas += 50;
+        renderRiwayat();
+    });
+
+    async function pulihkanHapus(log) {
+        const sebelum = salinData(log.sebelum);
+        if (!log.docId || !sebelum.nama) {
+            alert("Data asli tidak tersedia di riwayat ini, sehingga tidak bisa dipulihkan.");
+            return;
+        }
+        if (dataAmplop.some(item => item.id === log.docId)) {
+            alert("Data ini sudah ada di daftar, tidak perlu dipulihkan.");
+            return;
+        }
+        if (!confirm(`Pulihkan amplop atas nama "${sebelum.nama}"?`)) return;
+        const batch = writeBatch(db);
+        batch.set(doc(db, COLLECTION_NAME, log.docId), sebelum);
+        batch.set(doc(collection(db, LOG_COLLECTION)), buatLog("pulihkan", {
+            docId: log.docId, nama: sebelum.nama, merujuk: log.id,
+            jenisAsal: "hapus", sesudah: sebelum
+        }));
+        await batch.commit();
+    }
+
+    async function pulihkanUbah(log) {
+        const sebelum = salinData(log.sebelum);
+        if (!log.docId || !sebelum.nama) {
+            alert("Isi sebelum diubah tidak tersedia di riwayat ini, sehingga tidak bisa dipulihkan.");
+            return;
+        }
+        const sekarang = dataAmplop.find(item => item.id === log.docId);
+        const lebihBaru = riwayat.some(l => l.docId === log.docId && l.id !== log.id
+            && String(l.waktu || "") > String(log.waktu || "")
+            && ["ubah", "pulihkan", "hapus"].includes(l.aksi));
+        let pesan = `Kembalikan amplop "${sebelum.nama}" ke isi sebelum diubah?\n\n${bedaData(salinData(sekarang), sebelum).join("\n")}`;
+        if (!sekarang) pesan += "\n\nData ini sedang terhapus; pemulihan akan membuatnya kembali.";
+        if (lebihBaru) pesan += "\n\nAda perubahan yang lebih baru pada data ini; pemulihan akan menimpanya.";
+        if (!confirm(pesan)) return;
+
+        const dipulihkan = Object.assign({}, sebelum, { diperbaruiPada: new Date().toISOString() });
+        const batch = writeBatch(db);
+        batch.set(doc(db, COLLECTION_NAME, log.docId), dipulihkan);
+        batch.set(doc(collection(db, LOG_COLLECTION)), buatLog("pulihkan", {
+            docId: log.docId, nama: sebelum.nama, merujuk: log.id, jenisAsal: "ubah",
+            sebelum: salinData(sekarang), sesudah: dipulihkan
+        }));
+        await batch.commit();
+    }
+
+    async function pulihkanHapusSemua(log) {
+        const target = targetPemulihanBatch(log);
+        if (!target.length) {
+            alert("Semua data dari penghapusan ini sudah ada kembali.");
+            return;
+        }
+        if (!confirm(`Pulihkan ${target.length} amplop yang terhapus pada penghapusan semua data?`)) return;
+
+        const batchId = doc(collection(db, LOG_COLLECTION)).id;
+        const totalNominal = target.reduce((t, l) => t + (Number((l.sebelum || {}).nominal) || 0), 0);
+        await commitOps([opSet(doc(collection(db, LOG_COLLECTION)), buatLog("pulihkan", {
+            jenisAsal: "hapus_semua", jumlah: target.length, totalNominal, batchId
+        }))]);
+
+        const ops = [];
+        target.forEach(entri => {
+            const sebelum = salinData(entri.sebelum);
+            ops.push(opSet(doc(db, COLLECTION_NAME, entri.docId), sebelum));
+            ops.push(opSet(doc(collection(db, LOG_COLLECTION)), buatLog("pulihkan", {
+                docId: entri.docId, nama: entri.nama || sebelum.nama || "", merujuk: entri.id,
+                jenisAsal: "hapus", sesudah: sebelum, batchId, bagianBatch: true
+            })));
+        });
+        await commitOps(ops);
+    }
+
+    window.pulihkanLog = async function (logId) {
+        const log = riwayat.find(item => item.id === logId);
+        if (!log || pemulihanBerjalan || !db) return;
+        pemulihanBerjalan = true;
+        try {
+            if (log.aksi === "hapus") await pulihkanHapus(log);
+            else if (log.aksi === "ubah") await pulihkanUbah(log);
+            else if (log.aksi === "hapus_semua") await pulihkanHapusSemua(log);
+        } catch (error) {
+            console.error(error);
+            alert("Pemulihan gagal: " + pesanGalat(error));
+        } finally {
+            pemulihanBerjalan = false;
+        }
+    };
+
+    bangunPecahan();
+    hitungPecahan();
 
     function listenToCloudData() {
         if (stopListening) stopListening();
         const records = collection(db, COLLECTION_NAME);
-        stopListening = onSnapshot(records, snapshot => {
+        const berhentiLog = onSnapshot(collection(db, LOG_COLLECTION), snapshot => {
+            riwayat = snapshot.docs.map(record => ({ id: record.id, ...record.data() }));
+            riwayatGalat.classList.add("d-none");
+            renderRiwayat();
+        }, error => {
+            console.error(error);
+            riwayatGalat.textContent = "Riwayat aktivitas tidak dapat dibaca: " + pesanGalat(error);
+            riwayatGalat.classList.remove("d-none");
+        });
+        const berhentiData = onSnapshot(records, snapshot => {
             dataAmplop = snapshot.docs.map(record => ({
                 id: record.id,
                 ...record.data()
@@ -737,6 +1734,10 @@
             setStatus("Gagal membaca data Firestore: " + error.message
                 + ". Periksa Security Rules dan konfigurasi Firebase.", "danger");
         });
+        stopListening = () => {
+            berhentiData();
+            berhentiLog();
+        };
     }
 
     loginForm.addEventListener("submit", async event => {
@@ -784,6 +1785,10 @@
         if (stopListening) stopListening();
         stopListening = null;
         dataAmplop = [];
+        riwayat = [];
+        fisikPerPetugas.clear();
+        inputFisikGabungan.value = "";
+        rekonSignature = null;
         setPetugasLogin(null);
         render();
         document.body.classList.add("app-locked");
@@ -822,24 +1827,35 @@
         button.textContent = "Menyimpan...";
         try {
             const payload = { penginput, nama, nominal, barang };
+            // Data dan catatan riwayatnya ditulis dalam satu batch: keduanya berhasil atau keduanya gagal.
+            const batch = writeBatch(db);
             if (editId) {
                 const lama = dataAmplop.find(item => item.id === editId);
                 if (!lama) throw new Error("Data tidak ditemukan. Muat ulang daftar lalu coba lagi.");
                 payload.waktu = lama.waktu || new Date().toISOString();
                 payload.diperbaruiPada = new Date().toISOString();
-                await setDoc(doc(db, COLLECTION_NAME, editId), payload, { merge: true });
+                const sebelum = salinData(lama);
+                const sesudah = salinData({ ...lama, ...payload });
+                batch.set(doc(db, COLLECTION_NAME, editId), payload, { merge: true });
+                if (bedaData(sebelum, sesudah).length) {
+                    batch.set(doc(collection(db, LOG_COLLECTION)),
+                        buatLog("ubah", { docId: editId, nama, sebelum, sesudah }));
+                }
             } else {
                 payload.waktu = new Date().toISOString();
                 payload.dibuatPada = new Date().toISOString();
                 const newRef = doc(collection(db, COLLECTION_NAME));
-                await setDoc(newRef, payload);
+                batch.set(newRef, payload);
+                batch.set(doc(collection(db, LOG_COLLECTION)),
+                    buatLog("tambah", { docId: newRef.id, nama, sesudah: salinData(payload) }));
             }
+            await batch.commit();
             form.reset();
             setPetugasLogin(auth && auth.currentUser);
             batalEdit();
         } catch (error) {
             console.error(error);
-            alert("Data gagal disimpan ke Firebase: " + error.message);
+            alert("Data gagal disimpan ke Firebase: " + pesanGalat(error));
         } finally {
             saveInProgress = false;
             button.disabled = false;
@@ -873,7 +1889,11 @@
         const item = dataAmplop.find(row => row.id === id);
         if (!item || !confirm(`Hapus amplop atas nama "${item.nama}"?`)) return;
         try {
-            await deleteDoc(doc(db, COLLECTION_NAME, id));
+            const batch = writeBatch(db);
+            batch.delete(doc(db, COLLECTION_NAME, id));
+            batch.set(doc(collection(db, LOG_COLLECTION)),
+                buatLog("hapus", { docId: id, nama: item.nama || "", sebelum: salinData(item) }));
+            await batch.commit();
             if (inputEditId.value === id) {
                 form.reset();
                 setPetugasLogin(auth && auth.currentUser);
@@ -881,7 +1901,7 @@
             }
         } catch (error) {
             console.error(error);
-            alert("Data gagal dihapus: " + error.message);
+            alert("Data gagal dihapus: " + pesanGalat(error));
         }
     };
 
@@ -890,21 +1910,35 @@
             alert("Belum ada data untuk dihapus.");
             return;
         }
-        if (!confirm("Yakin ingin menghapus SEMUA data amplop di Firebase? Tindakan ini tidak dapat dibatalkan.")) return;
+        if (!confirm("Yakin ingin menghapus SEMUA data amplop di Firebase?\n\nSemua petugas akan kehilangan daftar sampai data dipulihkan dari Riwayat Aktivitas.")) return;
         try {
-            // Firestore batch memiliki batas 500 operasi; pecah menjadi beberapa batch.
+            // Setiap data disalin ke riwayat sebelum dihapus agar bisa dipulihkan.
+            // Firestore membatasi 500 operasi per batch, jadi dipecah oleh commitOps.
             const snapshot = await getDocs(collection(db, COLLECTION_NAME));
-            for (let i = 0; i < snapshot.docs.length; i += 450) {
-                const batch = writeBatch(db);
-                snapshot.docs.slice(i, i + 450).forEach(record => batch.delete(record.ref));
-                await batch.commit();
+            if (snapshot.empty) {
+                alert("Belum ada data untuk dihapus.");
+                return;
             }
+            const batchId = doc(collection(db, LOG_COLLECTION)).id;
+            const totalNominal = snapshot.docs.reduce((t, record) => t + (Number(record.data().nominal) || 0), 0);
+            await commitOps([opSet(doc(collection(db, LOG_COLLECTION)),
+                buatLog("hapus_semua", { batchId, jumlah: snapshot.size, totalNominal }))]);
+            const ops = [];
+            snapshot.docs.forEach(record => {
+                ops.push(opSet(doc(collection(db, LOG_COLLECTION)), buatLog("hapus", {
+                    docId: record.id, nama: record.data().nama || "",
+                    sebelum: salinData(record.data()), batchId, bagianBatch: true
+                })));
+                ops.push(opHapus(record.ref));
+            });
+            await commitOps(ops);
             form.reset();
             setPetugasLogin(auth && auth.currentUser);
             batalEdit();
         } catch (error) {
             console.error(error);
-            alert("Penghapusan data gagal: " + error.message);
+            alert("Penghapusan data gagal: " + pesanGalat(error)
+                + "\n\nSebagian data mungkin sudah terhapus. Cek Riwayat Aktivitas untuk memulihkannya.");
         }
     };
 
