@@ -386,14 +386,11 @@
 
         <div class="mb-3">
             <label for="petugasAktif" class="form-label">
-                Petugas yang sedang input
+                Petugas yang sedang login
             </label>
-
-            <select id="petugasAktif" class="form-select">
-                <option value="Andi">Andi</option>
-                <option value="Budi">Budi</option>
-                <option value="Siti">Siti</option>
-            </select>
+            <input type="text" id="petugasAktif" class="form-control"
+                   placeholder="Nama/email akun login akan tampil di sini" readonly>
+            <small class="text-secondary">Petugas diambil otomatis dari akun Firebase yang sedang login.</small>
         </div>
 
 <input type="hidden" id="namaPenginput">
@@ -583,18 +580,34 @@
             && firebaseConfig.apiKey.trim() !== "";
     }
 
-    // Petugas terakhir dipilih hanya disimpan di perangkat yang sedang dipakai.
-    try {
-        petugasAktif.value = localStorage.getItem("petugasAmplopAktif") || "Andi";
-    } catch (_) {
-        petugasAktif.value = "Andi";
-    }
-    inputPenginput.value = petugasAktif.value;
+    // Nama petugas mengikuti profil Firebase; jika belum ada, gunakan nama dari bagian email sebelum @.
+    function getNamaPetugas(user) {
+        if (!user) return "";
 
-    petugasAktif.addEventListener("change", function () {
-        try { localStorage.setItem("petugasAmplopAktif", this.value); } catch (_) {}
-        inputPenginput.value = this.value;
-    });
+        if (user.displayName && user.displayName.trim()) {
+            return user.displayName.trim();
+        }
+
+        const bagianEmail = (user.email || "").split("@")[0];
+        if (bagianEmail) {
+            return bagianEmail
+                .replace(/[._-]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .replace(/\b\p{L}/gu, huruf => huruf.toLocaleUpperCase("id-ID"));
+        }
+
+        return user.uid || "";
+    }
+
+    // Identitas petugas selalu mengikuti akun Firebase yang sedang login.
+    function setPetugasLogin(user) {
+        const identitas = getNamaPetugas(user);
+        petugasAktif.value = identitas;
+        inputPenginput.value = identitas;
+    }
+
+    setPetugasLogin(null);
 
     inputNominal.addEventListener("input", function () {
         let angka = this.value.replace(/\D/g, "");
@@ -741,7 +754,8 @@
         document.body.classList.remove("app-locked");
         logoutButton.classList.remove("d-none");
         document.getElementById("loginContainer").style.display = "none";
-        setStatus("Login berhasil. Memuat data...", "success");
+        setPetugasLogin(user);
+        setStatus("Login berhasil sebagai " + getNamaPetugas(user) + ". Memuat data...", "success");
         listenToCloudData();
     }
 
@@ -749,6 +763,7 @@
         if (stopListening) stopListening();
         stopListening = null;
         dataAmplop = [];
+        setPetugasLogin(null);
         render();
         document.body.classList.add("app-locked");
         logoutButton.classList.add("d-none");
@@ -760,7 +775,10 @@
         event.preventDefault();
         if (saveInProgress) return;
 
-        const penginput = inputPenginput.value.trim();
+        // Jangan gunakan nilai dari input form untuk identitas petugas; ambil langsung dari Firebase Auth.
+        const userLogin = auth && auth.currentUser;
+        const penginput = getNamaPetugas(userLogin);
+        setPetugasLogin(userLogin);
         const nama = inputNama.value.trim();
         const nominal = Number(inputNominal.value.replace(/\./g, ""));
         const barang = inputBarang.value.trim();
@@ -796,7 +814,7 @@
                 await setDoc(newRef, payload);
             }
             form.reset();
-            inputPenginput.value = petugasAktif.value;
+            setPetugasLogin(auth && auth.currentUser);
             batalEdit();
         } catch (error) {
             console.error(error);
@@ -812,7 +830,7 @@
         const item = dataAmplop.find(row => row.id === id);
         if (!item) return;
         inputEditId.value = item.id;
-        inputPenginput.value = item.penginput || petugasAktif.value;
+        setPetugasLogin(auth && auth.currentUser);
         inputNama.value = item.nama || "";
         inputNominal.value = Number(item.nominal) > 0
             ? Number(item.nominal).toLocaleString("id-ID") : "";
@@ -837,7 +855,7 @@
             await deleteDoc(doc(db, COLLECTION_NAME, id));
             if (inputEditId.value === id) {
                 form.reset();
-                inputPenginput.value = petugasAktif.value;
+                setPetugasLogin(auth && auth.currentUser);
                 batalEdit();
             }
         } catch (error) {
@@ -861,7 +879,7 @@
                 await batch.commit();
             }
             form.reset();
-            inputPenginput.value = petugasAktif.value;
+            setPetugasLogin(auth && auth.currentUser);
             batalEdit();
         } catch (error) {
             console.error(error);
