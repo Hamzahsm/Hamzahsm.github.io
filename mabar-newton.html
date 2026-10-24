@@ -1497,6 +1497,10 @@
         <span class="nav-icon">🏆</span>
         <span>Klasemen</span>
     </button>
+    <button class="menu-item" onclick="switchView('view-statistik', this)">
+        <span class="nav-icon">📊</span>
+        <span>Statistik</span>
+    </button>
     <button class="menu-item admin-only-menu" onclick="switchView('view-kas', this)">
         <span class="nav-icon">💰</span>
         <span>Kas</span>
@@ -1607,6 +1611,11 @@
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
                 <button id="btn-klasemen-mingguan" onclick="switchKlasemenPeriode('mingguan')" style="background:var(--primary);">📅 Mingguan</button>
                 <button id="btn-klasemen-bulanan" onclick="switchKlasemenPeriode('bulanan')" style="background:#e2e8f0;color:#334155;">🗓️ Bulanan</button>
+                <button id="btn-klasemen-tanggal" onclick="switchKlasemenPeriode('tanggal')" style="background:#e2e8f0;color:#334155;">📆 Per Tanggal</button>
+            </div>
+            <div id="klasemen-tanggal-wrap" style="display:none; margin-bottom:14px;">
+                <label for="klasemen-tanggal" style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Pilih tanggal</label>
+                <input type="date" id="klasemen-tanggal" onchange="renderKlasemen()" style="padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; font-family:inherit; max-width:100%;">
             </div>
             <div id="klasemen-periode-label" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;"></div>
             <div style="overflow-x:auto;">
@@ -1617,6 +1626,19 @@
             </div>
             <p style="font-size:11px;color:#64748b;margin:12px 0 0;">Peringkat diurutkan berdasarkan jumlah menang, selisih poin, lalu jumlah pertandingan.</p>
         </div>
+    </div>
+
+
+    <div id="view-statistik" class="view-section">
+        <div class="reg-hero">
+            <h2>📊 Statistik Pemain</h2>
+            <p>Win rate, partner terbaik, dan riwayat poin dihitung otomatis dari seluruh riwayat pertandingan.</p>
+        </div>
+        <div class="card">
+            <div class="card-header-title"><span>Pilih Pemain</span></div>
+            <select id="statistik-pemain" onchange="renderStatistik()" style="margin-bottom:6px;"></select>
+        </div>
+        <div id="statistik-isi"></div>
     </div>
 
     <div id="view-kas" class="view-section">
@@ -2234,8 +2256,8 @@
     const switchViewOriginal = typeof switchView === 'function' ? switchView : null;
 
     function switchView(viewId, menuElement) {
-        if (newtonCurrentRole === 'member' && !['view-mabar', 'view-klasemen'].includes(viewId)) {
-            showMsg('Member hanya memiliki akses ke menu Mabar dan Klasemen.');
+        if (newtonCurrentRole === 'member' && !['view-mabar', 'view-klasemen', 'view-statistik'].includes(viewId)) {
+            showMsg('Member hanya memiliki akses ke menu Mabar, Klasemen, dan Statistik.');
             return;
         }
 
@@ -2253,6 +2275,8 @@
             updateAllSelectOptions();
         } else if (viewId === 'view-klasemen') {
             renderKlasemen();
+        } else if (viewId === 'view-statistik') {
+            renderStatistik();
         } else if (viewId === 'view-kas') {
             renderKasRekap();
         } else if (viewId === 'view-database') {
@@ -3147,18 +3171,24 @@
         return Number.isNaN(date.getTime()) ? null : date;
     }
 
+    function tanggalLokalISO(date) {
+        const d = date instanceof Date ? date : new Date(date);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
     function switchKlasemenPeriode(periode) {
-        klasemenPeriodeAktif = periode === 'bulanan' ? 'bulanan' : 'mingguan';
-        const mingguan = document.getElementById('btn-klasemen-mingguan');
-        const bulanan = document.getElementById('btn-klasemen-bulanan');
-        if (mingguan) {
-            mingguan.style.background = klasemenPeriodeAktif === 'mingguan' ? 'var(--primary)' : '#e2e8f0';
-            mingguan.style.color = klasemenPeriodeAktif === 'mingguan' ? '#fff' : '#334155';
-        }
-        if (bulanan) {
-            bulanan.style.background = klasemenPeriodeAktif === 'bulanan' ? 'var(--primary)' : '#e2e8f0';
-            bulanan.style.color = klasemenPeriodeAktif === 'bulanan' ? '#fff' : '#334155';
-        }
+        klasemenPeriodeAktif = (periode === 'bulanan' || periode === 'tanggal') ? periode : 'mingguan';
+        [['mingguan', 'btn-klasemen-mingguan'], ['bulanan', 'btn-klasemen-bulanan'], ['tanggal', 'btn-klasemen-tanggal']].forEach(([key, id]) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const aktif = klasemenPeriodeAktif === key;
+            btn.style.background = aktif ? 'var(--primary)' : '#e2e8f0';
+            btn.style.color = aktif ? '#fff' : '#334155';
+        });
+        const wrap = document.getElementById('klasemen-tanggal-wrap');
+        const inputTgl = document.getElementById('klasemen-tanggal');
+        if (wrap) wrap.style.display = klasemenPeriodeAktif === 'tanggal' ? 'block' : 'none';
+        if (inputTgl && klasemenPeriodeAktif === 'tanggal' && !inputTgl.value) inputTgl.value = tanggalLokalISO(new Date());
         renderKlasemen();
     }
 
@@ -3166,10 +3196,19 @@
         const tbody = document.getElementById('klasemen-table-body');
         const label = document.getElementById('klasemen-periode-label');
         if (!tbody || !label) return;
+        const viewStat = document.getElementById('view-statistik');
+        if (viewStat && viewStat.classList.contains('active-view') && typeof renderStatistik === 'function') renderStatistik();
 
         const now = new Date();
         let start, end;
-        if (klasemenPeriodeAktif === 'bulanan') {
+        if (klasemenPeriodeAktif === 'tanggal') {
+            const inputTgl = document.getElementById('klasemen-tanggal');
+            if (inputTgl && !inputTgl.value) inputTgl.value = tanggalLokalISO(now);
+            const [y, m, d] = ((inputTgl && inputTgl.value) || tanggalLokalISO(now)).split('-').map(Number);
+            start = new Date(y, m - 1, d);
+            end = new Date(y, m - 1, d + 1);
+            label.textContent = 'Tanggal: ' + start.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+        } else if (klasemenPeriodeAktif === 'bulanan') {
             start = new Date(now.getFullYear(), now.getMonth(), 1);
             end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
             label.textContent = 'Periode: ' + now.toLocaleDateString('id-ID', {month:'long', year:'numeric'});
@@ -3222,6 +3261,173 @@
             const medal = i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
             return `<tr><td style="font-weight:800;">${medal}${i+1}</td><td style="font-weight:700;">${escapeHTMLKlasemen(p.name)}</td><td style="text-align:center;">${p.played}</td><td style="text-align:center;color:#15803d;font-weight:800;">${p.wins}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${p.losses}</td><td style="text-align:center;font-weight:700;">${diffText}</td></tr>`;
         }).join('');
+    }
+
+    // ============================================================
+    // STATISTIK PEMAIN (dihitung dari matchesHistory)
+    // ============================================================
+    function timMatch(match) {
+        const playersA = Array.isArray(match.playersA) ? match.playersA : String(match.teamA || '').split(' / ').map(x => x.trim()).filter(Boolean);
+        const playersB = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').map(x => x.trim()).filter(Boolean);
+        return { playersA, playersB };
+    }
+
+    function daftarNamaStatistik() {
+        const names = new Set(Object.keys(playersData || {}));
+        (matchesHistory || []).forEach(m => {
+            const t = timMatch(m);
+            [...t.playersA, ...t.playersB].forEach(n => { if (n) names.add(n); });
+        });
+        return [...names].sort((a, b) => a.localeCompare(b, 'id'));
+    }
+
+    // Kumpulkan seluruh match milik satu pemain, urut dari terlama ke terbaru
+    function kumpulkanMatchPemain(name) {
+        const list = [];
+        (matchesHistory || []).slice().reverse().forEach(m => {
+            const t = timMatch(m);
+            const onA = t.playersA.includes(name);
+            const onB = t.playersB.includes(name);
+            if (!onA && !onB) return;
+            const tim = onA ? t.playersA : t.playersB;
+            const lawan = onA ? t.playersB : t.playersA;
+            const skorSaya = Number(onA ? m.scoreA : m.scoreB) || 0;
+            const skorLawan = Number(onA ? m.scoreB : m.scoreA) || 0;
+            list.push({
+                tanggal: tanggalPertandingan(m),
+                partner: tim.filter(n => n !== name),
+                lawan,
+                skorSaya,
+                skorLawan,
+                hasil: skorSaya === skorLawan ? 'D' : (skorSaya > skorLawan ? 'W' : 'L')
+            });
+        });
+        return list;
+    }
+
+    function renderStatistik() {
+        const select = document.getElementById('statistik-pemain');
+        const isi = document.getElementById('statistik-isi');
+        if (!select || !isi) return;
+
+        const names = daftarNamaStatistik();
+        const dipilih = select.value;
+        if (!names.length) {
+            select.innerHTML = '<option value="">Belum ada pemain</option>';
+            isi.innerHTML = '<div class="card"><p style="text-align:center;color:#64748b;margin:8px 0;">Belum ada data pemain.</p></div>';
+            return;
+        }
+        select.innerHTML = names.map(n => `<option value="${escapeHTMLKlasemen(n)}">${escapeHTMLKlasemen(n)}</option>`).join('');
+        select.value = names.includes(dipilih) ? dipilih : names[0];
+        const name = select.value;
+
+        const matches = kumpulkanMatchPemain(name);
+        if (!matches.length) {
+            isi.innerHTML = '<div class="card"><p style="text-align:center;color:#64748b;margin:8px 0;">' + escapeHTMLKlasemen(name) + ' belum memiliki riwayat pertandingan.</p></div>';
+            return;
+        }
+
+        const wins = matches.filter(m => m.hasil === 'W').length;
+        const losses = matches.filter(m => m.hasil === 'L').length;
+        const draws = matches.filter(m => m.hasil === 'D').length;
+        const dinilai = wins + losses;
+        const winRate = dinilai ? Math.round((wins / dinilai) * 1000) / 10 : 0;
+        const poinCetak = matches.reduce((a, m) => a + m.skorSaya, 0);
+        const poinKebobolan = matches.reduce((a, m) => a + m.skorLawan, 0);
+        const selisih = poinCetak - poinKebobolan;
+        const fmtSelisih = v => v > 0 ? '+' + v : String(v);
+
+        // Partner
+        const pmap = {};
+        matches.forEach(m => {
+            const kunci = m.partner.length ? m.partner.join(' / ') : null;
+            if (!kunci) return;
+            if (!pmap[kunci]) pmap[kunci] = { nama: kunci, main: 0, menang: 0, kalah: 0, seri: 0, diff: 0 };
+            const r = pmap[kunci];
+            r.main++;
+            r.diff += m.skorSaya - m.skorLawan;
+            if (m.hasil === 'W') r.menang++; else if (m.hasil === 'L') r.kalah++; else r.seri++;
+        });
+        const partners = Object.values(pmap).map(r => Object.assign(r, { rate: (r.menang + r.kalah) ? r.menang / (r.menang + r.kalah) : 0 }));
+        const urut = (a, b) => b.rate - a.rate || b.menang - a.menang || b.diff - a.diff || b.main - a.main || a.nama.localeCompare(b.nama, 'id');
+        const layak = partners.filter(r => r.main >= 2);
+        const rankPartner = (layak.length ? layak : partners).slice().sort(urut);
+        const tabelPartner = partners.slice().sort(urut);
+        const best = rankPartner[0];
+
+        // Riwayat poin (kumulatif selisih, terlama -> terbaru)
+        let kum = 0;
+        const baris = matches.map((m, i) => {
+            kum += m.skorSaya - m.skorLawan;
+            return Object.assign({ no: i + 1, kum }, m);
+        });
+
+        // Grafik garis selisih kumulatif
+        const W = 320, H = 90, pad = 8;
+        const nilai = [0, ...baris.map(b => b.kum)];
+        const mn = Math.min(...nilai), mx = Math.max(...nilai);
+        const rentang = (mx - mn) || 1;
+        const titik = nilai.map((v, i) => {
+            const x = pad + (nilai.length === 1 ? 0 : i * (W - pad * 2) / (nilai.length - 1));
+            const y = H - pad - ((v - mn) / rentang) * (H - pad * 2);
+            return x.toFixed(1) + ',' + y.toFixed(1);
+        }).join(' ');
+        const yNol = (H - pad - ((0 - mn) / rentang) * (H - pad * 2)).toFixed(1);
+        const grafik = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:90px;display:block;" role="img" aria-label="Grafik selisih poin kumulatif">
+            <line x1="${pad}" y1="${yNol}" x2="${W - pad}" y2="${yNol}" stroke="#cbd5e1" stroke-dasharray="3,3"/>
+            <polyline points="${titik}" fill="none" stroke="#1e3a8a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>`;
+
+        const kartu = (judul, nilaiTeks, warna) => `<div style="flex:1 1 90px;min-width:90px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 8px;text-align:center;">
+            <div style="font-size:11px;color:#64748b;font-weight:700;">${judul}</div>
+            <div style="font-size:18px;font-weight:800;color:${warna || '#0f172a'};margin-top:2px;">${nilaiTeks}</div></div>`;
+
+        const fmtTgl = d => d ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '-';
+        const badge = h => h === 'W' ? '<span style="color:#15803d;font-weight:800;">Menang</span>' : (h === 'L' ? '<span style="color:#b91c1c;font-weight:800;">Kalah</span>' : '<span style="color:#64748b;font-weight:800;">Seri</span>');
+
+        let html = '';
+        html += `<div class="card">
+            <div class="card-header-title"><span>Ringkasan ${escapeHTMLKlasemen(name)}</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${kartu('Win Rate', winRate + '%', '#1e3a8a')}
+                ${kartu('Main', matches.length)}
+                ${kartu('Menang', wins, '#15803d')}
+                ${kartu('Kalah', losses, '#b91c1c')}
+                ${draws ? kartu('Seri', draws) : ''}
+                ${kartu('Selisih Poin', fmtSelisih(selisih), selisih >= 0 ? '#15803d' : '#b91c1c')}
+            </div>
+            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Win rate = menang ÷ (menang + kalah). Poin dicetak ${poinCetak}, kebobolan ${poinKebobolan}.</p>
+        </div>`;
+
+        html += `<div class="card">
+            <div class="card-header-title"><span>🤝 Partner Terbaik</span></div>`;
+        if (!best) {
+            html += '<p style="color:#64748b;font-size:13px;margin:0;">Belum ada pertandingan ganda untuk pemain ini.</p>';
+        } else {
+            html += `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;margin-bottom:12px;">
+                <div style="font-size:16px;font-weight:800;color:#14532d;">${escapeHTMLKlasemen(best.nama)}</div>
+                <div style="font-size:12.5px;color:#166534;margin-top:2px;">Win rate ${Math.round(best.rate * 1000) / 10}% • ${best.menang}M ${best.kalah}K dari ${best.main} main • selisih ${fmtSelisih(best.diff)}</div>
+                ${(layak.length ? '' : '<div style="font-size:11px;color:#64748b;margin-top:4px;">Baru satu kali berpasangan, belum cukup data.</div>')}
+            </div>
+            <div style="overflow-x:auto;"><table class="player-table" style="min-width:420px;">
+                <thead><tr><th>Partner</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Win Rate</th></tr></thead>
+                <tbody>${tabelPartner.map(r => `<tr><td style="font-weight:700;">${escapeHTMLKlasemen(r.nama)}</td><td style="text-align:center;">${r.main}</td><td style="text-align:center;color:#15803d;font-weight:800;">${r.menang}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${r.kalah}</td><td style="text-align:center;font-weight:700;">${Math.round(r.rate * 1000) / 10}%</td></tr>`).join('')}</tbody>
+            </table></div>
+            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Partner terbaik dipilih dari yang minimal 2 kali berpasangan, diurutkan berdasarkan win rate, jumlah menang, lalu selisih poin.</p>`;
+        }
+        html += '</div>';
+
+        html += `<div class="card">
+            <div class="card-header-title"><span>📈 Riwayat Poin</span></div>
+            <div style="font-size:11.5px;color:#64748b;margin-bottom:6px;">Selisih poin kumulatif: ${fmtSelisih(kum)} setelah ${matches.length} pertandingan</div>
+            ${grafik}
+            <div style="overflow:auto;max-height:380px;margin-top:10px;"><table class="player-table" style="min-width:460px;">
+                <thead><tr><th>Tgl</th><th>Partner</th><th>Lawan</th><th style="text-align:center;">Skor</th><th style="text-align:center;">Hasil</th><th style="text-align:center;">Kumulatif</th></tr></thead>
+                <tbody>${baris.slice().reverse().map(b => `<tr><td>${escapeHTMLKlasemen(fmtTgl(b.tanggal))}</td><td>${escapeHTMLKlasemen(b.partner.join(' / ') || '-')}</td><td>${escapeHTMLKlasemen(b.lawan.join(' / ') || '-')}</td><td style="text-align:center;font-weight:700;">${b.skorSaya} - ${b.skorLawan}</td><td style="text-align:center;">${badge(b.hasil)}</td><td style="text-align:center;font-weight:700;">${fmtSelisih(b.kum)}</td></tr>`).join('')}</tbody>
+            </table></div>
+        </div>`;
+
+        isi.innerHTML = html;
     }
 
     function escapeHTMLKlasemen(value) {
