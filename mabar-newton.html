@@ -1298,7 +1298,7 @@
         <div class="login-brand">
             <div class="login-brand-icon">🏸</div>
             <h2>NEWTON</h2>
-            <p> Belajar Badminton</p>
+            <p>Newbie Belajar Badminton</p>
         </div>
 
         <div class="login-role-grid">
@@ -1481,7 +1481,7 @@
         </div>
         <div class="brand-text-block">
             <h1 class="brand-title">NEWTON</h1>
-            <!-- <span class="brand-subtitle">(Newbie Belajar Badminton)</span> -->
+            <span class="brand-subtitle">(Newbie Belajar Badminton)</span>
         </div>
     </div>
     <div class="header-actions">
@@ -1632,6 +1632,10 @@
                 <input type="date" id="klasemen-tanggal" onchange="renderKlasemen()" style="padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; font-family:inherit; max-width:100%;">
             </div>
             <div id="klasemen-periode-label" style="font-size:12px;color:var(--text-muted);margin-bottom:12px;"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                <button type="button" onclick="salinKlasemenWA()" style="padding:8px 12px; font-size:12px; background:#fff; color:#0f172a; border:1.5px solid #cbd5e1;">📋 Salin Klasemen WA</button>
+                <button type="button" onclick="bagikanGambarKlasemen()" style="padding:8px 12px; font-size:12px; background:#16a34a;">🖼️ Bagikan Gambar</button>
+            </div>
             <div style="overflow-x:auto;">
                 <table class="player-table" style="min-width:520px;">
                     <thead><tr><th style="width:44px;">Rank</th><th>Nama Pemain</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Selisih Poin</th></tr></thead>
@@ -3374,6 +3378,7 @@
     }
 
     let klasemenPeriodeAktif = 'mingguan';
+    let klasemenTerakhir = { label: '', rows: [] }; // hasil render terakhir, dipakai untuk bagikan ke WhatsApp
 
     function tanggalPertandingan(match) {
         const raw = match.playedAt || match.dateISO || match.createdAt || match.date || '';
@@ -3462,6 +3467,7 @@
             b.played - a.played ||
             a.name.localeCompare(b.name, 'id')
         );
+        klasemenTerakhir = { label: label.textContent, rows };
         if (!rows.length) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr>';
             return;
@@ -3639,6 +3645,193 @@
         </div>`;
 
         isi.innerHTML = html;
+    }
+
+    // ============================================================
+    // BAGIKAN KLASEMEN (WhatsApp)
+    // ============================================================
+    function klasemenSiapBagikan() {
+        // Pastikan data sesuai periode/tanggal yang sedang dipilih.
+        renderKlasemen();
+        if (!klasemenTerakhir.rows.length) {
+            showMsg('Belum ada data pertandingan pada periode ini, jadi belum ada klasemen yang bisa dibagikan.');
+            return false;
+        }
+        return true;
+    }
+
+    function selisihTeks(p) {
+        const diff = p.pointsFor - p.pointsAgainst;
+        return diff > 0 ? '+' + diff : String(diff);
+    }
+
+    function bangunTeksKlasemenWA() {
+        const medali = ['🥇', '🥈', '🥉'];
+        let text = '🏆 *KLASEMEN NEWTON*\n📅 ' + klasemenTerakhir.label + '\n━━━━━━━━━━━━━━━━━━━━\n';
+        klasemenTerakhir.rows.forEach((p, i) => {
+            const nomor = i < 3 ? medali[i] : (i + 1) + '.';
+            text += nomor + ' *' + p.name + '* — ' + p.wins + 'M ' + p.losses + 'K • ' + p.played + ' main • ' + selisihTeks(p) + '\n';
+        });
+        text += '━━━━━━━━━━━━━━━━━━━━\n_M = menang, K = kalah, angka terakhir = selisih poin_\n_NEWTON Mabar_';
+        return text;
+    }
+
+    function salinKlasemenWA() {
+        if (!klasemenSiapBagikan()) return;
+        const text = bangunTeksKlasemenWA();
+        const sukses = () => showMsg('📋 Klasemen berhasil disalin! Silakan tempel (paste) di WhatsApp.');
+
+        const cadangan = () => {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.style.position = 'fixed';
+            el.style.opacity = '0';
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                sukses();
+            } catch (err) {
+                showMsg('Gagal menyalin teks.');
+            }
+            document.body.removeChild(el);
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(sukses).catch(cadangan);
+        } else {
+            cadangan();
+        }
+    }
+
+    function gambarKlasemenCanvas() {
+        const rows = klasemenTerakhir.rows;
+        const skala = 2;                       // resolusi 2x supaya tajam di WhatsApp
+        const W = 720, header = 118, barisH = 46, thH = 40, footer = 52;
+        const H = header + thH + rows.length * barisH + footer;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = W * skala;
+        canvas.height = H * skala;
+        const c = canvas.getContext('2d');
+        c.scale(skala, skala);
+        const font = (w, size) => w + ' ' + size + 'px -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+        c.fillStyle = '#ffffff';
+        c.fillRect(0, 0, W, H);
+
+        // Header
+        c.fillStyle = '#1e3a8a';
+        c.fillRect(0, 0, W, header);
+        c.fillStyle = '#ffffff';
+        c.textBaseline = 'alphabetic';
+        c.textAlign = 'left';
+        c.font = font('800', 30);
+        c.fillText('🏆 Klasemen NEWTON', 28, 54);
+        c.font = font('500', 16);
+        c.fillStyle = '#dbeafe';
+        c.fillText(klasemenTerakhir.label, 28, 88, W - 56);
+
+        // Kolom
+        const kol = { rank: 28, nama: 92, main: 430, menang: 502, kalah: 574, selisih: W - 28 };
+        let y = header;
+        c.fillStyle = '#f1f5f9';
+        c.fillRect(0, y, W, thH);
+        c.fillStyle = '#475569';
+        c.font = font('700', 14);
+        c.textAlign = 'left';
+        c.fillText('Rank', kol.rank, y + 26);
+        c.fillText('Nama Pemain', kol.nama, y + 26);
+        c.textAlign = 'center';
+        c.fillText('Main', kol.main, y + 26);
+        c.fillText('Menang', kol.menang, y + 26);
+        c.fillText('Kalah', kol.kalah, y + 26);
+        c.textAlign = 'right';
+        c.fillText('Selisih', kol.selisih, y + 26);
+        y += thH;
+
+        const medali = ['🥇', '🥈', '🥉'];
+        rows.forEach((p, i) => {
+            if (i % 2 === 1) {
+                c.fillStyle = '#f8fafc';
+                c.fillRect(0, y, W, barisH);
+            }
+            const tengah = y + barisH / 2 + 6;
+            c.fillStyle = '#0f172a';
+            c.textAlign = 'left';
+            c.font = font('800', 18);
+            c.fillText(i < 3 ? medali[i] : String(i + 1), kol.rank, tengah);
+            c.font = font('700', 18);
+            c.fillText(p.name, kol.nama, tengah, kol.main - kol.nama - 50);
+            c.textAlign = 'center';
+            c.font = font('500', 18);
+            c.fillStyle = '#0f172a';
+            c.fillText(String(p.played), kol.main, tengah);
+            c.fillStyle = '#15803d';
+            c.font = font('800', 18);
+            c.fillText(String(p.wins), kol.menang, tengah);
+            c.fillStyle = '#b91c1c';
+            c.fillText(String(p.losses), kol.kalah, tengah);
+            const diff = p.pointsFor - p.pointsAgainst;
+            c.fillStyle = diff > 0 ? '#15803d' : (diff < 0 ? '#b91c1c' : '#475569');
+            c.textAlign = 'right';
+            c.fillText(selisihTeks(p), kol.selisih, tengah);
+            y += barisH;
+        });
+
+        c.strokeStyle = '#e2e8f0';
+        c.beginPath();
+        c.moveTo(0, y + 0.5);
+        c.lineTo(W, y + 0.5);
+        c.stroke();
+        c.fillStyle = '#64748b';
+        c.textAlign = 'left';
+        c.font = font('500', 13);
+        c.fillText('Urutan: menang terbanyak, selisih poin, lalu jumlah main.', 28, y + 24);
+        c.textAlign = 'right';
+        c.fillText('NEWTON Mabar', W - 28, y + 24);
+
+        return canvas;
+    }
+
+    function bagikanGambarKlasemen() {
+        if (!klasemenSiapBagikan()) return;
+        let canvas;
+        try {
+            canvas = gambarKlasemenCanvas();
+        } catch (error) {
+            console.error('Gagal membuat gambar klasemen:', error);
+            showMsg('Gagal membuat gambar klasemen.');
+            return;
+        }
+
+        canvas.toBlob(async (blob) => {
+            if (!blob) { showMsg('Gagal membuat gambar klasemen.'); return; }
+            const namaFile = 'klasemen-newton-' + tanggalLokalISO(new Date()) + '.png';
+            const file = new File([blob], namaFile, { type: 'image/png' });
+
+            // Di HP: buka lembar bagikan (pilih WhatsApp langsung).
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file], title: 'Klasemen NEWTON' });
+                    return;
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return; // pengguna menutup lembar bagikan
+                    console.warn('Share gagal, beralih ke unduh:', error);
+                }
+            }
+
+            // Cadangan (misalnya di komputer): unduh gambarnya.
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = namaFile;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 4000);
+            showMsg('🖼️ Gambar klasemen diunduh: ' + namaFile + '\n\nBuka WhatsApp lalu lampirkan gambar ini ke grup mabar.');
+        }, 'image/png');
     }
 
     function escapeHTMLKlasemen(value) {
