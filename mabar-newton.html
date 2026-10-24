@@ -2177,11 +2177,11 @@
 
 
     // ============================================================
-    // MENU BAWAH: hanya tampil saat scroll ke bawah
+    // MENU BAWAH: sembunyi saat scroll ke bawah, muncul saat scroll ke atas
     // ============================================================
     // 'tampil-saat-scroll-bawah'   : menu muncul saat scroll ke bawah, tersembunyi saat scroll ke atas / kembali ke paling atas
     // 'sembunyi-saat-scroll-bawah' : kebalikannya (menu sembunyi saat scroll ke bawah, muncul saat scroll ke atas)
-    const MENU_SCROLL_MODE = 'tampil-saat-scroll-bawah';
+    const MENU_SCROLL_MODE = 'sembunyi-saat-scroll-bawah';
     let tampilkanMenuBawah = function () {};
 
     document.addEventListener('DOMContentLoaded', () => {
