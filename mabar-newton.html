@@ -1265,6 +1265,23 @@
             display: none !important;
         }
 
+    
+        /* ===== REKAP KAS & PENGELUARAN ===== */
+        .kas-main-tabs { display:flex; gap:6px; margin:12px 0; }
+        .kas-main-tab { flex:1; padding:9px 10px; font-size:12.5px; font-weight:800; border-radius:10px; background:#e2e8f0; color:#334155; border:none; }
+        .kas-main-tab.active { background:var(--primary); color:#fff; }
+        .rekap-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
+        .rekap-box { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px; }
+        .rekap-box .lbl { font-size:11px; font-weight:700; color:#64748b; }
+        .rekap-box .val { font-size:15px; font-weight:800; margin-top:2px; }
+        .rekap-table { width:100%; border-collapse:collapse; font-size:12px; }
+        .rekap-table th { text-align:left; font-size:11px; color:#64748b; padding:6px 4px; border-bottom:1px solid #e2e8f0; }
+        .rekap-table td { padding:7px 4px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .rekap-table .num { text-align:right; white-space:nowrap; }
+        .rekap-del { background:#fee2e2; color:#b91c1c; border:none; border-radius:6px; padding:3px 8px; font-size:11px; }
+        .rekap-form { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .rekap-form .full { grid-column:1 / -1; }
+        .rekap-form input, .rekap-form select { width:100%; }
     </style>
 </head>
 <body class="app-locked" onclick="closeExportDropdown(event)">
@@ -1345,7 +1362,7 @@
             <button onclick="eksekusiResetHarian()" style="background:#f0fdf4; border:1.5px solid #86efac; color:#166534; padding:12px 14px; border-radius:12px; text-align:left; display:flex; flex-direction:column; gap:4px;">
                 <span style="font-weight:800; font-size:13px; display:flex; align-items:center; gap:6px;">🧹 Reset Harian (Mabar & Kas)</span>
                 <span style="font-size:11px; color:#15803d; font-weight:normal; line-height:1.3;">
-                    Kosongkan daftar pemain Mabar & data Kas. <b>Riwayat pertandingan (klasemen mingguan/bulanan), Database nama & poin pemain tetap aman tersimpan.</b>
+                    Kosongkan daftar pemain Mabar & data Kas (total kas diarsipkan ke Rekap Kas). <b>Riwayat pertandingan (klasemen mingguan/bulanan), pengeluaran, Database nama & poin pemain tetap aman tersimpan.</b>
                 </span>
             </button>
             <button onclick="eksekusiResetDatabase()" style="background:#fef2f2; border:1.5px solid #fecaca; color:#991b1b; padding:12px 14px; border-radius:12px; text-align:left; display:flex; flex-direction:column; gap:4px;">
@@ -1619,6 +1636,12 @@
             </div>
         </div>
 
+        <div class="kas-main-tabs">
+            <button type="button" class="kas-main-tab active" id="kas-main-tab-pemain" onclick="setKasTab('pemain')">👥 Kas Pemain</button>
+            <button type="button" class="kas-main-tab" id="kas-main-tab-rekap" onclick="setKasTab('rekap')">📊 Rekap & Pengeluaran</button>
+        </div>
+
+        <div id="kas-panel-pemain">
         <!-- 2. MODERN 4-METRIC STAT CARDS -->
         <div class="kas-stats-grid">
             <div class="kas-stat-card tunai">
@@ -1684,6 +1707,78 @@
         <ul class="kas-card-list" id="daftar-pemain-kas">
             <!-- Injected via JavaScript -->
         </ul>
+        </div><!-- /kas-panel-pemain -->
+
+        <div id="kas-panel-rekap" style="display:none;">
+            <div class="card" style="padding:12px 14px; margin-bottom:12px;">
+                <div style="display:flex; gap:6px; margin-bottom:10px;">
+                    <button type="button" id="kas-rekap-btn-mingguan" onclick="setKasRekapPeriode('mingguan')" style="flex:1; padding:8px; font-size:12px;">📅 Mingguan</button>
+                    <button type="button" id="kas-rekap-btn-bulanan" onclick="setKasRekapPeriode('bulanan')" style="flex:1; padding:8px; font-size:12px;">🗓️ Bulanan</button>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                    <button type="button" onclick="geserKasRekapPeriode(-1)" style="padding:6px 12px; font-size:12px; background:#e2e8f0; color:#334155;">◀</button>
+                    <div id="kas-rekap-label" style="font-size:12.5px; font-weight:800; text-align:center; flex:1;"></div>
+                    <button type="button" id="kas-rekap-next" onclick="geserKasRekapPeriode(1)" style="padding:6px 12px; font-size:12px; background:#e2e8f0; color:#334155;">▶</button>
+                </div>
+            </div>
+
+            <div class="rekap-grid">
+                <div class="rekap-box"><div class="lbl">⬇️ Pemasukan</div><div class="val" id="kas-rekap-in" style="color:#15803d;">Rp 0</div></div>
+                <div class="rekap-box"><div class="lbl">⬆️ Pengeluaran</div><div class="val" id="kas-rekap-out" style="color:#b91c1c;">Rp 0</div></div>
+                <div class="rekap-box"><div class="lbl">Selisih Periode</div><div class="val" id="kas-rekap-net">Rp 0</div></div>
+                <div class="rekap-box"><div class="lbl">💰 Saldo Kas Saat Ini</div><div class="val" id="kas-rekap-saldo">Rp 0</div></div>
+            </div>
+
+            <div class="card" style="padding:12px 14px; margin-bottom:12px;">
+                <div style="font-size:13px; font-weight:800; margin-bottom:8px;">Pemasukan per Sesi</div>
+                <div style="overflow-x:auto;">
+                    <table class="rekap-table">
+                        <thead><tr><th>Tanggal</th><th class="num">Tunai</th><th class="num">QRIS/TF</th><th class="num">Total</th><th></th></tr></thead>
+                        <tbody id="kas-rekap-pemasukan-body"></tbody>
+                    </table>
+                </div>
+                <div style="font-size:11px; color:#64748b; margin-top:8px; line-height:1.4;">Sesi diarsipkan otomatis saat <b>Reset Harian</b>. Sesi yang sedang berjalan tampil sebagai "berjalan".</div>
+            </div>
+
+            <div class="card" style="padding:12px 14px; margin-bottom:12px;">
+                <div style="font-size:13px; font-weight:800; margin-bottom:8px;">💸 Catat Pengeluaran</div>
+                <div class="rekap-form">
+                    <div><label style="font-size:11px; font-weight:700; color:#64748b;">Tanggal</label><input type="date" id="kas-out-tanggal"></div>
+                    <div><label style="font-size:11px; font-weight:700; color:#64748b;">Kategori</label>
+                        <select id="kas-out-kat">
+                            <option>Sewa Lapangan</option>
+                            <option>Shuttlecock</option>
+                            <option>Konsumsi</option>
+                            <option>Perlengkapan</option>
+                            <option>Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="full"><label style="font-size:11px; font-weight:700; color:#64748b;">Keterangan</label><input type="text" id="kas-out-ket" placeholder="contoh: Sewa GOR 3 jam"></div>
+                    <div class="full"><label style="font-size:11px; font-weight:700; color:#64748b;">Nominal (Rp)</label><input type="number" id="kas-out-nominal" min="0" placeholder="0"></div>
+                    <div class="full"><button type="button" onclick="tambahPengeluaranKas()" style="width:100%;">＋ Tambah Pengeluaran</button></div>
+                </div>
+            </div>
+
+            <div class="card" style="padding:12px 14px; margin-bottom:12px;">
+                <div style="font-size:13px; font-weight:800; margin-bottom:8px;">Daftar Pengeluaran Periode Ini</div>
+                <div style="overflow-x:auto;">
+                    <table class="rekap-table">
+                        <thead><tr><th>Tanggal</th><th>Keterangan</th><th class="num">Nominal</th><th></th></tr></thead>
+                        <tbody id="kas-rekap-pengeluaran-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="padding:12px 14px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:12px; font-weight:700;">Saldo awal: Rp</span>
+                    <input type="number" id="kas-saldo-awal-input" min="0" style="width:110px; padding:6px 8px; font-size:12.5px;" placeholder="0">
+                    <button type="button" onclick="simpanSaldoAwalKas()" style="padding:6px 12px; font-size:11.5px;">💾 Simpan</button>
+                </div>
+                <button type="button" onclick="salinRekapPeriodeKasWA()" style="padding:6px 12px; font-size:11.5px; background:#fff; color:#0f172a; border:1.5px solid #cbd5e1;">📋 Salin Rekap WA</button>
+            </div>
+            <div style="font-size:11px; color:#64748b; line-height:1.4; margin:0 2px 12px;">Saldo = saldo awal + semua pemasukan tercatat − semua pengeluaran. Isi saldo awal dengan uang kas yang sudah ada sebelum fitur ini dipakai.</div>
+        </div><!-- /kas-panel-rekap -->
     </div>
 
     <div id="view-database" class="view-section">
@@ -1813,7 +1908,7 @@
 
     function eksekusiResetHarian() {
         tutupModalResetChoice();
-        showConfirm("Jalankan RESET HARIAN? Daftar pemain di menu Mabar & data Kas akan dikosongkan. Riwayat pertandingan (klasemen mingguan & bulanan) serta Database pemain TETAP AMAN.", () => {
+        showConfirm("Jalankan RESET HARIAN? Daftar pemain di menu Mabar & data Kas akan dikosongkan. Total kas sesi ini diarsipkan ke Rekap Kas. Riwayat pertandingan (klasemen mingguan & bulanan), Database pemain, dan pengeluaran TETAP AMAN.", () => {
             // 1. Hentikan timer lapangan & kosongkan susunan lapangan (pemain sudah dikeluarkan dari Mabar)
             for (let i in courtTimers) {
                 if (courtTimers[i] && courtTimers[i].intervalId) {
@@ -1832,7 +1927,8 @@
                 playersData[name].mp = 0;
             });
 
-            // 3. Kosongkan data Kas (kas mengikuti daftar pemain Mabar)
+            // 3. Arsipkan total kas sesi ini ke rekap, lalu kosongkan data Kas (kas mengikuti daftar pemain Mabar)
+            const kasDiarsipkan = arsipkanKasSesi();
             dataPemainKas = [];
 
             saveDataLocally();
@@ -1845,7 +1941,7 @@
             renderDatabasePemain();
             renderKlasemen();
 
-            showMsg("🧹 Reset Harian selesai! Daftar pemain Mabar & Kas dikosongkan. Riwayat match, klasemen, dan Database pemain tetap tersimpan.");
+            showMsg("🧹 Reset Harian selesai! Daftar pemain Mabar & Kas dikosongkan." + (kasDiarsipkan ? " Total kas sesi ini sudah diarsipkan ke Rekap Kas." : "") + " Riwayat match, klasemen, dan Database pemain tetap tersimpan.");
         });
     }
 
@@ -1900,6 +1996,13 @@
 
     let dataPemainKas = safeJSON('kasBadmintonData', []);
     let rekapSistemKas = { totalTunai: 0, totalTransfer: 0, totalBelum: 0, totalKeseluruhan: 0, countHadir: 0, countTunai: 0, countQris: 0, countSponsor: 0, countBelum: 0 };
+
+    // Rekap kas per periode & pengeluaran (tidak ikut terhapus saat Reset Harian)
+    let kasRiwayat = safeJSON('kas_riwayat', []);
+    let kasPengeluaran = safeJSON('kas_pengeluaran', []);
+    let kasSaldoAwal = Number(localStorage.getItem('kas_saldo_awal')) || 0;
+    let kasRekapPeriode = 'mingguan';
+    let kasRekapOffset = 0;
 
 
     // ============================================================
@@ -2095,6 +2198,8 @@
             updateAllSelectOptions();
         } else if (viewId === 'view-klasemen') {
             renderKlasemen();
+        } else if (viewId === 'view-kas') {
+            renderKasRekap();
         } else if (viewId === 'view-database') {
             renderDatabasePemain();
             renderGradingSettings();
@@ -3153,6 +3258,9 @@
             localStorage.setItem('mabar_rules', JSON.stringify(gradingRules));
             localStorage.setItem('mabar_initial_score', String(initialNewPlayerScore));
             localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
+            localStorage.setItem('kas_riwayat', JSON.stringify(kasRiwayat));
+            localStorage.setItem('kas_pengeluaran', JSON.stringify(kasPengeluaran));
+            localStorage.setItem('kas_saldo_awal', String(kasSaldoAwal));
         } catch (e) {
             console.warn('Gagal menyimpan cache lokal:', e);
         }
@@ -3276,6 +3384,7 @@
 
         localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
         renderPemainKasListOnly();
+        renderKasRekap();
     }
 
     function renderPemainKasListOnly() {
@@ -3410,6 +3519,240 @@
             showMsg("📋 Rekap Kas berhasil disalin! Silakan tempel (paste) di WhatsApp.");
         } catch(err) {
             showMsg("Gagal menyalin teks.");
+        }
+        document.body.removeChild(el);
+    }
+
+
+    // ============================================================
+    // REKAP KAS PER PERIODE & PENGELUARAN
+    // ============================================================
+    function kasFormatISO(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function kasParseISO(str) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(str || ''));
+        return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+    }
+    function kasRp(n) { return 'Rp ' + (Number(n) || 0).toLocaleString('id-ID'); }
+    function kasTglPendek(str) {
+        const d = kasParseISO(str);
+        return d ? d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    }
+
+    function kasHitungSesiBerjalan() {
+        const r = { tunai: 0, transfer: 0, countTunai: 0, countQris: 0, countSponsor: 0, countBelum: 0, totalBelum: 0, jumlahPemain: dataPemainKas.length };
+        dataPemainKas.forEach(p => {
+            const nom = Number(p.nominal) || 0;
+            if (p.lunas) {
+                if (p.metode === 'Tunai') { r.tunai += nom; r.countTunai++; }
+                else if (p.metode === 'QRIS') { r.transfer += nom; r.countQris++; }
+                else if (p.metode === 'Sponsor') { r.countSponsor++; }
+            } else { r.totalBelum += nom; r.countBelum++; }
+        });
+        return r;
+    }
+
+    // Dipanggil saat Reset Harian: simpan total kas sesi berjalan ke riwayat sebelum dikosongkan.
+    function arsipkanKasSesi() {
+        if (!dataPemainKas.length) return false;
+        const r = kasHitungSesiBerjalan();
+        if (r.tunai + r.transfer === 0 && r.countSponsor === 0) return false; // belum ada yang bayar
+        kasRiwayat.push(Object.assign({ id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000), tanggal: kasFormatISO(new Date()) }, r));
+        return true;
+    }
+
+    function kasRentangPeriode() {
+        const now = new Date();
+        let start, end, label;
+        if (kasRekapPeriode === 'bulanan') {
+            start = new Date(now.getFullYear(), now.getMonth() + kasRekapOffset, 1);
+            end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+            label = start.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        } else {
+            start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            start.setDate(start.getDate() - ((start.getDay() + 6) % 7) + kasRekapOffset * 7);
+            end = new Date(start);
+            end.setDate(end.getDate() + 7);
+            const last = new Date(end.getTime() - 1);
+            label = start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' – ' +
+                last.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+        return { start, end, label };
+    }
+
+    function kasDalamRentang(tanggal, r) {
+        const d = kasParseISO(tanggal);
+        return !!d && d >= r.start && d < r.end;
+    }
+
+    // Semua sesi pemasukan (arsip + sesi berjalan bila sudah ada uang masuk)
+    function kasSemuaSesi() {
+        const list = (kasRiwayat || []).map(x => Object.assign({}, x, { berjalan: false }));
+        const live = kasHitungSesiBerjalan();
+        if (live.tunai + live.transfer > 0 || live.countSponsor > 0) {
+            list.push(Object.assign({ id: 'berjalan', tanggal: kasFormatISO(new Date()), berjalan: true }, live));
+        }
+        return list;
+    }
+
+    function kasHitungRekap() {
+        const r = kasRentangPeriode();
+        const sesi = kasSemuaSesi();
+        const sesiPeriode = sesi.filter(x => kasDalamRentang(x.tanggal, r)).sort((a, b) => String(b.tanggal).localeCompare(String(a.tanggal)));
+        const outPeriode = (kasPengeluaran || []).filter(x => kasDalamRentang(x.tanggal, r)).sort((a, b) => String(b.tanggal).localeCompare(String(a.tanggal)));
+        const totalIn = sesiPeriode.reduce((t, x) => t + (Number(x.tunai) || 0) + (Number(x.transfer) || 0), 0);
+        const totalOut = outPeriode.reduce((t, x) => t + (Number(x.nominal) || 0), 0);
+        const allIn = sesi.reduce((t, x) => t + (Number(x.tunai) || 0) + (Number(x.transfer) || 0), 0);
+        const allOut = (kasPengeluaran || []).reduce((t, x) => t + (Number(x.nominal) || 0), 0);
+        return { rentang: r, sesiPeriode, outPeriode, totalIn, totalOut, saldo: (Number(kasSaldoAwal) || 0) + allIn - allOut };
+    }
+
+    function setKasTab(tab) {
+        const rekap = tab === 'rekap';
+        const pPemain = document.getElementById('kas-panel-pemain');
+        const pRekap = document.getElementById('kas-panel-rekap');
+        if (pPemain) pPemain.style.display = rekap ? 'none' : '';
+        if (pRekap) pRekap.style.display = rekap ? '' : 'none';
+        const tPemain = document.getElementById('kas-main-tab-pemain');
+        const tRekap = document.getElementById('kas-main-tab-rekap');
+        if (tPemain) tPemain.classList.toggle('active', !rekap);
+        if (tRekap) tRekap.classList.toggle('active', rekap);
+        if (rekap) {
+            const tgl = document.getElementById('kas-out-tanggal');
+            if (tgl && !tgl.value) tgl.value = kasFormatISO(new Date());
+            renderKasRekap();
+        }
+    }
+
+    function setKasRekapPeriode(periode) {
+        kasRekapPeriode = periode === 'bulanan' ? 'bulanan' : 'mingguan';
+        kasRekapOffset = 0;
+        renderKasRekap();
+    }
+
+    function geserKasRekapPeriode(delta) {
+        kasRekapOffset = Math.min(0, kasRekapOffset + delta);
+        renderKasRekap();
+    }
+
+    function renderKasRekap() {
+        const body = document.getElementById('kas-rekap-pemasukan-body');
+        if (!body) return;
+        const rk = kasHitungRekap();
+
+        const aktif = 'background:var(--primary);color:#fff;';
+        const pasif = 'background:#e2e8f0;color:#334155;';
+        const bM = document.getElementById('kas-rekap-btn-mingguan');
+        const bB = document.getElementById('kas-rekap-btn-bulanan');
+        if (bM) bM.style.cssText += kasRekapPeriode === 'mingguan' ? aktif : pasif;
+        if (bB) bB.style.cssText += kasRekapPeriode === 'bulanan' ? aktif : pasif;
+
+        const next = document.getElementById('kas-rekap-next');
+        if (next) next.disabled = kasRekapOffset >= 0;
+
+        document.getElementById('kas-rekap-label').textContent = rk.rentang.label + (kasRekapOffset === 0 ? ' (sekarang)' : '');
+        document.getElementById('kas-rekap-in').textContent = kasRp(rk.totalIn);
+        document.getElementById('kas-rekap-out').textContent = kasRp(rk.totalOut);
+        const net = rk.totalIn - rk.totalOut;
+        const netEl = document.getElementById('kas-rekap-net');
+        netEl.textContent = (net < 0 ? '-' : '') + kasRp(Math.abs(net));
+        netEl.style.color = net < 0 ? '#b91c1c' : '#15803d';
+        const saldoEl = document.getElementById('kas-rekap-saldo');
+        saldoEl.textContent = (rk.saldo < 0 ? '-' : '') + kasRp(Math.abs(rk.saldo));
+        saldoEl.style.color = rk.saldo < 0 ? '#b91c1c' : '#0f172a';
+
+        const saldoInput = document.getElementById('kas-saldo-awal-input');
+        if (saldoInput && document.activeElement !== saldoInput) saldoInput.value = kasSaldoAwal || '';
+
+        body.innerHTML = rk.sesiPeriode.length ? rk.sesiPeriode.map(x => {
+            const total = (Number(x.tunai) || 0) + (Number(x.transfer) || 0);
+            const aksi = x.berjalan
+                ? '<span style="font-size:10px;color:#0369a1;font-weight:700;">berjalan</span>'
+                : `<button type="button" class="rekap-del" onclick="hapusRiwayatKasSesi('${escapeHTMLKlasemen(x.id)}')">✕</button>`;
+            return `<tr><td>${escapeHTMLKlasemen(kasTglPendek(x.tanggal))}</td><td class="num">${(Number(x.tunai) || 0).toLocaleString('id-ID')}</td><td class="num">${(Number(x.transfer) || 0).toLocaleString('id-ID')}</td><td class="num" style="font-weight:800;">${total.toLocaleString('id-ID')}</td><td class="num">${aksi}</td></tr>`;
+        }).join('') : '<tr><td colspan="5" style="text-align:center;padding:14px;color:#64748b;">Belum ada pemasukan pada periode ini.</td></tr>';
+
+        const outBody = document.getElementById('kas-rekap-pengeluaran-body');
+        outBody.innerHTML = rk.outPeriode.length ? rk.outPeriode.map(x =>
+            `<tr><td>${escapeHTMLKlasemen(kasTglPendek(x.tanggal))}</td><td>${escapeHTMLKlasemen(x.keterangan || '-')}<div style="font-size:10.5px;color:#64748b;">${escapeHTMLKlasemen(x.kategori || '')}</div></td><td class="num" style="font-weight:800;color:#b91c1c;">${(Number(x.nominal) || 0).toLocaleString('id-ID')}</td><td class="num"><button type="button" class="rekap-del" onclick="hapusPengeluaranKas('${escapeHTMLKlasemen(x.id)}')">✕</button></td></tr>`
+        ).join('') : '<tr><td colspan="4" style="text-align:center;padding:14px;color:#64748b;">Belum ada pengeluaran pada periode ini.</td></tr>';
+    }
+
+    function tambahPengeluaranKas() {
+        if (!pastikanAdmin()) return;
+        const tgl = document.getElementById('kas-out-tanggal');
+        const ket = document.getElementById('kas-out-ket');
+        const kat = document.getElementById('kas-out-kat');
+        const nom = document.getElementById('kas-out-nominal');
+        const tanggal = kasParseISO(tgl.value) ? tgl.value : kasFormatISO(new Date());
+        const keterangan = ket.value.trim();
+        const nominal = parseInt(nom.value, 10);
+        if (!keterangan) { showMsg('Isi keterangan pengeluaran terlebih dahulu.'); return; }
+        if (!(nominal > 0)) { showMsg('Nominal pengeluaran harus lebih dari 0.'); return; }
+
+        kasPengeluaran.push({ id: String(Date.now()) + '-' + Math.floor(Math.random() * 1000), tanggal, keterangan, kategori: kat.value, nominal });
+        ket.value = '';
+        nom.value = '';
+        saveDataLocally();
+        renderKasRekap();
+        showMsg('💸 Pengeluaran ' + kasRp(nominal) + ' berhasil dicatat.');
+    }
+
+    function hapusPengeluaranKas(id) {
+        if (!pastikanAdmin()) return;
+        const item = kasPengeluaran.find(x => String(x.id) === String(id));
+        if (!item) return;
+        showConfirm(`Hapus pengeluaran "${item.keterangan}" sebesar ${kasRp(item.nominal)}?`, () => {
+            kasPengeluaran = kasPengeluaran.filter(x => String(x.id) !== String(id));
+            saveDataLocally();
+            renderKasRekap();
+        });
+    }
+
+    function hapusRiwayatKasSesi(id) {
+        if (!pastikanAdmin()) return;
+        const item = kasRiwayat.find(x => String(x.id) === String(id));
+        if (!item) return;
+        showConfirm(`Hapus arsip kas tanggal ${kasTglPendek(item.tanggal)}? Pemasukan sesi ini akan hilang dari rekap dan saldo.`, () => {
+            kasRiwayat = kasRiwayat.filter(x => String(x.id) !== String(id));
+            saveDataLocally();
+            renderKasRekap();
+        });
+    }
+
+    function simpanSaldoAwalKas() {
+        if (!pastikanAdmin()) return;
+        const val = parseInt(document.getElementById('kas-saldo-awal-input').value, 10);
+        kasSaldoAwal = val > 0 ? val : 0;
+        saveDataLocally();
+        renderKasRekap();
+        showMsg('Saldo awal kas disimpan: ' + kasRp(kasSaldoAwal));
+    }
+
+    function salinRekapPeriodeKasWA() {
+        const rk = kasHitungRekap();
+        const jenis = kasRekapPeriode === 'bulanan' ? 'BULANAN' : 'MINGGUAN';
+        let text = `🏸 *REKAP KAS ${jenis} MABAR BADMINTON*\n📅 ${rk.rentang.label}\n━━━━━━━━━━━━━━━━━━━━\n`;
+        text += `⬇️ Pemasukan: *${kasRp(rk.totalIn)}*\n`;
+        text += `⬆️ Pengeluaran: *${kasRp(rk.totalOut)}*\n`;
+        const net = rk.totalIn - rk.totalOut;
+        text += `📊 Selisih: *${net < 0 ? '-' : ''}${kasRp(Math.abs(net))}*\n`;
+        if (rk.outPeriode.length) {
+            text += `\n*Rincian Pengeluaran:*\n`;
+            rk.outPeriode.forEach((x, i) => { text += `${i + 1}. ${x.keterangan} (${x.kategori || '-'}): ${kasRp(x.nominal)}\n`; });
+        }
+        text += `\n💰 *Saldo Kas: ${rk.saldo < 0 ? '-' : ''}${kasRp(Math.abs(rk.saldo))}*\n━━━━━━━━━━━━━━━━━━━━\n_Mabar App_`;
+
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        try {
+            document.execCommand('copy');
+            showMsg('📋 Rekap kas periode berhasil disalin! Silakan tempel (paste) di WhatsApp.');
+        } catch (err) {
+            showMsg('Gagal menyalin teks.');
         }
         document.body.removeChild(el);
     }
@@ -3555,6 +3898,9 @@
             gradingRules: gradingRules || {},
             initialNewPlayerScore: Number(initialNewPlayerScore) || 1,
             dataPemainKas: Array.isArray(dataPemainKas) ? dataPemainKas : [],
+            kasRiwayat: Array.isArray(kasRiwayat) ? kasRiwayat : [],
+            kasPengeluaran: Array.isArray(kasPengeluaran) ? kasPengeluaran : [],
+            kasSaldoAwal: Number(kasSaldoAwal) || 0,
             updatedAt: serverTimestamp()
         };
     }
@@ -3578,6 +3924,10 @@
             lunas: p.lunas === true || p.lunas === 'true' || p.lunas === 1
         })) : [];
 
+        kasRiwayat = Array.isArray(data.kasRiwayat) ? data.kasRiwayat : [];
+        kasPengeluaran = Array.isArray(data.kasPengeluaran) ? data.kasPengeluaran : [];
+        kasSaldoAwal = Number(data.kasSaldoAwal) || 0;
+
         try {
             localStorage.setItem('mabar_players', JSON.stringify(playersData));
             localStorage.setItem('mabar_history', JSON.stringify(matchesHistory));
@@ -3587,6 +3937,9 @@
             localStorage.setItem('mabar_rules', JSON.stringify(gradingRules));
             localStorage.setItem('mabar_initial_score', String(initialNewPlayerScore));
             localStorage.setItem('kasBadmintonData', JSON.stringify(dataPemainKas));
+            localStorage.setItem('kas_riwayat', JSON.stringify(kasRiwayat));
+            localStorage.setItem('kas_pengeluaran', JSON.stringify(kasPengeluaran));
+            localStorage.setItem('kas_saldo_awal', String(kasSaldoAwal));
         } catch (e) {
             console.warn('Cache Firebase gagal disimpan:', e);
         }
@@ -3645,6 +3998,7 @@
         syncPemainKas();
         renderDatabasePemain();
         renderKlasemen();
+        renderKasRekap();
         aturTabelMabarUntukRole();
     }
 
