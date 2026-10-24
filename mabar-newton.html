@@ -195,6 +195,13 @@
             padding-bottom: max(4px, env(safe-area-inset-bottom));
         }
 
+        .sidebar {
+            transition: transform 0.25s ease;
+        }
+        .sidebar.sidebar-hidden {
+            transform: translateY(calc(100% + 24px));
+        }
+
         .menu-item {
             flex: 1;
             display: flex;
@@ -2168,6 +2175,53 @@
         pilihRoleLogin('member');
     }
 
+
+    // ============================================================
+    // MENU BAWAH: hanya tampil saat scroll ke bawah
+    // ============================================================
+    // 'tampil-saat-scroll-bawah'   : menu muncul saat scroll ke bawah, tersembunyi saat scroll ke atas / kembali ke paling atas
+    // 'sembunyi-saat-scroll-bawah' : kebalikannya (menu sembunyi saat scroll ke bawah, muncul saat scroll ke atas)
+    const MENU_SCROLL_MODE = 'tampil-saat-scroll-bawah';
+    let tampilkanMenuBawah = function () {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const area = document.querySelector('.main-content');
+        const nav = document.querySelector('.sidebar');
+        if (!area || !nav) return;
+
+        const AMBANG = 8;      // px minimal gerakan scroll agar dianggap arah baru
+        let lastTop = area.scrollTop;
+        let abaikanSampai = 0; // jeda singkat setelah pindah menu (scroll otomatis akibat konten berubah)
+
+        const setHidden = (hide) => nav.classList.toggle('sidebar-hidden', hide);
+
+        tampilkanMenuBawah = function () {
+            setHidden(false);
+            lastTop = area.scrollTop;
+            abaikanSampai = Date.now() + 500;
+        };
+
+        area.addEventListener('scroll', () => {
+            if (Date.now() < abaikanSampai) { lastTop = area.scrollTop; return; }
+
+            const top = area.scrollTop;
+            const bisaScroll = area.scrollHeight - area.clientHeight > 40;
+            if (!bisaScroll) { setHidden(false); lastTop = top; return; } // halaman pendek: menu selalu tampil
+
+            const diAtas = top <= 2;
+            const delta = top - lastTop;
+            if (!diAtas && Math.abs(delta) < AMBANG) return;
+            lastTop = top;
+
+            const keBawah = delta > 0;
+            if (MENU_SCROLL_MODE === 'sembunyi-saat-scroll-bawah') {
+                setHidden(keBawah && !diAtas);
+            } else {
+                setHidden(diAtas || !keBawah);
+            }
+        }, { passive: true });
+    });
+
     function pastikanAdmin() {
         if (newtonCurrentRole !== 'admin') {
             showMsg('Menu ini hanya dapat digunakan oleh Admin.');
@@ -2193,6 +2247,7 @@
 
         target.classList.add('active-view');
         if (menuElement) menuElement.classList.add('active');
+        if (typeof tampilkanMenuBawah === 'function') tampilkanMenuBawah();
 
         if (viewId === 'view-mabar') {
             updateAllSelectOptions();
