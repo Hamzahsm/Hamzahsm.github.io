@@ -1678,7 +1678,7 @@
         <div class="card" style="padding: 12px 14px; margin-bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;">
             <div style="display:flex; align-items:center; gap: 6px;">
                 <span style="font-size:12.5px; font-weight:700; color:var(--primary);">Nominal: Rp</span>
-                <input type="number" id="iuran-pemain" value="20000" style="width: 85px; text-align:center; font-weight:800; padding:6px 8px; font-size:13px;">
+                <input type="text" inputmode="numeric" autocomplete="off" id="iuran-pemain" value="20.000" oninput="formatNominalInput(this)" style="width: 95px; text-align:center; font-weight:800; padding:6px 8px; font-size:13px;">
                 <button onclick="terapkanNominalKas()" style="padding: 6px 12px; font-size: 11.5px; background: #ffffff; color: var(--primary); border: 1.5px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
                     💾 Terapkan
                 </button>
@@ -1754,7 +1754,7 @@
                         </select>
                     </div>
                     <div class="full"><label style="font-size:11px; font-weight:700; color:#64748b;">Keterangan</label><input type="text" id="kas-out-ket" placeholder="contoh: Sewa GOR 3 jam"></div>
-                    <div class="full"><label style="font-size:11px; font-weight:700; color:#64748b;">Nominal (Rp)</label><input type="number" id="kas-out-nominal" min="0" placeholder="0"></div>
+                    <div class="full"><label style="font-size:11px; font-weight:700; color:#64748b;">Nominal (Rp)</label><input type="text" inputmode="numeric" autocomplete="off" id="kas-out-nominal" oninput="formatNominalInput(this)" placeholder="0"></div>
                     <div class="full"><button type="button" onclick="tambahPengeluaranKas()" style="width:100%;">＋ Tambah Pengeluaran</button></div>
                 </div>
             </div>
@@ -1772,7 +1772,7 @@
             <div class="card" style="padding:12px 14px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:12px; font-weight:700;">Saldo awal: Rp</span>
-                    <input type="number" id="kas-saldo-awal-input" min="0" style="width:110px; padding:6px 8px; font-size:12.5px;" placeholder="0">
+                    <input type="text" inputmode="numeric" autocomplete="off" id="kas-saldo-awal-input" oninput="formatNominalInput(this)" style="width:110px; padding:6px 8px; font-size:12.5px;" placeholder="0">
                     <button type="button" onclick="simpanSaldoAwalKas()" style="padding:6px 12px; font-size:11.5px;">💾 Simpan</button>
                 </div>
                 <button type="button" onclick="salinRekapPeriodeKasWA()" style="padding:6px 12px; font-size:11.5px; background:#fff; color:#0f172a; border:1.5px solid #cbd5e1;">📋 Salin Rekap WA</button>
@@ -3276,7 +3276,7 @@
 
     function syncPemainKas() {
         const inputIuran = document.getElementById('iuran-pemain');
-        const nominalDefault = inputIuran ? (parseInt(inputIuran.value) || 20000) : 20000;
+        const nominalDefault = inputIuran ? (parseNominalInput(inputIuran.value) || 20000) : 20000;
         let kasMap = {};
         
         dataPemainKas.forEach(p => { kasMap[p.nama] = p; });
@@ -3296,7 +3296,7 @@
     }
 
     function terapkanNominalKas() {
-        const nominalBaru = parseInt(document.getElementById('iuran-pemain').value) || 20000;
+        const nominalBaru = parseNominalInput(document.getElementById('iuran-pemain').value) || 20000;
         dataPemainKas.forEach(p => {
             if (p.metode !== "Sponsor") {
                 p.nominal = nominalBaru;
@@ -3463,7 +3463,7 @@
                 pemain.nominal = 0; 
                 pemain.lunas = true;
             } else if (pemain.nominal === 0) { 
-                pemain.nominal = parseInt(document.getElementById('iuran-pemain').value) || 20000; 
+                pemain.nominal = parseNominalInput(document.getElementById('iuran-pemain').value) || 20000; 
             }
             // Simpan perubahan metode/nominal/status ke localStorage + Firestore.
             saveDataLocally();
@@ -3527,6 +3527,32 @@
     // ============================================================
     // REKAP KAS PER PERIODE & PENGELUARAN
     // ============================================================
+
+    // ===== INPUT NOMINAL FORMAT RUPIAH (20000 -> 20.000) =====
+    function formatTitikRibuan(angka) {
+        const digits = String(angka == null ? '' : angka).replace(/\D/g, '');
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+    function parseNominalInput(teks) {
+        const digits = String(teks == null ? '' : teks).replace(/\D/g, '');
+        return digits ? parseInt(digits, 10) : 0;
+    }
+    function formatNominalInput(el) {
+        const raw = el.value;
+        const caret = typeof el.selectionStart === 'number' ? el.selectionStart : raw.length;
+        const digitsBeforeCaret = raw.slice(0, caret).replace(/\D/g, '').length;
+        const digits = raw.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 12);
+        const formatted = formatTitikRibuan(digits);
+        el.value = formatted;
+        // Kembalikan posisi kursor sesuai jumlah digit di sebelah kirinya
+        let pos = 0, seen = 0;
+        while (pos < formatted.length && seen < Math.min(digitsBeforeCaret, digits.length)) {
+            if (/\d/.test(formatted[pos])) seen++;
+            pos++;
+        }
+        try { el.setSelectionRange(pos, pos); } catch (e) {}
+    }
+
     function kasFormatISO(d) {
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
@@ -3663,7 +3689,7 @@
         saldoEl.style.color = rk.saldo < 0 ? '#b91c1c' : '#0f172a';
 
         const saldoInput = document.getElementById('kas-saldo-awal-input');
-        if (saldoInput && document.activeElement !== saldoInput) saldoInput.value = kasSaldoAwal || '';
+        if (saldoInput && document.activeElement !== saldoInput) saldoInput.value = kasSaldoAwal ? formatTitikRibuan(kasSaldoAwal) : '';
 
         body.innerHTML = rk.sesiPeriode.length ? rk.sesiPeriode.map(x => {
             const total = (Number(x.tunai) || 0) + (Number(x.transfer) || 0);
@@ -3687,7 +3713,7 @@
         const nom = document.getElementById('kas-out-nominal');
         const tanggal = kasParseISO(tgl.value) ? tgl.value : kasFormatISO(new Date());
         const keterangan = ket.value.trim();
-        const nominal = parseInt(nom.value, 10);
+        const nominal = parseNominalInput(nom.value);
         if (!keterangan) { showMsg('Isi keterangan pengeluaran terlebih dahulu.'); return; }
         if (!(nominal > 0)) { showMsg('Nominal pengeluaran harus lebih dari 0.'); return; }
 
@@ -3723,7 +3749,7 @@
 
     function simpanSaldoAwalKas() {
         if (!pastikanAdmin()) return;
-        const val = parseInt(document.getElementById('kas-saldo-awal-input').value, 10);
+        const val = parseNominalInput(document.getElementById('kas-saldo-awal-input').value);
         kasSaldoAwal = val > 0 ? val : 0;
         saveDataLocally();
         renderKasRekap();
