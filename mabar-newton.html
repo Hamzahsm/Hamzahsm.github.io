@@ -3247,8 +3247,11 @@
                     }
                 });
 
-                selectEl.innerHTML = html;
-                selectEl.value = myValue;
+                if (selectEl.dataset.optHtml !== html) {
+                    selectEl.innerHTML = html;
+                    selectEl.dataset.optHtml = html;
+                }
+                if (selectEl.value !== myValue) selectEl.value = myValue;
             });
         }
     }
@@ -4779,6 +4782,46 @@
         aturTabelMabarUntukRole();
     }
 
+    let pendingRealtimeData = null;
+    let lastCourtInteraction = 0;
+    let courtFlushTimer = null;
+
+    function isCourtControlBusy() {
+        const ae = document.activeElement;
+        if (!ae || !ae.closest || !ae.closest('#courts-container')) return false;
+        if (ae.tagName !== 'SELECT' && ae.tagName !== 'INPUT') return false;
+        // Batas aman: kalau sudah lama tidak disentuh, anggap tidak sibuk.
+        return (Date.now() - lastCourtInteraction) < 15000;
+    }
+
+    function flushPendingRealtime() {
+        if (!pendingRealtimeData || isCourtControlBusy()) return;
+        const data = pendingRealtimeData;
+        pendingRealtimeData = null;
+        cacheFirebaseData(data);
+        refreshUIFromRealtimeData();
+    }
+
+    function jadwalkanFlushRealtime(delay) {
+        clearTimeout(courtFlushTimer);
+        courtFlushTimer = setTimeout(flushPendingRealtime, delay);
+    }
+
+    ['focusin', 'pointerdown', 'input'].forEach(evt => {
+        document.addEventListener(evt, (e) => {
+            if (e.target && e.target.closest && e.target.closest('#courts-container')) lastCourtInteraction = Date.now();
+        }, true);
+    });
+    document.addEventListener('change', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#courts-container')) {
+            lastCourtInteraction = Date.now();
+            jadwalkanFlushRealtime(2500); // beri waktu agar pilihan admin tersimpan dulu
+        }
+    }, true);
+    document.addEventListener('focusout', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#courts-container')) jadwalkanFlushRealtime(1500);
+    }, true);
+
     function startRealtimeListener() {
         if (!db || realtimeUnsubscribe) return;
 
@@ -4794,6 +4837,12 @@
             const incomingJSON = JSON.stringify(comparable);
             if (incomingJSON === lastRealtimeSnapshotJSON) return;
             lastRealtimeSnapshotJSON = incomingJSON;
+
+            // Admin sedang memilih pemain/skor di kontrol lapangan: tahan dulu supaya dropdown tidak menutup sendiri.
+            if (isCourtControlBusy()) {
+                pendingRealtimeData = incoming;
+                return;
+            }
 
             cacheFirebaseData(incoming);
             if (realtimeRefreshQueued) return;
