@@ -52,9 +52,34 @@ body{color:var(--ink);background:radial-gradient(ellipse at top right,rgba(99,10
 
 </style>
 </head>
-<body>
+<body class="auth-locked">\n
+<style>
+#loginGate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at top right,rgba(99,102,241,.16),transparent 40%),#f3f6fc}
+#loginGate .login-card{width:100%;max-width:420px;background:#fff;border:1px solid #e5e7eb;border-radius:22px;padding:30px;box-shadow:0 24px 70px rgba(15,23,42,.15)}
+#loginGate .login-logo{width:76px;height:76px;object-fit:contain;margin-bottom:12px}
+body.auth-locked #sidebar,body.auth-locked #sidebarBackdrop,body.auth-locked .main{display:none!important}
+#logoutBtn{white-space:nowrap}
+@media(max-width:575px){#loginGate .login-card{padding:24px 20px}}
+</style>
+<div id="loginGate">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <img src="./griyafit.png" class="login-logo" alt="GRIYAFIT" onerror="this.style.display='none'">
+      <h3 class="fw-bold mb-1">Login Admin</h3>
+      <p class="text-secondary mb-0">Masuk untuk membuka aplikasi GRIYAFIT</p>
+    </div>
+    <form id="adminLoginForm">
+      <div class="mb-3"><label for="adminEmail" class="form-label">Email</label><input type="email" class="form-control" id="adminEmail" autocomplete="username" placeholder="admin@email.com" required></div>
+      <div class="mb-3"><label for="adminPassword" class="form-label">Password</label><input type="password" class="form-control" id="adminPassword" autocomplete="current-password" placeholder="Masukkan password" required></div>
+      <div id="loginError" class="alert alert-danger py-2 d-none" role="alert"></div>
+      <button type="submit" id="adminLoginBtn" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-2"></i>Masuk</button>
+      <div class="small text-secondary text-center mt-3">Gunakan akun admin yang sudah dibuat di Firebase Authentication.</div>
+    </form>
+  </div>
+</div>
+
 <aside class="sidebar" id="sidebar"><div class="brand"> <img src="./griyafit.png" class="img-fluid" width="100px" height="100px" alt=""> </div><nav class="nav flex-column"><a class="nav-link active" href="#" data-section="dashboard"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a><a class="nav-link" href="#" data-section="buyers"><i class="bi bi-people me-2"></i>Buyer</a><a class="nav-link" href="#" data-section="analysis"><i class="bi bi-cpu me-2"></i>Analysis</a><a class="nav-link" href="#" data-section="match"><i class="bi bi-diagram-3 me-2"></i>Match Detail</a><a class="nav-link" href="#" data-section="recommendation"><i class="bi bi-stars me-2"></i>Recommendation</a><a class="nav-link" href="#" data-section="financing"><i class="bi bi-wallet2 me-2"></i>Financing</a><a class="nav-link" href="#" data-section="growth"><i class="bi bi-graph-up-arrow me-2"></i>Growth Plan</a><a class="nav-link" href="#" data-section="insight"><i class="bi bi-bar-chart-line me-2"></i>Developer Insight</a><a class="nav-link" href="#" data-section="master"><i class="bi bi-house-gear me-2"></i>Master Tipe</a></nav></aside><div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
-<main class="main"><div class="topbar d-flex align-items-center justify-content-between gap-2"><div class="d-flex align-items-center gap-2"><button class="btn btn-outline-secondary mobile-toggle" id="menuBtn"><i class="bi bi-list"></i></button><div><strong id="pageTitle">Dashboard</strong><div class="small-muted">Aplikasi analisis kebutuhan rumah GRIYAFIT</div></div></div><div class="d-flex gap-2"><button class="btn btn-outline-primary" id="importBtn"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button><input type="file" id="excelFile" accept=".xlsx,.xls" hidden><button class="btn btn-primary" id="saveBtn"><i class="bi bi-floppy me-1"></i>Simpan</button></div></div>
+<main class="main"><div class="topbar d-flex align-items-center justify-content-between gap-2"><div class="d-flex align-items-center gap-2"><button class="btn btn-outline-secondary mobile-toggle" id="menuBtn"><i class="bi bi-list"></i></button><div><strong id="pageTitle">Dashboard</strong><div class="small-muted">Aplikasi analisis kebutuhan rumah GRIYAFIT</div></div></div><div class="d-flex gap-2"><button class="btn btn-outline-primary" id="importBtn"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button><input type="file" id="excelFile" accept=".xlsx,.xls" hidden><button class="btn btn-primary" id="saveBtn"><i class="bi bi-floppy me-1"></i>Simpan</button><button class="btn btn-outline-danger" id="logoutBtn" type="button"><i class="bi bi-box-arrow-right me-1"></i><span class="d-none d-sm-inline">Logout</span></button></div></div>
 <section id="dashboard" class="section active"><div class="dashboard-hero mb-4"><div class="hero-content"><span class="hero-kicker"><i class="bi bi-stars me-1"></i> SMART PROPERTY INSIGHT</span><h2>Halo, selamat datang di <span>GRIYAFIT</span></h2><p>Kenali kebutuhan buyer, ukur kemampuan budget, dan temukan peluang growth dalam satu dashboard.</p><div class="hero-actions"><button class="btn btn-light" onclick="showSection('buyers')"><i class="bi bi-person-plus me-1"></i> Kelola Buyer</button><span class="hero-note"><i class="bi bi-cloud-check me-1"></i> Analisis & sinkronisasi data</span></div></div><div class="hero-art"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><i class="bi bi-house-heart-fill hero-house"></i><i class="bi bi-graph-up-arrow hero-trend"></i></div></div><div class="row g-3 mb-3"><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-people"></i></div><div class="small-muted mt-2">Total Buyer</div><h3 id="statTotal">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-check2-circle"></i></div><div class="small-muted mt-2">Buyer Fit</div><h3 id="statFit">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-exclamation-triangle"></i></div><div class="small-muted mt-2">Buyer Ada Gap</div><h3 id="statGap">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-house-heart"></i></div><div class="small-muted mt-2">Rata-rata Budget</div><h3 id="statBudget">Rp0</h3></div></div></div><div class="row g-3"><div class="col-lg-7"><div class="cardx p-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="mb-1">Need vs Budget Type</h5><div class="small-muted">Distribusi tipe yang dibutuhkan dan yang terjangkau.</div></div></div><canvas id="typeChart" height="120"></canvas></div></div><div class="col-lg-5"><div class="cardx p-3"><h5>Developer Insight</h5><div id="insightCards"></div></div></div></div><div class="cardx p-3 mt-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="mb-1">Buyer dengan Gap Terbesar</h5><div class="small-muted">Prioritas buyer yang membutuhkan solusi/growth plan.</div></div><button class="btn btn-sm btn-outline-primary" onclick="showSection('analysis')">Lihat Analysis</button></div><div class="table-wrap"><table class="table table-hover" id="topGapTable"></table></div></div></section>
 <section id="buyers" class="section"><div class="cardx p-3"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><h5 class="mb-1">Input Buyer</h5><div class="small-muted">Buyer tidak memilih tipe rumah. Sistem yang menganalisis.</div></div><button class="btn btn-primary" id="addBuyerBtn"><i class="bi bi-plus-lg me-1"></i>Tambah Buyer</button></div><div class="row g-2 mb-3"><div class="col-md-5"><input class="form-control" id="buyerSearch" placeholder="Cari nama buyer..."></div><div class="col-md-3"><select class="form-select" id="buyerStatusFilter"><option value="">Semua status</option><option value="FIT">FIT</option><option value="ADA GAP">ADA GAP</option></select></div></div><div class="table-wrap"><table class="table table-hover" id="buyersTable"></table></div></div></section>
 <section id="analysis" class="section"><div class="cardx p-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5>Buyer Analysis</h5><div class="small-muted">Membandingkan kebutuhan ruang dengan kemampuan budget.</div></div></div><div class="table-wrap"><table class="table table-hover" id="analysisTable"></table></div></div></section>
@@ -115,7 +140,6 @@ async function initFirebase(){
   }
   try{
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    await firebase.auth().signInAnonymously();
     db=firebase.firestore();
     firebaseReady=true;
     setSyncStatus('Menghubungkan ke Firebase…');
@@ -250,5 +274,76 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
 document.querySelectorAll('.sidebar .nav-link').forEach(a=>a.onclick=e=>{e.preventDefault();showSection(a.dataset.section)});['matchBuyer','recBuyer','finBuyer'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderSection(id==='matchBuyer'?'match':id==='recBuyer'?'recommendation':'financing')));document.getElementById('buyerSearch').oninput=renderBuyers;document.getElementById('buyerStatusFilter').onchange=renderBuyers;
 document.getElementById('importBtn').onclick=()=>document.getElementById('excelFile').click();document.getElementById('excelFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});const m=wb.Sheets['01_MASTER_TIPE'],b=wb.Sheets['02_INPUT_BUYER'];if(!m||!b)throw Error('Sheet 01_MASTER_TIPE atau 02_INPUT_BUYER tidak ditemukan.');const mv=XLSX.utils.sheet_to_json(m,{header:1});const bv=XLSX.utils.sheet_to_json(b,{header:1});state.types=mv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],land:+r[1]||0,building:+r[2]||0,maxFamily:+r[3]||0,rooms:+r[4]||0,price:+r[5]||0,growth:r[6]||'',note:r[7]||''}));state.buyers=bv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],family:+r[1]||0,rooms:+r[2]||0,budget:+r[3]||0,dp:+r[4]||0,plan:(+r[1]||0)>(+r[2]||0)?'Bertambah':'Tetap',note:r[6]||''}));localStorage.setItem(KEY,JSON.stringify(state));renderAll();saveState();toast('Excel berhasil diimport.')}catch(err){alert('Gagal import Excel: '+err.message)}};reader.readAsArrayBuffer(file)};
 function exportCSV(){const rows=results();let csv='Buyer,Keluarga,Kamar,Budget,DP,Need Type,Need Price,Budget Type,Affordable Price,Gap,Gap %,Status,Recommended Path\n';csv+=rows.map(x=>[x.name,x.family,x.rooms,x.budget,x.dp,x.needType,x.needPrice,x.budgetType,x.affordablePrice,x.gap,x.gapPct,x.status,x.path].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='griyafit-analysis.csv';a.click();URL.revokeObjectURL(a.href)}
-window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();saveState()}});setupMoneyInputs();document.querySelectorAll('.stat').forEach((el,i)=>el.style.setProperty('--i',i));renderAll();initFirebase();
+window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();saveState()}});
+setupMoneyInputs();
+document.querySelectorAll('.stat').forEach((el,i)=>el.style.setProperty('--i',i));
+renderAll();
+
+function showLoginError(message){
+  const el=document.getElementById('loginError');
+  el.textContent=message;
+  el.classList.remove('d-none');
+}
+function setLoginBusy(busy){
+  const btn=document.getElementById('adminLoginBtn');
+  btn.disabled=busy;
+  btn.innerHTML=busy?'<span class="spinner-border spinner-border-sm me-2"></span>Memeriksa...':'<i class="bi bi-box-arrow-in-right me-2"></i>Masuk';
+}
+function showAuthenticatedApp(user){
+  document.body.classList.remove('auth-locked');
+  document.getElementById('loginGate').style.display='none';
+  const btn=document.getElementById('logoutBtn');
+  if(btn) btn.title=user && user.email ? 'Login sebagai '+user.email : 'Logout';
+  if(!firebaseReady) initFirebase();
+}
+function showUnauthenticatedApp(){
+  firebaseReady=false;
+  remoteListenerStarted=false;
+  db=null;
+  document.body.classList.add('auth-locked');
+  const gate=document.getElementById('loginGate');
+  gate.style.display='flex';
+  document.getElementById('adminPassword').value='';
+}
+document.getElementById('adminLoginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=document.getElementById('adminEmail').value.trim();
+  const password=document.getElementById('adminPassword').value;
+  const err=document.getElementById('loginError');
+  err.classList.add('d-none');
+  if(!firebaseConfigured()){
+    showLoginError('Konfigurasi Firebase belum lengkap. Periksa firebaseConfig di script.');
+    return;
+  }
+  setLoginBusy(true);
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    await firebase.auth().signInWithEmailAndPassword(email,password);
+  }catch(error){
+    console.error('Login error:',error);
+    const messages={
+      'auth/invalid-credential':'Email atau password salah.',
+      'auth/user-not-found':'Akun admin tidak ditemukan.',
+      'auth/wrong-password':'Email atau password salah.',
+      'auth/invalid-email':'Format email tidak valid.',
+      'auth/too-many-requests':'Terlalu banyak percobaan. Coba lagi beberapa saat.',
+      'auth/network-request-failed':'Koneksi internet bermasalah.'
+    };
+    showLoginError(messages[error.code]||('Login gagal: '+error.message));
+  }finally{setLoginBusy(false);}
+});
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+  if(!confirm('Yakin ingin logout dari aplikasi GRIYAFIT?')) return;
+  try{await firebase.auth().signOut();showUnauthenticatedApp();toast('Anda berhasil logout.');}
+  catch(error){alert('Logout gagal: '+error.message);}
+});
+if(firebaseConfigured()){
+  if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  firebase.auth().onAuthStateChanged(user=>{
+    if(user) showAuthenticatedApp(user);
+    else showUnauthenticatedApp();
+  });
+}else{
+  showUnauthenticatedApp();
+}
 </script></body></html>
