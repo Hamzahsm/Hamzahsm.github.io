@@ -52,7 +52,7 @@ body{color:var(--ink);background:radial-gradient(ellipse at top right,rgba(99,10
 
 </style>
 </head>
-<body class="auth-locked">
+<body class="auth-locked">\n
 <style>
 #loginGate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at top right,rgba(99,102,241,.16),transparent 40%),#f3f6fc}
 #loginGate .login-card{width:100%;max-width:420px;background:#fff;border:1px solid #e5e7eb;border-radius:22px;padding:30px;box-shadow:0 24px 70px rgba(15,23,42,.15)}
@@ -73,13 +73,13 @@ body.auth-locked #sidebar,body.auth-locked #sidebarBackdrop,body.auth-locked .ma
       <div class="mb-3"><label for="adminPassword" class="form-label">Password</label><input type="password" class="form-control" id="adminPassword" autocomplete="current-password" placeholder="Masukkan password" required></div>
       <div id="loginError" class="alert alert-danger py-2 d-none" role="alert"></div>
       <button type="submit" id="adminLoginBtn" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-2"></i>Masuk</button>
-      <div class="small text-secondary text-center mt-3">Gunakan akun yang sudah dibuat oleh Administrator.</div>
+      <div class="small text-secondary text-center mt-3">Gunakan akun admin yang sudah dibuat di Firebase Authentication.</div>
     </form>
   </div>
 </div>
 
 <aside class="sidebar" id="sidebar"><div class="brand"> <img src="./griyafit.png" class="img-fluid" width="100px" height="100px" alt=""> </div><nav class="nav flex-column"><a class="nav-link active" href="#" data-section="dashboard"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a><a class="nav-link" href="#" data-section="buyers"><i class="bi bi-people me-2"></i>Buyer</a><a class="nav-link" href="#" data-section="analysis"><i class="bi bi-cpu me-2"></i>Analysis</a><a class="nav-link" href="#" data-section="match"><i class="bi bi-diagram-3 me-2"></i>Match Detail</a><a class="nav-link" href="#" data-section="recommendation"><i class="bi bi-stars me-2"></i>Recommendation</a><a class="nav-link" href="#" data-section="financing"><i class="bi bi-wallet2 me-2"></i>Financing</a><a class="nav-link" href="#" data-section="growth"><i class="bi bi-graph-up-arrow me-2"></i>Growth Plan</a><a class="nav-link" href="#" data-section="insight"><i class="bi bi-bar-chart-line me-2"></i>Developer Insight</a><a class="nav-link" href="#" data-section="master"><i class="bi bi-house-gear me-2"></i>Master Tipe</a></nav></aside><div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
-<main class="main"><div class="topbar d-flex align-items-center justify-content-between gap-2"><div class="d-flex align-items-center gap-2"><button class="btn btn-outline-secondary mobile-toggle" id="menuBtn"><i class="bi bi-list"></i></button><div><strong id="pageTitle">Dashboard</strong><div class="small-muted">Aplikasi analisis kebutuhan rumah GRIYAFIT</div></div></div><div class="d-flex gap-2"><button class="btn btn-outline-primary" id="importBtn"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button><input type="file" id="excelFile" accept=".xlsx,.xls" hidden><button class="btn btn-primary" id="saveBtn"><i class="bi bi-floppy me-1"></i>Simpan</button><button class="btn btn-outline-danger" id="logoutBtn" type="button"><i class="bi bi-box-arrow-right me-1"></i><span class="d-none d-sm-inline">Logout</span></button></div></div>
+<main class="main"><div class="topbar d-flex align-items-center justify-content-between gap-2"><div class="d-flex align-items-center gap-2"><button class="btn btn-outline-secondary mobile-toggle" id="menuBtn"><i class="bi bi-list"></i></button><div><strong id="pageTitle">Dashboard</strong><div class="small-muted">Aplikasi analisis kebutuhan rumah GRIYAFIT</div></div></div><div class="d-flex gap-2"><button class="btn btn-outline-success" id="exportBtn" type="button"><i class="bi bi-file-earmark-arrow-down me-1"></i><span class="d-none d-sm-inline">Export Excel</span><span class="d-sm-none">Export</span></button><button class="btn btn-outline-primary" id="importBtn"><i class="bi bi-file-earmark-excel me-1"></i><span class="d-none d-sm-inline">Import Excel</span><span class="d-sm-none">Import</span></button><input type="file" id="excelFile" accept=".xlsx,.xls" hidden><button class="btn btn-primary" id="saveBtn"><i class="bi bi-floppy me-1"></i>Simpan</button><button class="btn btn-outline-danger" id="logoutBtn" type="button"><i class="bi bi-box-arrow-right me-1"></i><span class="d-none d-sm-inline">Logout</span></button></div></div>
 <section id="dashboard" class="section active"><div class="dashboard-hero mb-4"><div class="hero-content"><span class="hero-kicker"><i class="bi bi-stars me-1"></i> SMART PROPERTY INSIGHT</span><h2>Halo, selamat datang di <span>GRIYAFIT</span></h2><p>Kenali kebutuhan buyer, ukur kemampuan budget, dan temukan peluang growth dalam satu dashboard.</p><div class="hero-actions"><button class="btn btn-light" onclick="showSection('buyers')"><i class="bi bi-person-plus me-1"></i> Kelola Buyer</button><span class="hero-note"><i class="bi bi-cloud-check me-1"></i> Analisis & sinkronisasi data</span></div></div><div class="hero-art"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><i class="bi bi-house-heart-fill hero-house"></i><i class="bi bi-graph-up-arrow hero-trend"></i></div></div><div class="row g-3 mb-3"><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-people"></i></div><div class="small-muted mt-2">Total Buyer</div><h3 id="statTotal">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-check2-circle"></i></div><div class="small-muted mt-2">Buyer Fit</div><h3 id="statFit">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-exclamation-triangle"></i></div><div class="small-muted mt-2">Buyer Ada Gap</div><h3 id="statGap">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-house-heart"></i></div><div class="small-muted mt-2">Rata-rata Budget</div><h3 id="statBudget">Rp0</h3></div></div></div><div class="row g-3"><div class="col-lg-7"><div class="cardx p-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="mb-1">Need vs Budget Type</h5><div class="small-muted">Distribusi tipe yang dibutuhkan dan yang terjangkau.</div></div></div><canvas id="typeChart" height="120"></canvas></div></div><div class="col-lg-5"><div class="cardx p-3"><h5>Developer Insight</h5><div id="insightCards"></div></div></div></div><div class="cardx p-3 mt-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="mb-1">Buyer dengan Gap Terbesar</h5><div class="small-muted">Prioritas buyer yang membutuhkan solusi/growth plan.</div></div><button class="btn btn-sm btn-outline-primary" onclick="showSection('analysis')">Lihat Analysis</button></div><div class="table-wrap"><table class="table table-hover" id="topGapTable"></table></div></div></section>
 <section id="buyers" class="section"><div class="cardx p-3"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><h5 class="mb-1">Input Buyer</h5><div class="small-muted">Buyer tidak memilih tipe rumah. Sistem yang menganalisis.</div></div><button class="btn btn-primary" id="addBuyerBtn"><i class="bi bi-plus-lg me-1"></i>Tambah Buyer</button></div><div class="row g-2 mb-3"><div class="col-md-5"><input class="form-control" id="buyerSearch" placeholder="Cari nama buyer..."></div><div class="col-md-3"><select class="form-select" id="buyerStatusFilter"><option value="">Semua status</option><option value="FIT">FIT</option><option value="ADA GAP">ADA GAP</option></select></div></div><div class="table-wrap"><table class="table table-hover" id="buyersTable"></table></div></div></section>
 <section id="analysis" class="section"><div class="cardx p-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5>Buyer Analysis</h5><div class="small-muted">Membandingkan kebutuhan ruang dengan kemampuan budget.</div></div></div><div class="table-wrap"><table class="table table-hover" id="analysisTable"></table></div></div></section>
@@ -272,8 +272,102 @@ document.addEventListener('click',e=>{const sidebar=document.getElementById('sid
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
 
 document.querySelectorAll('.sidebar .nav-link').forEach(a=>a.onclick=e=>{e.preventDefault();showSection(a.dataset.section)});['matchBuyer','recBuyer','finBuyer'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderSection(id==='matchBuyer'?'match':id==='recBuyer'?'recommendation':'financing')));document.getElementById('buyerSearch').oninput=renderBuyers;document.getElementById('buyerStatusFilter').onchange=renderBuyers;
-document.getElementById('importBtn').onclick=()=>document.getElementById('excelFile').click();document.getElementById('excelFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});const m=wb.Sheets['01_MASTER_TIPE'],b=wb.Sheets['02_INPUT_BUYER'];if(!m||!b)throw Error('Sheet 01_MASTER_TIPE atau 02_INPUT_BUYER tidak ditemukan.');const mv=XLSX.utils.sheet_to_json(m,{header:1});const bv=XLSX.utils.sheet_to_json(b,{header:1});state.types=mv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],land:+r[1]||0,building:+r[2]||0,maxFamily:+r[3]||0,rooms:+r[4]||0,price:+r[5]||0,growth:r[6]||'',note:r[7]||''}));state.buyers=bv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],family:+r[1]||0,rooms:+r[2]||0,budget:+r[3]||0,dp:+r[4]||0,plan:(+r[1]||0)>(+r[2]||0)?'Bertambah':'Tetap',note:r[6]||''}));localStorage.setItem(KEY,JSON.stringify(state));renderAll();saveState();toast('Excel berhasil diimport.')}catch(err){alert('Gagal import Excel: '+err.message)}};reader.readAsArrayBuffer(file)};
-function exportCSV(){const rows=results();let csv='Buyer,Keluarga,Kamar,Budget,DP,Need Type,Need Price,Budget Type,Affordable Price,Gap,Gap %,Status,Recommended Path\n';csv+=rows.map(x=>[x.name,x.family,x.rooms,x.budget,x.dp,x.needType,x.needPrice,x.budgetType,x.affordablePrice,x.gap,x.gapPct,x.status,x.path].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='griyafit-analysis.csv';a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('exportBtn').onclick=exportExcel;document.getElementById('importBtn').onclick=()=>document.getElementById('excelFile').click();document.getElementById('excelFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});const m=wb.Sheets['01_MASTER_TIPE'],b=wb.Sheets['02_INPUT_BUYER'];if(!m||!b)throw Error('Sheet 01_MASTER_TIPE atau 02_INPUT_BUYER tidak ditemukan.');const mv=XLSX.utils.sheet_to_json(m,{header:1});const bv=XLSX.utils.sheet_to_json(b,{header:1});state.types=mv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],land:+r[1]||0,building:+r[2]||0,maxFamily:+r[3]||0,rooms:+r[4]||0,price:+r[5]||0,growth:r[6]||'',note:r[7]||''}));state.buyers=bv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],family:+r[1]||0,rooms:+r[2]||0,budget:+r[3]||0,dp:+r[4]||0,plan:(+r[1]||0)>(+r[2]||0)?'Bertambah':'Tetap',note:r[6]||''}));localStorage.setItem(KEY,JSON.stringify(state));renderAll();saveState();toast('Excel berhasil diimport.')}catch(err){alert('Gagal import Excel: '+err.message)}};reader.readAsArrayBuffer(file)};
+function exportExcel(){
+  try {
+    const wb=XLSX.utils.book_new();
+    const rs=results();
+    const addSheet=(name,rows,widths)=>{
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      if(widths)ws['!cols']=widths.map(w=>({wch:w}));
+      XLSX.utils.book_append_sheet(wb,ws,name);
+    };
+    const moneyFmt='#,##0';
+    // Dashboard: ringkasan kondisi data saat export
+    const fitCount=rs.filter(x=>x.status==='FIT').length;
+    const gapCount=rs.filter(x=>x.status==='ADA GAP').length;
+    const outsideCount=rs.filter(x=>x.status==='DI LUAR TIPE').length;
+    const avgBudget=rs.length?rs.reduce((sum,x)=>sum+(Number(x.budget)||0),0)/rs.length:0;
+    addSheet('Dashboard',[
+      ['GRIYAFIT - Dashboard'],['Tanggal Export',new Date().toLocaleString('id-ID')],[],
+      ['Metrik','Nilai'],['Total Buyer',rs.length],['Buyer FIT',fitCount],['Buyer ADA GAP',gapCount],['Di Luar Tipe',outsideCount],['Total Tipe Rumah',state.types.length],['Rata-rata Budget',avgBudget]
+    ],[28,28]);
+
+    // Dua sheet sumber tetap mengikuti format yang dikenali fitur Import Excel (data mulai baris ke-5).
+    const buyerRows=[
+      ['GRIYAFIT - INPUT BUYER'],
+      ['Data buyer yang diekspor dari aplikasi'],
+      ['Catatan: sheet ini tetap kompatibel dengan fitur Import Excel GRIYAFIT.'],
+      ['Nama Buyer','Jumlah Keluarga','Kamar Dibutuhkan','Budget Maks.','DP Tersedia','Rencana','Keterangan'],
+      ...state.buyers.map(b=>[b.name,b.family,b.rooms,b.budget,b.dp,b.plan||((+b.family)>(+b.rooms)?'Bertambah':'Tetap'),b.note||''])
+    ];
+    addSheet('02_INPUT_BUYER',buyerRows,[28,18,20,18,18,16,40]);
+
+    const typeRows=[
+      ['GRIYAFIT - MASTER TIPE RUMAH'],
+      ['Daftar tipe rumah dan parameter analisis'],
+      ['Catatan: sheet ini tetap kompatibel dengan fitur Import Excel GRIYAFIT.'],
+      ['Tipe','LT m²','LB m²','Max Keluarga','Kamar','Harga','Growth','Catatan'],
+      ...state.types.map(t=>[t.name,t.land,t.building,t.maxFamily,t.rooms,t.price,t.growth,t.note||''])
+    ];
+    addSheet('01_MASTER_TIPE',typeRows,[22,12,12,16,12,18,16,36]);
+
+    addSheet('Analysis',[
+      ['Nama Buyer','Keluarga','Kamar','Budget','DP','Need Type','Need Price','Budget Type','Affordable Price','Gap','Gap %','Status','Recommended Path'],
+      ...rs.map(x=>[x.name,x.family,x.rooms,x.budget,x.dp,x.needType,x.needPrice,x.budgetType,x.affordablePrice,x.gap,x.gapPct,x.status,x.path])
+    ],[26,12,12,18,18,20,18,20,20,18,12,16,34]);
+
+    const matchRows=[['Buyer','Tipe Rumah','Max Keluarga','Kamar','Harga','Family Fit','Space Fit','Budget Fit','Need Fit','Overall Read']];
+    rs.forEach(b=>state.types.forEach(t=>{
+      const family=b.family<=t.maxFamily, space=b.rooms<=t.rooms, budget=t.price<=b.budget, need=family&&space;
+      const overall=family&&space&&budget?'FULL FIT':need?'NEED FIT / OVER BUDGET':budget?'BUDGET FIT / NEED GAP':'NO FIT';
+      matchRows.push([b.name,t.name,t.maxFamily,t.rooms,t.price,family?'YES':'NO',space?'YES':'NO',budget?'YES':'NO',need?'YES':'NO',overall]);
+    }));
+    addSheet('Match Detail',matchRows,[26,20,16,12,18,14,14,14,14,28]);
+
+    addSheet('Recommendation',[
+      ['Buyer','Need Type','Need Price','Budget Type','Affordable Price','Gap Harga','Gap %','Status','Rekomendasi','Budget Growth'],
+      ...rs.map(x=>[x.name,x.needType,x.needPrice,x.budgetType,x.affordablePrice,x.gap,x.gapPct,x.status,x.path,x.recommendedBudgetGrowth])
+    ],[26,20,18,20,20,18,12,16,36,20]);
+
+    addSheet('Financing',[
+      ['Buyer','Budget','DP','Need Price','Affordable Price','Gap','Sisa Harga Setelah DP'],
+      ...rs.map(x=>[x.name,x.budget,x.dp,x.needPrice,x.affordablePrice,x.gap,Math.max(0,x.needPrice-x.dp)])
+    ],[26,18,18,18,20,18,24]);
+
+    addSheet('Growth Plan',[
+      ['Buyer','Budget Type','Need Type','Gap Harga','Budget Growth','Growth Level','Usulan Jalur'],
+      ...rs.map(x=>[x.name,x.budgetType,x.needType,x.gap,x.recommendedBudgetGrowth,x.gap===0&&x.recommendedBudgetGrowth===0?'Rendah':x.plan==='Bertambah'?'Tinggi':'Sedang',x.gap===0?'Tidak perlu growth':x.path])
+    ],[26,20,20,18,20,18,36]);
+
+    const n=rs.length||1;
+    addSheet('Developer Insight',[
+      ['Tipe','Need Count','Need %','Budget Count','Budget %','Current Supply %','Need vs Supply','Budget vs Supply'],
+      ...state.types.map(t=>{
+        const nc=rs.filter(x=>x.needType===t.name).length,bc=rs.filter(x=>x.budgetType===t.name).length,supply=state.types.length?1/state.types.length:0;
+        return [t.name,nc,nc/n,bc,bc/n,supply,nc/n-supply,bc/n-supply];
+      })
+    ],[22,14,14,16,14,18,18,18]);
+
+    // Format angka ke rupiah/angka biasa dan persentase untuk sheet yang relevan.
+    wb.SheetNames.forEach(name=>{
+      const ws=wb.Sheets[name];
+      const range=ws['!ref']?XLSX.utils.decode_range(ws['!ref']):null;
+      if(!range)return;
+      for(let R=0;R<=range.e.r;R++)for(let C=0;C<=range.e.c;C++){
+        const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];
+        if(!cell||typeof cell.v!=='number')continue;
+        if(name==='Dashboard'&&R===9&&C===1)cell.z='"Rp" #,##0';
+        else if((name==='Analysis'&&[3,4,6,8,9].includes(C))||(name==='Recommendation'&&[2,4,5,9].includes(C))||(name==='Financing'&&C>=1)||(name==='Growth Plan'&&[3,4].includes(C))||(name==='Match Detail'&&C===4)||(name==='02_INPUT_BUYER'&&R>=4&&[3,4].includes(C))||(name==='01_MASTER_TIPE'&&R>=4&&C===5))cell.z=moneyFmt;
+        if((name==='Analysis'&&C===10)||(name==='Recommendation'&&C===6)||(name==='Developer Insight'&&C>=2))cell.z='0.0%';
+      }
+      ws['!autofilter']={ref:ws['!ref']};
+      ws['!freeze']={xSplit:0,ySplit:name==='02_INPUT_BUYER'||name==='01_MASTER_TIPE'?4:1,topLeftCell:name==='02_INPUT_BUYER'||name==='01_MASTER_TIPE'?'A5':'A2',activePane:'bottomLeft',state:'frozen'};
+    });
+    XLSX.writeFile(wb,'GRIYAFIT-Export-'+new Date().toISOString().slice(0,10)+'.xlsx');
+    toast('Export Excel berhasil. Setiap menu tersedia sebagai sheet.');
+  } catch(err) { console.error(err); alert('Gagal export Excel: '+(err.message||err)); }
+}
 window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();saveState()}});
 setupMoneyInputs();
 document.querySelectorAll('.stat').forEach((el,i)=>el.style.setProperty('--i',i));
