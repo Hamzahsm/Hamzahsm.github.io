@@ -761,6 +761,69 @@
             opacity: 0.92;
         }
 
+        .kas-saldo-hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #0369a1 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 25px -5px rgba(29, 78, 216, 0.35), 0 8px 10px -6px rgba(29, 78, 216, 0.2);
+        }
+        .kas-saldo-hero.minus {
+            background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 55%, #dc2626 100%);
+            box-shadow: 0 10px 25px -5px rgba(185, 28, 28, 0.35), 0 8px 10px -6px rgba(185, 28, 28, 0.2);
+        }
+        .kas-saldo-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .kas-saldo-amount {
+            font-size: 30px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            margin: 8px 0 10px 0;
+        }
+        .kas-saldo-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11.5px;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+        .kas-saldo-ubah-btn {
+            background: rgba(255,255,255,0.22);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .kas-saldo-edit {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.25);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .kas-saldo-edit.open { display: flex; }
+
         .kas-stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1769,11 +1832,25 @@
                 </div>
             </div>
 
+            <div class="kas-saldo-hero" id="kas-saldo-hero">
+                <span class="kas-wallet-badge">💰 SALDO KAS SEKARANG</span>
+                <div class="kas-saldo-amount" id="kas-rekap-saldo">Rp 0</div>
+                <div class="kas-saldo-meta">
+                    <span>Saldo awal: <b id="kas-saldo-awal-teks">Rp 0</b></span>
+                    <button type="button" class="kas-saldo-ubah-btn" onclick="toggleEditSaldoAwalKas()">✏️ Ubah</button>
+                </div>
+                <div class="kas-saldo-edit" id="kas-saldo-awal-edit">
+                    <span>Rp</span>
+                    <input type="text" inputmode="numeric" autocomplete="off" id="kas-saldo-awal-input" oninput="formatNominalInput(this)" style="width:110px; padding:6px 8px; font-size:12.5px;" placeholder="0">
+                    <button type="button" onclick="simpanSaldoAwalKas()" style="padding:6px 12px; font-size:11.5px; background:#fff; color:#1e3a8a;">💾 Simpan</button>
+                    <button type="button" onclick="toggleEditSaldoAwalKas()" style="padding:6px 12px; font-size:11.5px; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.5); box-shadow:none;">Batal</button>
+                </div>
+            </div>
+
             <div class="rekap-grid">
                 <div class="rekap-box"><div class="lbl">⬇️ Pemasukan</div><div class="val" id="kas-rekap-in" style="color:#15803d;">Rp 0</div></div>
                 <div class="rekap-box"><div class="lbl">⬆️ Pengeluaran</div><div class="val" id="kas-rekap-out" style="color:#b91c1c;">Rp 0</div></div>
-                <div class="rekap-box"><div class="lbl">Selisih Periode</div><div class="val" id="kas-rekap-net">Rp 0</div></div>
-                <div class="rekap-box"><div class="lbl">💰 Saldo</div><div class="val" id="kas-rekap-saldo">Rp 0</div></div>
+                <div class="rekap-box" style="grid-column:1 / -1;"><div class="lbl">Selisih Periode (pemasukan − pengeluaran)</div><div class="val" id="kas-rekap-net">Rp 0</div></div>
             </div>
 
             <div class="card" style="padding:12px 14px; margin-bottom:12px;">
@@ -1816,15 +1893,10 @@
                 </div>
             </div>
 
-            <div class="card" style="padding:12px 14px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:12px; font-weight:700;">Saldo awal: Rp</span>
-                    <input type="text" inputmode="numeric" autocomplete="off" id="kas-saldo-awal-input" oninput="formatNominalInput(this)" style="width:110px; padding:6px 8px; font-size:12.5px;" placeholder="0">
-                    <button type="button" onclick="simpanSaldoAwalKas()" style="padding:6px 12px; font-size:11.5px;">💾 Simpan</button>
-                </div>
+            <div class="card" style="padding:12px 14px; margin-bottom:8px; display:flex; justify-content:flex-end;">
                 <button type="button" onclick="salinRekapPeriodeKasWA()" style="padding:6px 12px; font-size:11.5px; background:#fff; color:#0f172a; border:1.5px solid #cbd5e1;">📋 Salin Rekap WA</button>
             </div>
-            <div style="font-size:11px; color:#64748b; line-height:1.4; margin:0 2px 12px;">Saldo = saldo awal + semua pemasukan tercatat − semua pengeluaran. Isi saldo awal dengan uang kas yang sudah ada sebelum fitur ini dipakai.</div>
+            <div style="font-size:11px; color:#64748b; line-height:1.4; margin:0 2px 12px;">Saldo = saldo awal + semua pemasukan − semua pengeluaran. Saldo awal diisi sekali saja, yaitu uang kas yang sudah ada sebelum aplikasi ini dipakai.</div>
         </div><!-- /kas-panel-rekap -->
     </div>
 
@@ -4351,10 +4423,10 @@
         netEl.style.color = net < 0 ? '#b91c1c' : '#15803d';
         const saldoEl = document.getElementById('kas-rekap-saldo');
         saldoEl.textContent = (rk.saldo < 0 ? '-' : '') + kasRp(Math.abs(rk.saldo));
-        saldoEl.style.color = rk.saldo < 0 ? '#b91c1c' : '#0f172a';
-
-        const saldoInput = document.getElementById('kas-saldo-awal-input');
-        if (saldoInput && document.activeElement !== saldoInput) saldoInput.value = kasSaldoAwal ? formatTitikRibuan(kasSaldoAwal) : '';
+        const saldoHero = document.getElementById('kas-saldo-hero');
+        if (saldoHero) saldoHero.classList.toggle('minus', rk.saldo < 0);
+        const awalTeks = document.getElementById('kas-saldo-awal-teks');
+        if (awalTeks) awalTeks.textContent = kasRp(Number(kasSaldoAwal) || 0);
 
         body.innerHTML = rk.sesiPeriode.length ? rk.sesiPeriode.map(x => {
             const total = (Number(x.tunai) || 0) + (Number(x.transfer) || 0);
@@ -4418,7 +4490,21 @@
         kasSaldoAwal = val > 0 ? val : 0;
         saveDataLocally();
         renderKasRekap();
+        const editBox = document.getElementById('kas-saldo-awal-edit');
+        if (editBox) editBox.classList.remove('open');
         showMsg('Saldo awal kas disimpan: ' + kasRp(kasSaldoAwal));
+    }
+
+    function toggleEditSaldoAwalKas() {
+        const editBox = document.getElementById('kas-saldo-awal-edit');
+        const input = document.getElementById('kas-saldo-awal-input');
+        if (!editBox || !input) return;
+        const buka = !editBox.classList.contains('open');
+        editBox.classList.toggle('open', buka);
+        if (buka) {
+            input.value = kasSaldoAwal ? formatTitikRibuan(kasSaldoAwal) : '';
+            input.focus();
+        }
     }
 
     function salinRekapPeriodeKasWA() {
