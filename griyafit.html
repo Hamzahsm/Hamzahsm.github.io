@@ -35,12 +35,18 @@ body{color:var(--ink);background:radial-gradient(ellipse at top right,rgba(99,10
 .crud-pulse{animation:crudPulse .55s ease}.saving-state{opacity:.7;pointer-events:none}.sync-flash{animation:syncFlash .8s ease}
 @keyframes pageIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes rowEnter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@keyframes houseFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes trendFloat{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-6px) rotate(5deg)}}@keyframes orbitPulse{0%,100%{opacity:.55;transform:scale(.97)}50%{opacity:1;transform:scale(1.04)}}@keyframes toastIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}@keyframes crudPulse{0%{box-shadow:0 0 0 0 rgba(59,130,246,.25)}100%{box-shadow:0 0 0 12px rgba(59,130,246,0)}}@keyframes syncFlash{0%,100%{color:inherit}40%{color:#059669}}
 @media(max-width:767px){.dashboard-hero{padding:24px 20px;min-height:235px}.hero-art{right:-42px;top:30%;opacity:.2;transform:translateY(-20%) scale(.85)}.hero-content{max-width:100%}.dashboard-hero p{max-width:95%}.hero-note{font-size:.75rem}.stat h3{font-size:1.35rem}.topbar{align-items:flex-start!important}.topbar .d-flex:last-child{flex-wrap:wrap;justify-content:flex-end}.topbar .btn{font-size:.82rem;padding:.45rem .65rem}}
+/* Mobile navigation: icon-only trigger and dismiss-on-outside-click */
+.mobile-toggle{border:0!important;background:transparent!important;color:#172033!important;padding:.25rem .45rem!important;font-size:1.65rem!important;line-height:1;box-shadow:none!important;border-radius:10px!important}
+.mobile-toggle:hover,.mobile-toggle:focus{background:#eef2ff!important;color:#1d4ed8!important;box-shadow:none!important}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.38);backdrop-filter:blur(2px);z-index:1025;pointer-events:none;opacity:0;transition:opacity .22s ease}
+.sidebar-backdrop.show{display:block;opacity:1}
+@media(max-width:991px){.sidebar{z-index:1030}.sidebar-backdrop.show{display:block}.topbar{z-index:1020}.mobile-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:38px;min-height:38px}.sidebar .nav-link{padding:12px 14px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
 </style>
 </head>
 <body>
-<aside class="sidebar" id="sidebar"><div class="brand"> <img src="./griyafit.png" class="img-fluid" width="100px" height="100px" alt=""> </div><nav class="nav flex-column"><a class="nav-link active" href="#" data-section="dashboard"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a><a class="nav-link" href="#" data-section="buyers"><i class="bi bi-people me-2"></i>Buyer</a><a class="nav-link" href="#" data-section="analysis"><i class="bi bi-cpu me-2"></i>Analysis</a><a class="nav-link" href="#" data-section="match"><i class="bi bi-diagram-3 me-2"></i>Match Detail</a><a class="nav-link" href="#" data-section="recommendation"><i class="bi bi-stars me-2"></i>Recommendation</a><a class="nav-link" href="#" data-section="financing"><i class="bi bi-wallet2 me-2"></i>Financing</a><a class="nav-link" href="#" data-section="growth"><i class="bi bi-graph-up-arrow me-2"></i>Growth Plan</a><a class="nav-link" href="#" data-section="insight"><i class="bi bi-bar-chart-line me-2"></i>Developer Insight</a><a class="nav-link" href="#" data-section="master"><i class="bi bi-house-gear me-2"></i>Master Tipe</a></nav></aside>
+<aside class="sidebar" id="sidebar"><div class="brand"> <img src="./griyafit.png" class="img-fluid" width="100px" height="100px" alt=""> </div><nav class="nav flex-column"><a class="nav-link active" href="#" data-section="dashboard"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a><a class="nav-link" href="#" data-section="buyers"><i class="bi bi-people me-2"></i>Buyer</a><a class="nav-link" href="#" data-section="analysis"><i class="bi bi-cpu me-2"></i>Analysis</a><a class="nav-link" href="#" data-section="match"><i class="bi bi-diagram-3 me-2"></i>Match Detail</a><a class="nav-link" href="#" data-section="recommendation"><i class="bi bi-stars me-2"></i>Recommendation</a><a class="nav-link" href="#" data-section="financing"><i class="bi bi-wallet2 me-2"></i>Financing</a><a class="nav-link" href="#" data-section="growth"><i class="bi bi-graph-up-arrow me-2"></i>Growth Plan</a><a class="nav-link" href="#" data-section="insight"><i class="bi bi-bar-chart-line me-2"></i>Developer Insight</a><a class="nav-link" href="#" data-section="master"><i class="bi bi-house-gear me-2"></i>Master Tipe</a></nav></aside><div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 <main class="main"><div class="topbar d-flex align-items-center justify-content-between gap-2"><div class="d-flex align-items-center gap-2"><button class="btn btn-outline-secondary mobile-toggle" id="menuBtn"><i class="bi bi-list"></i></button><div><strong id="pageTitle">Dashboard</strong><div class="small-muted">Aplikasi analisis kebutuhan rumah GRIYAFIT</div></div></div><div class="d-flex gap-2"><button class="btn btn-outline-primary" id="importBtn"><i class="bi bi-file-earmark-excel me-1"></i>Import Excel</button><input type="file" id="excelFile" accept=".xlsx,.xls" hidden><button class="btn btn-primary" id="saveBtn"><i class="bi bi-floppy me-1"></i>Simpan</button></div></div>
 <section id="dashboard" class="section active"><div class="dashboard-hero mb-4"><div class="hero-content"><span class="hero-kicker"><i class="bi bi-stars me-1"></i> SMART PROPERTY INSIGHT</span><h2>Halo, selamat datang di <span>GRIYAFIT</span></h2><p>Kenali kebutuhan buyer, ukur kemampuan budget, dan temukan peluang growth dalam satu dashboard.</p><div class="hero-actions"><button class="btn btn-light" onclick="showSection('buyers')"><i class="bi bi-person-plus me-1"></i> Kelola Buyer</button><span class="hero-note"><i class="bi bi-cloud-check me-1"></i> Analisis & sinkronisasi data</span></div></div><div class="hero-art"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><i class="bi bi-house-heart-fill hero-house"></i><i class="bi bi-graph-up-arrow hero-trend"></i></div></div><div class="row g-3 mb-3"><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-people"></i></div><div class="small-muted mt-2">Total Buyer</div><h3 id="statTotal">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-check2-circle"></i></div><div class="small-muted mt-2">Buyer Fit</div><h3 id="statFit">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-exclamation-triangle"></i></div><div class="small-muted mt-2">Buyer Ada Gap</div><h3 id="statGap">0</h3></div></div><div class="col-6 col-xl-3"><div class="cardx stat"><div class="icon"><i class="bi bi-house-heart"></i></div><div class="small-muted mt-2">Rata-rata Budget</div><h3 id="statBudget">Rp0</h3></div></div></div><div class="row g-3"><div class="col-lg-7"><div class="cardx p-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="mb-1">Need vs Budget Type</h5><div class="small-muted">Distribusi tipe yang dibutuhkan dan yang terjangkau.</div></div></div><canvas id="typeChart" height="120"></canvas></div></div><div class="col-lg-5"><div class="cardx p-3"><h5>Developer Insight</h5><div id="insightCards"></div></div></div></div><div class="cardx p-3 mt-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h5 class="mb-1">Buyer dengan Gap Terbesar</h5><div class="small-muted">Prioritas buyer yang membutuhkan solusi/growth plan.</div></div><button class="btn btn-sm btn-outline-primary" onclick="showSection('analysis')">Lihat Analysis</button></div><div class="table-wrap"><table class="table table-hover" id="topGapTable"></table></div></div></section>
 <section id="buyers" class="section"><div class="cardx p-3"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><h5 class="mb-1">Input Buyer</h5><div class="small-muted">Buyer tidak memilih tipe rumah. Sistem yang menganalisis.</div></div><button class="btn btn-primary" id="addBuyerBtn"><i class="bi bi-plus-lg me-1"></i>Tambah Buyer</button></div><div class="row g-2 mb-3"><div class="col-md-5"><input class="form-control" id="buyerSearch" placeholder="Cari nama buyer..."></div><div class="col-md-3"><select class="form-select" id="buyerStatusFilter"><option value="">Semua status</option><option value="FIT">FIT</option><option value="ADA GAP">ADA GAP</option></select></div></div><div class="table-wrap"><table class="table table-hover" id="buyersTable"></table></div></div></section>
@@ -82,8 +88,9 @@ const firebaseConfig = {
 };
 let db = null;
 let firebaseReady = false;
-let remoteWriteInProgress = false;
 let remoteListenerStarted = false;
+let lastRemoteSignature = '';
+let saveQueue = Promise.resolve();
 
 let state=loadState(); let typeChart,needChart,budgetChart; const buyerModal=new bootstrap.Modal('#buyerModal'), typeModal=new bootstrap.Modal('#typeModal');
 function loadState(){try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.buyers&&s.types)return s}catch(e){} return JSON.parse(JSON.stringify(INITIAL));}
@@ -109,29 +116,37 @@ async function initFirebase(){
       const remote=snap.data();
       if(remote && Array.isArray(remote.buyers) && Array.isArray(remote.types)){
         state={buyers:remote.buyers,types:remote.types};
+        lastRemoteSignature=stateSignature(state);
         localStorage.setItem(KEY,JSON.stringify(state));
         renderAll();
       }
     }else{
       await ref.set({...state,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      lastRemoteSignature=stateSignature(state);
     }
     if(!remoteListenerStarted){
       remoteListenerStarted=true;
-      ref.onSnapshot(doc=>{
-        if(!doc.exists || remoteWriteInProgress) return;
+      ref.onSnapshot({includeMetadataChanges:true},doc=>{
+        if(!doc.exists) return;
         const remote=doc.data();
-        if(remote && Array.isArray(remote.buyers) && Array.isArray(remote.types)){
-          state={buyers:remote.buyers,types:remote.types};
+        if(!remote || !Array.isArray(remote.buyers) || !Array.isArray(remote.types)) return;
+        const incoming={buyers:remote.buyers,types:remote.types};
+        const signature=stateSignature(incoming);
+        // Ignore unchanged echoes, but never ignore another device's update just because a save is in progress.
+        if(signature!==stateSignature(state)){
+          state=incoming;
           localStorage.setItem(KEY,JSON.stringify(state));
           renderAll();
-          setSyncStatus('Tersinkron ke Firebase');
+          document.querySelectorAll('.stat').forEach(el=>{el.classList.remove('sync-flash');void el.offsetWidth;el.classList.add('sync-flash')});
         }
+        lastRemoteSignature=signature;
+        setSyncStatus(doc.metadata && doc.metadata.hasPendingWrites ? 'Menyinkronkan perubahan…' : 'Realtime aktif · data tersinkron');
       },err=>{
         console.error('Firestore listener:',err);
         setSyncStatus('Gagal sinkron: '+err.message);
       });
     }
-    setSyncStatus('Terhubung ke Firebase');
+    setSyncStatus('Realtime aktif · menunggu perubahan');
   }catch(err){
     console.error('Firebase init:',err);
     firebaseReady=false;
@@ -150,28 +165,37 @@ function setSyncStatus(message){
   }
   el.textContent=message;
 }
+function stateSignature(value){
+  // Compare only app data, not Firestore timestamps/metadata.
+  return JSON.stringify({buyers:value.buyers||[],types:value.types||[]});
+}
 async function saveState(){
   document.querySelectorAll('.stat').forEach((el,i)=>{el.style.setProperty('--i',i);el.classList.remove('crud-pulse');void el.offsetWidth;el.classList.add('crud-pulse')});
   localStorage.setItem(KEY,JSON.stringify(state));
   if(firebaseReady && db){
-    try{
-      remoteWriteInProgress=true;
-      await db.collection('griyafit').doc('mainData').set({
-        buyers:state.buyers,
-        types:state.types,
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      });
-      setSyncStatus('Tersimpan & tersinkron ke Firebase');
-      toast('Data berhasil disimpan dan disinkronkan ke Firebase.');
-    }catch(err){
-      console.error('Firestore save:',err);
-      setSyncStatus('Gagal menyimpan ke Firebase');
-      toast('Gagal menyimpan ke Firebase: '+err.message);
-    }finally{
-      remoteWriteInProgress=false;
-    }
+    const snapshot={buyers:JSON.parse(JSON.stringify(state.buyers)),types:JSON.parse(JSON.stringify(state.types))};
+    // Serialize writes so fast consecutive CRUD actions do not finish out of order.
+    saveQueue=saveQueue.then(async()=>{
+      try{
+        setSyncStatus('Menyimpan perubahan…');
+        await db.collection('griyafit').doc('mainData').set({
+          buyers:snapshot.buyers,
+          types:snapshot.types,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        lastRemoteSignature=stateSignature(snapshot);
+        setSyncStatus('Tersimpan · realtime aktif');
+        toast('Data berhasil disimpan. Perangkat lain akan menerima perubahan otomatis.');
+      }catch(err){
+        console.error('Firestore save:',err);
+        setSyncStatus('Gagal menyimpan ke Firebase');
+        toast('Gagal menyimpan ke Firebase: '+err.message);
+      }
+    });
+    await saveQueue;
   }else{
-    toast('Data tersimpan di browser. Isi konfigurasi Firebase untuk sinkronisasi.');
+    setSyncStatus('Mode lokal — Firebase belum terhubung');
+    toast('Data tersimpan di browser. Periksa konfigurasi Firebase untuk sinkronisasi.');
   }
   renderAll();
 }
@@ -185,7 +209,8 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 function analyze(b){const sorted=[...state.types].sort((a,b)=>a.price-b.price); const need=sorted.find(t=>b.family<=t.maxFamily&&b.rooms<=t.rooms)||null; const affordable=[...sorted].reverse().find(t=>t.price<=b.budget)||null; const needPrice=need?need.price:0; const affordablePrice=affordable?affordable.price:0; const gap=Math.max(0,needPrice-b.budget); const gapPct=needPrice>0?gap/needPrice:0; const recommendedBudgetGrowth=gapPct>0.25?gap*0.30:gap; let status='FIT'; if(!need)status='DI LUAR TIPE'; else if(!affordable||gap>0)status='ADA GAP'; const path=!need?'Kebutuhan di luar master':gap===0?(affordable?.name||'FIT'):(!affordable?'Tambah budget / redesign':affordable.name+' + Growth Plan'); return {...b,needType:need?.name||'Di luar tipe',needPrice,budgetType:affordable?.name||'Di bawah tipe terendah',affordablePrice,gap,gapPct,recommendedBudgetGrowth,status,path};}
 function results(){return state.buyers.filter(b=>b.name).map(analyze)}
 function badge(s){let c=s==='FIT'?'badge-fit':s==='ADA GAP'?'badge-gap':'badge-out';return `<span class="badge ${c}">${esc(s)}</span>`}
-function showSection(id){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.sidebar .nav-link').forEach(x=>x.classList.toggle('active',x.dataset.section===id));document.getElementById('pageTitle').textContent=id==='dashboard'?'Dashboard':id.replace('-',' ').replace(/\b\w/g,c=>c.toUpperCase());renderSection(id);document.getElementById('sidebar').classList.remove('show');}
+function closeMobileMenu(){document.getElementById('sidebar').classList.remove('show');document.getElementById('sidebarBackdrop')?.classList.remove('show');document.getElementById('menuBtn')?.setAttribute('aria-expanded','false')}
+function showSection(id){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.sidebar .nav-link').forEach(x=>x.classList.toggle('active',x.dataset.section===id));document.getElementById('pageTitle').textContent=id==='dashboard'?'Dashboard':id.replace('-',' ').replace(/\b\w/g,c=>c.toUpperCase());renderSection(id);closeMobileMenu();}
 window.showSection=showSection;
 function renderAll(){renderDashboard();renderBuyers();renderAnalysis();renderMatch();renderRecommendation();renderFinancing();renderGrowth();renderInsight();renderMaster();}
 function renderSection(id){if(id==='dashboard')renderDashboard();if(id==='buyers')renderBuyers();if(id==='analysis')renderAnalysis();if(id==='match')renderMatch();if(id==='recommendation')renderRecommendation();if(id==='financing')renderFinancing();if(id==='growth')renderGrowth();if(id==='insight')renderInsight();if(id==='master')renderMaster();}
@@ -205,7 +230,14 @@ function openType(idx=-1){document.getElementById('typeIndex').value=idx;if(idx>
 window.editType=i=>openType(i);window.deleteType=i=>{if(state.types.length<=1)return toast('Minimal harus ada 1 tipe.');if(confirm('Hapus tipe ini?')){state.types.splice(i,1);saveState()}};
 document.getElementById('saveBuyerBtn').onclick=()=>{if(!buyerForm.reportValidity())return;const i=Number(editIndex.value),b={name:fName.value.trim(),family:+fFamily.value,rooms:+fRooms.value,budget:parseMoney(fBudget.value),dp:parseMoney(fDp.value),plan:+fFamily.value>+fRooms.value?'Bertambah':'Tetap',note:fNote.value.trim()};if(i>=0)state.buyers[i]=b;else state.buyers.push(b);buyerModal.hide();saveState()};
 document.getElementById('saveTypeBtn').onclick=()=>{if(!typeForm.reportValidity())return;const i=Number(typeIndex.value),t={name:tName.value.trim(),land:+tLand.value,building:+tBuilding.value,maxFamily:+tFamily.value,rooms:+tRooms.value,price:parseMoney(tPrice.value),growth:tGrowth.value,note:tNote.value.trim()};if(i>=0)state.types[i]=t;else state.types.push(t);typeModal.hide();saveState()};
-document.getElementById('addBuyerBtn').onclick=()=>openBuyer();document.getElementById('addTypeBtn').onclick=()=>openType();document.getElementById('saveBtn').onclick=saveState;document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('show');
+document.getElementById('addBuyerBtn').onclick=()=>openBuyer();document.getElementById('addTypeBtn').onclick=()=>openType();document.getElementById('saveBtn').onclick=saveState;
+document.getElementById('menuBtn').setAttribute('aria-label','Buka menu');
+document.getElementById('menuBtn').setAttribute('aria-expanded','false');
+document.getElementById('menuBtn').onclick=e=>{e.stopPropagation();const sidebar=document.getElementById('sidebar'),opening=!sidebar.classList.contains('show');sidebar.classList.toggle('show',opening);document.getElementById('sidebarBackdrop').classList.toggle('show',opening);document.getElementById('menuBtn').setAttribute('aria-expanded',String(opening));};
+// Close menu on any tap/click outside it; pointer-events:none on backdrop lets the original target still receive the click.
+document.addEventListener('click',e=>{const sidebar=document.getElementById('sidebar'),button=document.getElementById('menuBtn');if(sidebar.classList.contains('show')&&!sidebar.contains(e.target)&&!button.contains(e.target))closeMobileMenu()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
+
 document.querySelectorAll('.sidebar .nav-link').forEach(a=>a.onclick=e=>{e.preventDefault();showSection(a.dataset.section)});['matchBuyer','recBuyer','finBuyer'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderSection(id==='matchBuyer'?'match':id==='recBuyer'?'recommendation':'financing')));document.getElementById('buyerSearch').oninput=renderBuyers;document.getElementById('buyerStatusFilter').onchange=renderBuyers;
 document.getElementById('importBtn').onclick=()=>document.getElementById('excelFile').click();document.getElementById('excelFile').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array'});const m=wb.Sheets['01_MASTER_TIPE'],b=wb.Sheets['02_INPUT_BUYER'];if(!m||!b)throw Error('Sheet 01_MASTER_TIPE atau 02_INPUT_BUYER tidak ditemukan.');const mv=XLSX.utils.sheet_to_json(m,{header:1});const bv=XLSX.utils.sheet_to_json(b,{header:1});state.types=mv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],land:+r[1]||0,building:+r[2]||0,maxFamily:+r[3]||0,rooms:+r[4]||0,price:+r[5]||0,growth:r[6]||'',note:r[7]||''}));state.buyers=bv.slice(4).filter(r=>r[0]).map(r=>({name:r[0],family:+r[1]||0,rooms:+r[2]||0,budget:+r[3]||0,dp:+r[4]||0,plan:(+r[1]||0)>(+r[2]||0)?'Bertambah':'Tetap',note:r[6]||''}));localStorage.setItem(KEY,JSON.stringify(state));renderAll();saveState();toast('Excel berhasil diimport.')}catch(err){alert('Gagal import Excel: '+err.message)}};reader.readAsArrayBuffer(file)};
 function exportCSV(){const rows=results();let csv='Buyer,Keluarga,Kamar,Budget,DP,Need Type,Need Price,Budget Type,Affordable Price,Gap,Gap %,Status,Recommended Path\n';csv+=rows.map(x=>[x.name,x.family,x.rooms,x.budget,x.dp,x.needType,x.needPrice,x.budgetType,x.affordablePrice,x.gap,x.gapPct,x.status,x.path].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='griyafit-analysis.csv';a.click();URL.revokeObjectURL(a.href)}
