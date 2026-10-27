@@ -69,11 +69,11 @@ body.auth-locked #sidebar,body.auth-locked #sidebarBackdrop,body.auth-locked .ma
       <p class="text-secondary mb-0">Masuk untuk membuka aplikasi GRIYAFIT</p>
     </div>
     <form id="adminLoginForm">
-      <div class="mb-3"><label for="adminEmail" class="form-label">Email</label><input type="email" class="form-control" id="adminEmail" autocomplete="username" placeholder="admin@email.com" required></div>
+      <div class="mb-3"><label for="adminUsername" class="form-label">Nama Pengguna</label><input type="text" class="form-control" id="adminUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="admin" required></div>
       <div class="mb-3"><label for="adminPassword" class="form-label">Password</label><input type="password" class="form-control" id="adminPassword" autocomplete="current-password" placeholder="Masukkan password" required></div>
       <div id="loginError" class="alert alert-danger py-2 d-none" role="alert"></div>
       <button type="submit" id="adminLoginBtn" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-2"></i>Masuk</button>
-      <div class="small text-secondary text-center mt-3">Gunakan akun admin yang sudah dibuat di Firebase Authentication.</div>
+      <div class="small text-secondary text-center mt-3">Masukkan nama pengguna dan password admin.</div>
     </form>
   </div>
 </div>
@@ -373,6 +373,16 @@ setupMoneyInputs();
 document.querySelectorAll('.stat').forEach((el,i)=>el.style.setProperty('--i',i));
 renderAll();
 
+// Nama pengguna dipetakan ke email internal untuk Firebase Auth (email/password).
+// Buat user di Firebase Authentication dengan email: <nama>@griyafit.local (contoh: admin@griyafit.local)
+const LOGIN_DOMAIN='griyafit.local';
+function usernameToEmail(name){
+  name=String(name||'').trim().toLowerCase();
+  return name.includes('@')?name:name+'@'+LOGIN_DOMAIN;
+}
+function emailToUsername(email){
+  return String(email||'').replace('@'+LOGIN_DOMAIN,'');
+}
 function showLoginError(message){
   const el=document.getElementById('loginError');
   el.textContent=message;
@@ -387,7 +397,7 @@ function showAuthenticatedApp(user){
   document.body.classList.remove('auth-locked');
   document.getElementById('loginGate').style.display='none';
   const btn=document.getElementById('logoutBtn');
-  if(btn) btn.title=user && user.email ? 'Login sebagai '+user.email : 'Logout';
+  if(btn) btn.title=user && user.email ? 'Login sebagai '+emailToUsername(user.email) : 'Logout';
   if(!firebaseReady) initFirebase();
 }
 function showUnauthenticatedApp(){
@@ -401,7 +411,7 @@ function showUnauthenticatedApp(){
 }
 document.getElementById('adminLoginForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  const email=document.getElementById('adminEmail').value.trim();
+  const email=usernameToEmail(document.getElementById('adminUsername').value);
   const password=document.getElementById('adminPassword').value;
   const err=document.getElementById('loginError');
   err.classList.add('d-none');
@@ -416,10 +426,10 @@ document.getElementById('adminLoginForm').addEventListener('submit',async e=>{
   }catch(error){
     console.error('Login error:',error);
     const messages={
-      'auth/invalid-credential':'Email atau password salah.',
-      'auth/user-not-found':'Akun admin tidak ditemukan.',
-      'auth/wrong-password':'Email atau password salah.',
-      'auth/invalid-email':'Format email tidak valid.',
+      'auth/invalid-credential':'Nama pengguna atau password salah.',
+      'auth/user-not-found':'Nama pengguna tidak ditemukan.',
+      'auth/wrong-password':'Nama pengguna atau password salah.',
+      'auth/invalid-email':'Nama pengguna tidak valid (jangan pakai spasi).',
       'auth/too-many-requests':'Terlalu banyak percobaan. Coba lagi beberapa saat.',
       'auth/network-request-failed':'Koneksi internet bermasalah.'
     };
