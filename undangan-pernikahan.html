@@ -393,6 +393,7 @@ const CONFIG = {
     {judul:"💞 Benih Cinta dalam Ujian", isi:"Memasuki Februari 2025, proyek mereka menghadapi krisis. Di tengah tekanan, Riski tampil dengan solusi kreatif yang menyelamatkan proyek, membuat Wahyu terkesan dengan ketenangan dan kecerdasannya. Merasa ada kesamaan visi, Wahyu beristikharah dan memutuskan memulai taaruf."},
     {judul:"💍 Langkah Menuju Ridha Allah", isi:"Proses taaruf berjalan penuh keikhlasan. Pada Maret 2025, setelah istikharah dan mendapat restu keluarga, Wahyu melamar Riski dalam acara sederhana namun penuh makna. Dengan niat tulus, mereka melangkah menuju pernikahan."}
   ],
+  videoThumbnail: "https://picsum.photos/seed/video-thumb/1280/720",   // gambar sampul video (kosongkan jika tidak pakai)
   video: "assets/undangan.mp4",   // contoh: "video/kisah.mp4" (kosongkan jika tidak pakai)
 
   acara: [
@@ -466,7 +467,7 @@ function isi(){
     <p class="position-relative d-flex justify-content-center align-items-center bg-theme-auto border border-secondary border-2 rounded-circle m-0 p-0 z-1" style="width:2rem;height:2rem">${i+1}</p>
     <hr class="position-absolute top-0 start-50 translate-middle-x border border-secondary h-100 z-0 opacity-100 m-0 rounded-4 shadow-none"></div>
     <div class="col mt-1 mb-3 ps-0"><p class="fw-bold mb-2">${esc(c.judul)}</p><p class="small mb-0">${esc(c.isi)}</p></div></div>`).join("");
-  if (CONFIG.video && $("videoBox")) $("videoBox").innerHTML = `<video class="w-100 rounded-4 shadow-sm m-0 p-0" src="${esc(CONFIG.video)}" controls preload="none" playsinline></video>`;
+  if (CONFIG.video && $("videoBox")) $("videoBox").innerHTML = `<video class="w-100 rounded-4 shadow-sm m-0 p-0" src="${esc(CONFIG.video)}"${CONFIG.videoThumbnail ? ` poster="${esc(CONFIG.videoThumbnail)}"` : ""} controls preload="none" playsinline></video>`;
   $("btnStory").onclick = ()=>{ const o = $("storyOverlay"); o.style.opacity = 0; setTimeout(()=>o.remove(),500); };
 
   $("acara").innerHTML = CONFIG.acara.map((a,i)=>`<div class="py-2" data-aos="${i%2?"fade-left":"fade-right"}" data-aos-duration="1500">
