@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEWTON - Newbie Belajar Badminton</title>
+    <title>MABAR NEWTON</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -616,6 +616,25 @@
         .btn-start-match { background-color: var(--success); }
         .btn-finish-match { background-color: var(--primary); }
         .btn-finish-match:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .badge-tunggu {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 10.5px;
+            font-weight: 800;
+            line-height: 1.2;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .badge-tunggu.tunggu-0 { background: #f1f5f9; color: #64748b; }
+        .badge-tunggu.tunggu-1 { background: #e0f2fe; color: #0369a1; }
+        .badge-tunggu.tunggu-2 { background: #fef3c7; color: #b45309; }
+        .badge-tunggu.tunggu-3 { background: #fee2e2; color: #b91c1c; }
+        .badge-tunggu.tunggu-main { background: #dcfce7; color: #15803d; }
 
         .badge-wl-container {
             display: inline-flex;
@@ -1636,7 +1655,7 @@
                             <th>Pemain</th>
                             <th style="text-align: center;"><span class="member-hide-for-member">Hadir</span></th>
                             <th style="text-align: center;" title="Match Played (Jumlah Main)">MP</th>
-                            <th style="text-align: center;" title="Riwayat Hasil Pertandingan (Maksimal 7 Match Terakhir)">Riwayat (W/L)</th>
+                            <th style="text-align: center;" title="Lama Menunggu: jumlah match yang sudah selesai tanpa pemain ini, dihitung sejak absen atau sejak terakhir main">Tunggu</th>
                             <th style="text-align: center;"><span class="member-hide-for-member">Aksi</span></th>
                         </tr>
                     </thead>
@@ -2238,6 +2257,7 @@
             Object.keys(playersData).forEach(name => {
                 playersData[name].inMabar = false;
                 playersData[name].checkInTime = "";
+                playersData[name].checkInAt = "";
                 playersData[name].mp = 0;
             });
 
@@ -2915,9 +2935,11 @@
     function toggleAbsen(name) {
         if (playersData[name].checkInTime !== "") {
             playersData[name].checkInTime = "";
+            playersData[name].checkInAt = "";
         } else {
             const now = new Date();
             playersData[name].checkInTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}).replace(':', '.');
+            playersData[name].checkInAt = now.toISOString();
         }
         saveDataLocally();
         updatePlayerTable();
@@ -2996,12 +3018,70 @@
         return badgesHtml;
     }
 
+    // Nama pemain yang sedang bermain (timer lapangan berjalan)
+    function getPemainSedangMain() {
+        const set = new Set();
+        const total = (typeof totalCourtsActive === 'number') ? totalCourtsActive : 0;
+        for (let i = 1; i <= total; i++) {
+            if (!(courtTimers && courtTimers[i] && courtTimers[i].startTime)) continue;
+            ['a1', 'a2', 'b1', 'b2'].forEach(pos => {
+                const el = document.getElementById(`c${i}-${pos}`);
+                let v = el ? el.value : '';
+                if (!v && savedCourtsSetup && savedCourtsSetup[i] && savedCourtsSetup[i][pos]) v = savedCourtsSetup[i][pos];
+                if (v) set.add(v);
+            });
+        }
+        return set;
+    }
+
+    // Jumlah match selesai tanpa pemain ini sejak absen / sejak terakhir main. null = belum absen.
+    function hitungLamaMenunggu(name) {
+        const p = playersData[name];
+        if (!p || !p.checkInTime) return null;
+
+        let batas = p.checkInAt ? new Date(p.checkInAt) : null;
+        if (!batas || isNaN(batas.getTime())) {
+            // Data absen lama (belum punya checkInAt): bangun dari jam "HH.MM" hari ini
+            const mm = String(p.checkInTime).match(/(\d{1,2})[.:](\d{2})/);
+            batas = new Date();
+            if (mm) batas.setHours(parseInt(mm[1], 10), parseInt(mm[2], 10), 0, 0);
+            else batas.setHours(0, 0, 0, 0);
+        }
+
+        let count = 0;
+        for (let i = 0; i < matchesHistory.length; i++) {
+            const m = matchesHistory[i];
+            const tgl = new Date(m.playedAt || m.dateISO || m.createdAt || m.date || '');
+            if (isNaN(tgl.getTime()) || tgl <= batas) break; // match sebelum absen / tanpa tanggal: berhenti
+            const pA = m.playersA || (m.teamA ? m.teamA.split(' / ').map(x => x.trim()) : []);
+            const pB = m.playersB || (m.teamB ? m.teamB.split(' / ').map(x => x.trim()) : []);
+            if (pA.includes(name) || pB.includes(name)) break; // terakhir main, hitungan berhenti
+            count++;
+        }
+        return count;
+    }
+
+    function renderTungguBadge(name, sedangMain) {
+        const n = hitungLamaMenunggu(name);
+        if (n === null) return `<span style="color:#94a3b8; font-size:11px; font-weight:600;">-</span>`;
+        if (sedangMain && sedangMain.has(name)) {
+            return `<span class="badge-tunggu tunggu-main" title="Sedang bermain di lapangan">🏸 Main</span>`;
+        }
+        const level = Math.min(n, 3);
+        const label = n === 0 ? '0' : (n >= 3 ? `⏳ ${n} match` : `${n} match`);
+        const title = n === 0
+            ? 'Belum ada match selesai sejak absen / sejak terakhir main'
+            : `Sudah ${n} match selesai tanpa pemain ini${n >= 3 ? ' — prioritaskan giliran' : ''}`;
+        return `<span class="badge-tunggu tunggu-${level}" title="${title}">${label}</span>`;
+    }
+
     function updatePlayerTable() {
         const tbody = document.getElementById('player-table-body');
         const sortedNames = Object.keys(playersData).filter(name => playersData[name].inMabar !== false).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
         document.getElementById('total-players').innerText = sortedNames.length;
         
         let html = "";
+        const sedangMainSet = getPemainSedangMain();
         sortedNames.forEach(name => {
             const p = playersData[name];
             const mpScore = p.mp || 0;
@@ -3010,14 +3090,12 @@
                 ? `<span class="badge-jam" onclick="toggleAbsen('${name}')" title="Klik untuk batalkan absen">🕒 ${p.checkInTime}</span>` 
                 : `<button class="btn-absen" onclick="toggleAbsen('${name}')">Absen</button>`;
 
-            const wlHistoryHtml = renderWLHistoryBadges(name);
-
             html += `
                 <tr>
                     <td style="font-weight:700; color:#1e293b;">${name}</td>
                     <td style="text-align:center;">${absenBtn}</td>
                     <td style="text-align:center; font-weight:800; color:var(--primary);">${mpScore}</td>
-                    <td style="text-align:center;">${wlHistoryHtml}</td>
+                    <td style="text-align:center;">${renderTungguBadge(name, sedangMainSet)}</td>
                     <td style="text-align:center; white-space:nowrap;">
                         <button style="background:transparent; color:var(--secondary); padding:2px 4px; font-size:13px;" onclick="bukaModalEditPemain('${name}')" title="Edit Nama Pemain">✏️</button>
                         <button style="background:transparent; color:#ef4444; padding:2px 4px; font-size:13px;" onclick="keluarkanPemainDariMabar('${name}')" title="Keluarkan dari Mabar (Database tetap tersimpan)">🗑️</button>
@@ -3347,6 +3425,7 @@
             btn.innerHTML = `⏱️ Mulai`;
             btn.style.backgroundColor = 'var(--success)';
             document.getElementById(`c${courtNum}-finish-btn`).disabled = true;
+            updatePlayerTable();
         } else {
             const a1 = document.getElementById(`c${courtNum}-a1`).value;
             const b1 = document.getElementById(`c${courtNum}-b1`).value;
@@ -3363,6 +3442,7 @@
             btn.innerHTML = `❌ Batal`;
             btn.style.backgroundColor = 'var(--danger)';
             document.getElementById(`c${courtNum}-finish-btn`).disabled = false;
+            updatePlayerTable();
         }
     }
 
