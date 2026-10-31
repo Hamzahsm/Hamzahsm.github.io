@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEWTON - Newbie Belajar Badminton</title>
+    <title>MABAR NEWTON</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -2154,7 +2154,7 @@
             const d = hasil.data;
             const tgl = hasil.dibuatPada ? new Date(hasil.dibuatPada) : null;
             const tglTeks = tgl && !Number.isNaN(tgl.getTime())
-                ? tgl.toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                ? tgl.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                 : 'tanggal tidak diketahui';
             const jumlah = v => Array.isArray(v) ? v.length : 0;
 
@@ -2931,13 +2931,26 @@
         showMsg(`Nama pemain berhasil diubah menjadi ${newName}!`);
     }
 
+    // ---- Waktu Indonesia Barat (WIB, UTC+7) -- tidak bergantung zona waktu perangkat ----
+    const OFFSET_WIB_MS = 7 * 60 * 60 * 1000;
+    function waktuWIB(date) {
+        const d = date instanceof Date ? date : new Date(date);
+        const w = new Date(d.getTime() + OFFSET_WIB_MS);
+        return { tahun: w.getUTCFullYear(), bulan: w.getUTCMonth() + 1, tanggal: w.getUTCDate(), jam: w.getUTCHours(), menit: w.getUTCMinutes() };
+    }
+    function jamWIB(date, jamDuaDigit) {
+        const t = waktuWIB(date);
+        const jam = jamDuaDigit === false ? String(t.jam) : String(t.jam).padStart(2, '0');
+        return jam + '.' + String(t.menit).padStart(2, '0');
+    }
+
     function toggleAbsen(name) {
         if (playersData[name].checkInTime !== "") {
             playersData[name].checkInTime = "";
             playersData[name].checkInAt = "";
         } else {
             const now = new Date();
-            playersData[name].checkInTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}).replace(':', '.');
+            playersData[name].checkInTime = jamWIB(now); // WIB, format 19.30
             playersData[name].checkInAt = now.toISOString();
         }
         saveDataLocally();
@@ -3046,9 +3059,10 @@
         if (!batas || isNaN(batas.getTime())) {
             // Data absen lama (belum punya checkInAt): bangun dari jam "HH.MM" hari ini
             const mm = String(p.checkInTime).match(/(\d{1,2})[.:](\d{2})/);
-            batas = new Date();
-            if (mm) batas.setHours(parseInt(mm[1], 10), parseInt(mm[2], 10), 0, 0);
-            else batas.setHours(0, 0, 0, 0);
+            const t = waktuWIB(new Date());
+            const jamAbsen = mm ? parseInt(mm[1], 10) : 0;
+            const menitAbsen = mm ? parseInt(mm[2], 10) : 0;
+            batas = new Date(Date.UTC(t.tahun, t.bulan - 1, t.tanggal, jamAbsen - 7, menitAbsen, 0, 0));
         }
 
         let count = 0;
@@ -3106,6 +3120,8 @@
                 </tr>
             `;
         });
+        if (tbody.dataset.lastHtml === html) return; // isi sama: biarkan tombol Absen tetap utuh
+        tbody.dataset.lastHtml = html;
         tbody.innerHTML = html;
     }
 
@@ -3206,6 +3222,43 @@
                     </div>
                 </div>
             `;
+        }
+        aturKontrolLapanganUntukRole();
+    }
+
+    // Menyamakan tampilan lapangan dengan data terbaru TANPA membuat ulang kartu lapangan.
+    // Dengan begitu dropdown / tombol yang sedang diklik tidak hilang di tengah klik.
+    function sinkronkanLapanganDOM() {
+        const container = document.getElementById('courts-container');
+        if (!container) return;
+        if (container.querySelectorAll('.court-card').length !== totalCourtsActive) {
+            generateCourtsDOM(); // jumlah lapangan berubah: bangun ulang sekali
+            return;
+        }
+        for (let i = 1; i <= totalCourtsActive; i++) {
+            const label = document.getElementById(`c${i}-timer-label`);
+            const startBtn = document.getElementById(`c${i}-start-btn`);
+            const finishBtn = document.getElementById(`c${i}-finish-btn`);
+            if (label) label.innerHTML = 'Status: Belum Mulai';
+            if (startBtn) { startBtn.innerHTML = '⏱️ Mulai'; startBtn.style.backgroundColor = ''; }
+            if (finishBtn) finishBtn.disabled = true;
+
+            const setup = savedCourtsSetup[i] || {};
+            ['a1', 'a2', 'b1', 'b2'].forEach(pos => {
+                const el = document.getElementById(`c${i}-${pos}`);
+                if (!el) return;
+                const val = setup[pos] || '';
+                if (el.value === val) return; // sudah sesuai: jangan disentuh
+                el.innerHTML = `<option value="">Pilih Pemain</option>` + (val ? `<option value="${val}">${val}</option>` : '');
+                el.value = val;
+                delete el.dataset.optHtml;
+            });
+            [['scoreA', setup.scoreA], ['scoreB', setup.scoreB]].forEach(([pos, v]) => {
+                const el = document.getElementById(`c${i}-${pos}`);
+                if (!el) return;
+                const val = (v === undefined || v === null) ? '' : String(v);
+                if (el.value !== val) el.value = val;
+            });
         }
         aturKontrolLapanganUntukRole();
     }
@@ -3453,13 +3506,16 @@
 
     function runTimerDOM(courtNum) {
         if (courtTimers[courtNum].intervalId) { clearInterval(courtTimers[courtNum].intervalId); }
-        courtTimers[courtNum].intervalId = setInterval(() => {
+        const tick = () => {
+            if (!courtTimers[courtNum] || !courtTimers[courtNum].startTime) return;
             const diffMs = new Date() - courtTimers[courtNum].startTime;
             const m = Math.floor(diffMs / 60000);
             const s = Math.floor((diffMs / 1000) % 60);
             const label = document.getElementById(`c${courtNum}-timer-label`);
             if (label) label.innerHTML = `🟢 Main: <strong>${m}m ${s}s</strong>`;
-        }, 1000);
+        };
+        tick();
+        courtTimers[courtNum].intervalId = setInterval(tick, 1000);
     }
 
     function restoreTimers() {
@@ -3505,7 +3561,7 @@
         matchesHistory.unshift({
             court: courtNum,
             playedAt: timeEnd.toISOString(),
-            time: `${timeStart.getHours()}.${String(timeStart.getMinutes()).padStart(2, '0')} - ${timeEnd.getHours()}.${String(timeEnd.getMinutes()).padStart(2, '0')}`,
+            time: `${jamWIB(timeStart, false)} - ${jamWIB(timeEnd, false)}`, // WIB
             duration: `${durationMin} Menit`,
             teamA: a2 ? `${a1} / ${a2}` : a1,
             teamB: b2 ? `${b1} / ${b2}` : b1,
@@ -4854,7 +4910,7 @@
         }
 
         renderGradingSettings();
-        generateCourtsDOM();
+        sinkronkanLapanganDOM();
         restoreCourtsStateDOM();
         updatePlayerTable();
         updateAllSelectOptions();
@@ -4879,8 +4935,30 @@
         return (Date.now() - lastCourtInteraction) < 15000;
     }
 
+    // Pelacak klik/sentuhan: data realtime tidak boleh membongkar tampilan saat jari/mouse sedang menekan sesuatu.
+    let pointerHeld = false;
+    let lastPointerTs = 0;
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, () => { pointerHeld = true; lastPointerTs = Date.now(); }, true);
+    });
+    ['pointerup', 'pointercancel', 'mouseup', 'touchend', 'touchcancel', 'click'].forEach(evt => {
+        document.addEventListener(evt, () => {
+            pointerHeld = false;
+            lastPointerTs = Date.now();
+            if (pendingRealtimeData) jadwalkanFlushRealtime(700);
+        }, true);
+    });
+
+    function isUIInteractionBusy() {
+        const sejak = Date.now() - lastPointerTs;
+        if (pointerHeld && sejak < 8000) return true; // sedang menekan
+        if (sejak < 500) return true;                  // baru saja klik: biarkan aksinya selesai dulu
+        return isCourtControlBusy();
+    }
+
     function flushPendingRealtime() {
-        if (!pendingRealtimeData || isCourtControlBusy()) return;
+        if (!pendingRealtimeData) return;
+        if (isUIInteractionBusy()) { jadwalkanFlushRealtime(700); return; }
         const data = pendingRealtimeData;
         pendingRealtimeData = null;
         cacheFirebaseData(data);
@@ -4920,12 +4998,20 @@
                 delete comparable.updatedAt;
             } catch (e) {}
             const incomingJSON = JSON.stringify(comparable);
+
+            // Gema dari penyimpanan kita sendiri: tampilan sudah yang terbaru, tidak perlu digambar ulang.
+            if (snap.metadata && snap.metadata.hasPendingWrites) {
+                lastRealtimeSnapshotJSON = incomingJSON;
+                return;
+            }
+
             if (incomingJSON === lastRealtimeSnapshotJSON) return;
             lastRealtimeSnapshotJSON = incomingJSON;
 
-            // Admin sedang memilih pemain/skor di kontrol lapangan: tahan dulu supaya dropdown tidak menutup sendiri.
-            if (isCourtControlBusy()) {
+            // Pengguna sedang klik / memilih pemain / mengisi skor: tahan dulu supaya klik tidak hilang.
+            if (isUIInteractionBusy()) {
                 pendingRealtimeData = incoming;
+                jadwalkanFlushRealtime(700);
                 return;
             }
 
@@ -4967,6 +5053,7 @@
 
     window.firebaseSaveAppData = function() {
         if (!window.firebaseBackendReady || !db) return;
+        pendingRealtimeData = null; // data tertunda sudah usang dibanding perubahan lokal ini
 
         clearTimeout(firebaseSaveTimer);
 
