@@ -3870,11 +3870,12 @@
         // Riwayat poin (kumulatif selisih, terlama -> terbaru)
         let kum = 0;
         const baris = matches.map((m, i) => {
-            kum += m.skorSaya - m.skorLawan;
-            return Object.assign({ no: i + 1, kum }, m);
+            const poinMatch = m.hasil === 'W' ? 2 : (m.hasil === 'D' ? 1 : 0); // menang 2, seri 1, kalah 0
+            kum += poinMatch;
+            return Object.assign({ no: i + 1, kum, poinMatch }, m);
         });
 
-        // Grafik garis selisih kumulatif
+        // Grafik garis poin klasemen kumulatif
         const W = 320, H = 90, pad = 8;
         const nilai = [0, ...baris.map(b => b.kum)];
         const mn = Math.min(...nilai), mx = Math.max(...nilai);
@@ -3885,7 +3886,7 @@
             return x.toFixed(1) + ',' + y.toFixed(1);
         }).join(' ');
         const yNol = (H - pad - ((0 - mn) / rentang) * (H - pad * 2)).toFixed(1);
-        const grafik = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:90px;display:block;" role="img" aria-label="Grafik selisih poin kumulatif">
+        const grafik = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:90px;display:block;" role="img" aria-label="Grafik poin klasemen kumulatif">
             <line x1="${pad}" y1="${yNol}" x2="${W - pad}" y2="${yNol}" stroke="#cbd5e1" stroke-dasharray="3,3"/>
             <polyline points="${titik}" fill="none" stroke="#1e3a8a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>`;
@@ -3932,11 +3933,11 @@
 
         html += `<div class="card">
             <div class="card-header-title"><span>📈 Riwayat Poin</span></div>
-            <div style="font-size:11.5px;color:#64748b;margin-bottom:6px;">Selisih poin kumulatif: ${fmtSelisih(kum)} setelah ${matches.length} pertandingan</div>
+            <div style="font-size:11.5px;color:#64748b;margin-bottom:6px;">Poin klasemen kumulatif: ${kum} setelah ${matches.length} pertandingan (menang +2, seri +1, kalah +0)</div>
             ${grafik}
-            <div style="overflow:auto;max-height:380px;margin-top:10px;"><table class="player-table" style="min-width:460px;">
-                <thead><tr><th>Tgl</th><th>Partner</th><th>Lawan</th><th style="text-align:center;">Skor</th><th style="text-align:center;">Hasil</th><th style="text-align:center;">Kumulatif</th></tr></thead>
-                <tbody>${baris.slice().reverse().map(b => `<tr><td>${escapeHTMLKlasemen(fmtTgl(b.tanggal))}</td><td>${escapeHTMLKlasemen(b.partner.join(' / ') || '-')}</td><td>${escapeHTMLKlasemen(b.lawan.join(' / ') || '-')}</td><td style="text-align:center;font-weight:700;">${b.skorSaya} - ${b.skorLawan}</td><td style="text-align:center;">${badge(b.hasil)}</td><td style="text-align:center;font-weight:700;">${fmtSelisih(b.kum)}</td></tr>`).join('')}</tbody>
+            <div style="overflow:auto;max-height:380px;margin-top:10px;"><table class="player-table" style="min-width:400px;">
+                <thead><tr><th>Tgl</th><th>Partner</th><th>Lawan</th><th style="text-align:center;">Skor</th><th style="text-align:center;">Hasil</th></tr></thead>
+                <tbody>${baris.slice().reverse().map(b => `<tr><td>${escapeHTMLKlasemen(fmtTgl(b.tanggal))}</td><td>${escapeHTMLKlasemen(b.partner.join(' / ') || '-')}</td><td>${escapeHTMLKlasemen(b.lawan.join(' / ') || '-')}</td><td style="text-align:center;font-weight:700;">${b.skorSaya} - ${b.skorLawan}</td><td style="text-align:center;">${badge(b.hasil)}</td></tr>`).join('')}</tbody>
             </table></div>
         </div>`;
 
