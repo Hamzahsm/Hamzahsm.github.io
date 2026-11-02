@@ -1740,9 +1740,9 @@
                 <button type="button" onclick="bagikanGambarKlasemen()" style="padding:8px 12px; font-size:12px; background:#16a34a;">🖼️ Bagikan Gambar</button>
             </div>
             <div style="overflow-x:auto;">
-                <table class="player-table" style="min-width:520px;">
-                    <thead><tr><th style="width:44px;">Rank</th><th>Nama Pemain</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Selisih Poin</th></tr></thead>
-                    <tbody id="klasemen-table-body"><tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr></tbody>
+                <table class="player-table" style="min-width:600px;">
+                    <thead><tr><th style="width:44px;">Rank</th><th>Nama Pemain</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Seri</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Selisih</th><th style="text-align:center;">Poin</th></tr></thead>
+                    <tbody id="klasemen-table-body"><tr><td colspan="8" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr></tbody>
                 </table>
             </div>
             <p style="font-size:11px;color:#64748b;margin:12px 0 0;">Peringkat diurutkan berdasarkan jumlah menang, selisih poin, lalu jumlah pertandingan.</p>
@@ -3742,34 +3742,36 @@
             const playersB = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').filter(Boolean);
             const all = [...new Set([...playersA, ...playersB].filter(Boolean))];
             all.forEach(name => {
-                if (!stats[name]) stats[name] = {name, played:0, wins:0, losses:0, pointsFor:0, pointsAgainst:0};
+                if (!stats[name]) stats[name] = {name, played:0, wins:0, draws:0, losses:0, pointsFor:0, pointsAgainst:0, poin:0};
                 const row = stats[name];
                 row.played++;
                 const onA = playersA.includes(name);
                 row.pointsFor += onA ? a : b;
                 row.pointsAgainst += onA ? b : a;
-                if (a === b) return;
+                // Poin klasemen: menang 2, seri 1, kalah 0
+                if (a === b) { row.draws++; row.poin += 1; return; }
                 const won = onA ? a > b : b > a;
-                if (won) row.wins++; else row.losses++;
+                if (won) { row.wins++; row.poin += 2; } else { row.losses++; }
             });
         });
 
         const rows = Object.values(stats).sort((a,b) =>
-            b.wins - a.wins ||
+            b.poin - a.poin ||
             ((b.pointsFor-b.pointsAgainst) - (a.pointsFor-a.pointsAgainst)) ||
+            b.wins - a.wins ||
             b.played - a.played ||
             a.name.localeCompare(b.name, 'id')
         );
         klasemenTerakhir = { label: label.textContent, rows };
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:18px;color:#64748b;">Belum ada data pertandingan pada periode ini.</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map((p, i) => {
             const diff = p.pointsFor - p.pointsAgainst;
             const diffText = diff > 0 ? '+' + diff : String(diff);
             const medal = i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
-            return `<tr><td style="font-weight:800;">${medal}${i+1}</td><td style="font-weight:700;">${escapeHTMLKlasemen(p.name)}</td><td style="text-align:center;">${p.played}</td><td style="text-align:center;color:#15803d;font-weight:800;">${p.wins}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${p.losses}</td><td style="text-align:center;font-weight:700;">${diffText}</td></tr>`;
+            return `<tr><td style="font-weight:800;">${medal}${i+1}</td><td style="font-weight:700;">${escapeHTMLKlasemen(p.name)}</td><td style="text-align:center;">${p.played}</td><td style="text-align:center;color:#15803d;font-weight:800;">${p.wins}</td><td style="text-align:center;color:#b45309;font-weight:800;">${p.draws}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${p.losses}</td><td style="text-align:center;font-weight:700;">${diffText}</td><td style="text-align:center;font-weight:900;color:var(--primary);font-size:15px;">${p.poin}</td></tr>`;
         }).join('');
     }
 
@@ -3840,8 +3842,8 @@
         const wins = matches.filter(m => m.hasil === 'W').length;
         const losses = matches.filter(m => m.hasil === 'L').length;
         const draws = matches.filter(m => m.hasil === 'D').length;
-        const dinilai = wins + losses;
-        const winRate = dinilai ? Math.round((wins / dinilai) * 1000) / 10 : 0;
+        const poinKlasemen = wins * 2 + draws; // menang 2, seri 1, kalah 0
+        const winRate = matches.length ? Math.round((wins / matches.length) * 1000) / 10 : 0;
         const poinCetak = matches.reduce((a, m) => a + m.skorSaya, 0);
         const poinKebobolan = matches.reduce((a, m) => a + m.skorLawan, 0);
         const selisih = poinCetak - poinKebobolan;
@@ -3852,14 +3854,14 @@
         matches.forEach(m => {
             const kunci = m.partner.length ? m.partner.join(' / ') : null;
             if (!kunci) return;
-            if (!pmap[kunci]) pmap[kunci] = { nama: kunci, main: 0, menang: 0, kalah: 0, seri: 0, diff: 0 };
+            if (!pmap[kunci]) pmap[kunci] = { nama: kunci, main: 0, menang: 0, kalah: 0, seri: 0, diff: 0, poin: 0 };
             const r = pmap[kunci];
             r.main++;
             r.diff += m.skorSaya - m.skorLawan;
-            if (m.hasil === 'W') r.menang++; else if (m.hasil === 'L') r.kalah++; else r.seri++;
+            if (m.hasil === 'W') { r.menang++; r.poin += 2; } else if (m.hasil === 'L') r.kalah++; else { r.seri++; r.poin += 1; }
         });
-        const partners = Object.values(pmap).map(r => Object.assign(r, { rate: (r.menang + r.kalah) ? r.menang / (r.menang + r.kalah) : 0 }));
-        const urut = (a, b) => b.rate - a.rate || b.menang - a.menang || b.diff - a.diff || b.main - a.main || a.nama.localeCompare(b.nama, 'id');
+        const partners = Object.values(pmap).map(r => Object.assign(r, { rate: r.main ? r.menang / r.main : 0, poinRate: r.main ? r.poin / r.main : 0 }));
+        const urut = (a, b) => b.poinRate - a.poinRate || b.rate - a.rate || b.menang - a.menang || b.diff - a.diff || b.main - a.main || a.nama.localeCompare(b.nama, 'id');
         const layak = partners.filter(r => r.main >= 2);
         const rankPartner = (layak.length ? layak : partners).slice().sort(urut);
         const tabelPartner = partners.slice().sort(urut);
@@ -3902,11 +3904,12 @@
                 ${kartu('Win Rate', winRate + '%', '#1e3a8a')}
                 ${kartu('Main', matches.length)}
                 ${kartu('Menang', wins, '#15803d')}
+                ${kartu('Seri', draws, '#b45309')}
                 ${kartu('Kalah', losses, '#b91c1c')}
-                ${draws ? kartu('Seri', draws) : ''}
+                ${kartu('Poin', poinKlasemen, '#1e3a8a')}
                 ${kartu('Selisih Poin', fmtSelisih(selisih), selisih >= 0 ? '#15803d' : '#b91c1c')}
             </div>
-            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Win rate = menang ÷ (menang + kalah). Poin dicetak ${poinCetak}, kebobolan ${poinKebobolan}.</p>
+            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Win rate = menang ÷ total main. Poin klasemen: menang 2, seri 1, kalah 0. Poin dicetak ${poinCetak}, kebobolan ${poinKebobolan}.</p>
         </div>`;
 
         html += `<div class="card">
@@ -3916,14 +3919,14 @@
         } else {
             html += `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;margin-bottom:12px;">
                 <div style="font-size:16px;font-weight:800;color:#14532d;">${escapeHTMLKlasemen(best.nama)}</div>
-                <div style="font-size:12.5px;color:#166534;margin-top:2px;">Win rate ${Math.round(best.rate * 1000) / 10}% • ${best.menang}M ${best.kalah}K dari ${best.main} main • selisih ${fmtSelisih(best.diff)}</div>
+                <div style="font-size:12.5px;color:#166534;margin-top:2px;">Win rate ${Math.round(best.rate * 1000) / 10}% • ${best.menang}M ${best.seri}S ${best.kalah}K dari ${best.main} main • ${best.poin} poin • selisih ${fmtSelisih(best.diff)}</div>
                 ${(layak.length ? '' : '<div style="font-size:11px;color:#64748b;margin-top:4px;">Baru satu kali berpasangan, belum cukup data.</div>')}
             </div>
-            <div style="overflow-x:auto;"><table class="player-table" style="min-width:420px;">
-                <thead><tr><th>Partner</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Win Rate</th></tr></thead>
-                <tbody>${tabelPartner.map(r => `<tr><td style="font-weight:700;">${escapeHTMLKlasemen(r.nama)}</td><td style="text-align:center;">${r.main}</td><td style="text-align:center;color:#15803d;font-weight:800;">${r.menang}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${r.kalah}</td><td style="text-align:center;font-weight:700;">${Math.round(r.rate * 1000) / 10}%</td></tr>`).join('')}</tbody>
+            <div style="overflow-x:auto;"><table class="player-table" style="min-width:500px;">
+                <thead><tr><th>Partner</th><th style="text-align:center;">Main</th><th style="text-align:center;">Menang</th><th style="text-align:center;">Seri</th><th style="text-align:center;">Kalah</th><th style="text-align:center;">Poin</th><th style="text-align:center;">Win Rate</th></tr></thead>
+                <tbody>${tabelPartner.map(r => `<tr><td style="font-weight:700;">${escapeHTMLKlasemen(r.nama)}</td><td style="text-align:center;">${r.main}</td><td style="text-align:center;color:#15803d;font-weight:800;">${r.menang}</td><td style="text-align:center;color:#b45309;font-weight:800;">${r.seri}</td><td style="text-align:center;color:#b91c1c;font-weight:800;">${r.kalah}</td><td style="text-align:center;font-weight:800;color:#1e3a8a;">${r.poin}</td><td style="text-align:center;font-weight:700;">${Math.round(r.rate * 1000) / 10}%</td></tr>`).join('')}</tbody>
             </table></div>
-            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Partner terbaik dipilih dari yang minimal 2 kali berpasangan, diurutkan berdasarkan win rate, jumlah menang, lalu selisih poin.</p>`;
+            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Partner terbaik dipilih dari yang minimal 2 kali berpasangan, diurutkan berdasarkan rata-rata poin klasemen per main (menang 2, seri 1, kalah 0), win rate, jumlah menang, lalu selisih poin.</p>`;
         }
         html += '</div>';
 
@@ -3963,9 +3966,9 @@
         let text = '🏆 *KLASEMEN NEWTON*\n📅 ' + klasemenTerakhir.label + '\n━━━━━━━━━━━━━━━━━━━━\n';
         klasemenTerakhir.rows.forEach((p, i) => {
             const nomor = i < 3 ? medali[i] : (i + 1) + '.';
-            text += nomor + ' *' + p.name + '* — ' + p.wins + 'M ' + p.losses + 'K • ' + p.played + ' main • ' + selisihTeks(p) + '\n';
+            text += nomor + ' *' + p.name + '* — ' + p.poin + ' poin • ' + p.wins + 'M ' + p.draws + 'S ' + p.losses + 'K • ' + p.played + ' main • ' + selisihTeks(p) + '\n';
         });
-        text += '━━━━━━━━━━━━━━━━━━━━\n_M = menang, K = kalah, angka terakhir = selisih poin_\n_NEWTON Mabar_';
+        text += '━━━━━━━━━━━━━━━━━━━━\n_Poin: menang 2, seri 1, kalah 0 • M = menang, S = seri, K = kalah, angka terakhir = selisih poin_\n_NEWTON Mabar_';
         return text;
     }
 
@@ -4026,7 +4029,7 @@
         c.fillText(klasemenTerakhir.label, 28, 88, W - 56);
 
         // Kolom
-        const kol = { rank: 28, nama: 92, main: 430, menang: 502, kalah: 574, selisih: W - 28 };
+        const kol = { rank: 28, nama: 92, main: 360, menang: 424, seri: 488, kalah: 552, selisih: 640, poin: W - 28 };
         let y = header;
         c.fillStyle = '#f1f5f9';
         c.fillRect(0, y, W, thH);
@@ -4038,9 +4041,11 @@
         c.textAlign = 'center';
         c.fillText('Main', kol.main, y + 26);
         c.fillText('Menang', kol.menang, y + 26);
+        c.fillText('Seri', kol.seri, y + 26);
         c.fillText('Kalah', kol.kalah, y + 26);
         c.textAlign = 'right';
         c.fillText('Selisih', kol.selisih, y + 26);
+        c.fillText('Poin', kol.poin, y + 26);
         y += thH;
 
         const medali = ['🥇', '🥈', '🥉'];
@@ -4063,12 +4068,17 @@
             c.fillStyle = '#15803d';
             c.font = font('800', 18);
             c.fillText(String(p.wins), kol.menang, tengah);
+            c.fillStyle = '#b45309';
+            c.fillText(String(p.draws), kol.seri, tengah);
             c.fillStyle = '#b91c1c';
             c.fillText(String(p.losses), kol.kalah, tengah);
             const diff = p.pointsFor - p.pointsAgainst;
             c.fillStyle = diff > 0 ? '#15803d' : (diff < 0 ? '#b91c1c' : '#475569');
             c.textAlign = 'right';
             c.fillText(selisihTeks(p), kol.selisih, tengah);
+            c.fillStyle = '#1e3a8a';
+            c.font = font('900', 20);
+            c.fillText(String(p.poin), kol.poin, tengah);
             y += barisH;
         });
 
@@ -4080,7 +4090,7 @@
         c.fillStyle = '#64748b';
         c.textAlign = 'left';
         c.font = font('500', 13);
-        c.fillText('Urutan: menang terbanyak, selisih poin, lalu jumlah main.', 28, y + 24);
+        c.fillText('Poin: menang 2, seri 1, kalah 0. Urutan: poin, selisih, lalu menang.', 28, y + 24);
         c.textAlign = 'right';
         c.fillText('NEWTON Mabar', W - 28, y + 24);
 
