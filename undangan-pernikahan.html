@@ -70,6 +70,28 @@ html[data-bs-theme="dark"] .bg-theme-auto{background-color:#000}
 @keyframes pop{50%{transform:scale(1.4)}}
 @media (prefers-reduced-motion:reduce){[data-aos]{opacity:1;transform:none;transition:none}*{animation-duration:.01ms !important;animation-iteration-count:1 !important}}
 
+/* ===== Latar adat Jawa (bergerak) ===== */
+.bg-jawa{position:absolute;inset:0;background-image:var(--m);background-size:var(--t,80px) var(--t,80px);animation:geser 40s linear infinite;pointer-events:none}
+@keyframes geser{to{background-position:var(--t,80px) var(--t,80px)}}
+.bg-foto{display:none;position:absolute;inset:-6%;background-size:cover;background-position:center;animation:kb 24s ease-in-out infinite alternate;opacity:.55;pointer-events:none}
+.bg-foto.kb-img{display:block}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.14) translate(-2%,-2%)}}
+.gunungan{position:absolute;left:50%;top:50%;width:min(60vw,380px);aspect-ratio:200/280;background:var(--g) center/contain no-repeat;transform:translate(-50%,-50%);opacity:.45;animation:apung 7s ease-in-out infinite;pointer-events:none}
+.gunungan.besar{width:min(88vw,520px);top:46%;opacity:.22}
+@keyframes apung{50%{transform:translate(-50%,-54%) scale(1.04)}}
+.tumpal{position:absolute;left:0;right:0;height:22px;background:var(--m-tumpal) repeat-x;background-size:44px 22px;animation:geserX 14s linear infinite;pointer-events:none;z-index:1}
+.tumpal.atas{top:0;transform:scaleY(-1)}
+.tumpal.bawah{bottom:0}
+@keyframes geserX{to{background-position-x:44px}}
+.welcome-jawa{overflow:hidden;color:#f5e9cf;background:radial-gradient(circle at 50% 25%,#7a3412 0%,#3b1608 55%,#1a0a04 100%)}
+.welcome-jawa .emas{color:#e9c46a}
+.vignet{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(20,8,2,.55) 0%,rgba(20,8,2,0) 70%);pointer-events:none}
+.home-fade{position:absolute;inset:0;background:radial-gradient(ellipse at center,var(--bs-body-bg) 30%,transparent 85%);opacity:.7;pointer-events:none}
+.kelopak-box{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.kelopak{position:absolute;top:-6%;width:var(--s);height:calc(var(--s)*1.7);background:radial-gradient(ellipse at 40% 30%,#fff,#f3e3b3 75%);border-radius:60% 40% 60% 40%;opacity:.8;animation:jatuh var(--d) linear var(--w) infinite}
+@keyframes jatuh{0%{transform:translate3d(0,-10vh,0) rotate(0)}50%{transform:translate3d(34px,55vh,0) rotate(180deg)}100%{transform:translate3d(-24px,115vh,0) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.kelopak{display:none}}
+
 /* ===== Menu bawah ===== */
 #navbar-menu{--bs-navbar-color:var(--bs-secondary-color);--bs-navbar-active-color:var(--bs-primary);--bs-navbar-hover-color:var(--bs-body-color);
   background-color:var(--bs-body-bg);z-index:1020}
@@ -101,6 +123,7 @@ body.gen #root,body.gen #welcome,body.gen #loading,body.gen #btnGroup{display:no
     <div class="position-relative bg-white-black d-flex justify-content-center align-items-center vh-100">
       <div class="d-flex position-absolute w-100 h-100">
         <div class="position-relative overflow-hidden vw-100" id="slides"></div>
+        <div class="kelopak-box"></div>
       </div>
       <div class="text-center p-4 bg-overlay-auto rounded-5">
         <h2 class="font-esthetic mb-4" style="font-size:2rem" data-nama></h2>
@@ -115,7 +138,11 @@ body.gen #root,body.gen #welcome,body.gen #loading,body.gen #btnGroup{display:no
 
       <!-- Home -->
       <section id="home" class="bg-light-dark position-relative overflow-hidden p-0 m-0">
-        <img alt="bg" data-img="utama" class="position-absolute opacity-25 top-50 start-50 translate-middle bg-cover-home">
+        <div class="bg-foto" id="latarBeranda"></div>
+        <div class="bg-jawa" style="--m:var(--m-parang);--t:80px;opacity:.32"></div>
+        <div class="home-fade"></div>
+        <div class="tumpal atas"></div><div class="tumpal bawah"></div>
+        <div class="kelopak-box"></div>
         <div class="position-relative text-center bg-overlay-auto" style="background-color:unset">
           <h1 class="font-esthetic pt-5 pb-4 fw-medium" style="font-size:2.25rem">Undangan Pernikahan</h1>
           <img alt="foto utama" data-img="utama" class="zoomable img-center-crop rounded-circle border border-3 border-light shadow my-4 mx-auto cursor-pointer">
@@ -310,11 +337,17 @@ body.gen #root,body.gen #welcome,body.gen #loading,body.gen #btnGroup{display:no
 </div>
 
 <!-- Halaman sambutan -->
-<div class="loading-page bg-white-black" id="welcome" style="opacity:0">
-  <div class="d-flex justify-content-center align-items-center vh-100 overflow-y-auto">
+<div class="loading-page welcome-jawa" id="welcome" data-bs-theme="dark" style="opacity:0">
+  <div class="bg-foto" id="latarPembuka"></div>
+  <div class="bg-jawa" style="--m:var(--m-kawung);--t:80px;opacity:.24"></div>
+  <div class="gunungan besar"></div>
+  <div class="vignet"></div>
+  <div class="tumpal atas"></div><div class="tumpal bawah"></div>
+  <div class="kelopak-box"></div>
+  <div class="d-flex justify-content-center align-items-center vh-100 overflow-y-auto position-relative" style="z-index:2">
     <div class="d-flex flex-column text-center px-3">
-      <h2 class="font-esthetic mb-4" style="font-size:2.25rem">The Wedding Of</h2>
-      <img alt="background" data-img="utama" class="img-center-crop rounded-circle border border-3 border-light shadow mb-4 mx-auto">
+      <h2 class="font-esthetic emas mb-4" style="font-size:2.25rem">The Wedding Of</h2>
+      <img alt="background" data-img="utama" class="img-center-crop rounded-circle border border-3 shadow mb-4 mx-auto" style="border-color:#e9c46a !important">
       <h2 class="font-esthetic mb-4" style="font-size:2.25rem" data-nama></h2>
       <div id="guest-name"></div>
       <button type="button" class="btn btn-light shadow rounded-4 mt-3 mx-auto" id="btnOpen"><i class="fa-solid fa-envelope-open fa-bounce me-2"></i>Open Invitation</button>
@@ -378,7 +411,10 @@ const CONFIG = {
     pria:   "https://picsum.photos/seed/undangan-pria/800/800",
     wanita: "https://picsum.photos/seed/undangan-wanita/800/800"
   },
-  slideDesktop: ["https://picsum.photos/seed/slide-a/1000/1000","https://picsum.photos/seed/slide-b/1000/1000","https://picsum.photos/seed/slide-c/1000/1000"],
+  /* Latar adat Jawa bergerak (batik kawung, parang, truntum, gunungan, kelopak melati) sudah dibuat otomatis.
+     Ingin pakai foto/gambar sendiri? Isi link/file di bawah (bergerak pelan seperti zoom). Kosong = pakai motif batik. */
+  latar: { pembuka: "", beranda: "" },
+  slideDesktop: [],   // kosong = motif batik bergerak; isi daftar gambar jika ingin foto sendiri
 
   mempelai: {
     pria:   {nama:"Nama Wahyu Siapa", anak:"Putra ke-1",  bapak:"Bapak lorem ipsum", ibu:"Ibu lorem ipsum"},
@@ -424,6 +460,38 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const simpan = (k,v) => { try{ localStorage.setItem(k,v); }catch(e){} };
 const ambil  = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+/* ===== Motif adat Jawa (SVG dibuat lewat kode, tanpa file gambar) ===== */
+const EMAS = "#d4a84b", EMAS2 = "#e9c46a";
+const svgUri = s => `url("data:image/svg+xml,${encodeURIComponent(s)}")`;
+const svgJawa = (w,h,isi) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" stroke="${EMAS}" stroke-width="1.6" stroke-linecap="round">${isi}</svg>`;
+function motifJawa(){
+  const st = document.documentElement.style;
+  st.setProperty("--m-kawung", svgUri(svgJawa(80,80,
+    `<ellipse cx="40" cy="20" rx="10" ry="20"/><ellipse cx="40" cy="60" rx="10" ry="20"/><ellipse cx="20" cy="40" rx="20" ry="10"/><ellipse cx="60" cy="40" rx="20" ry="10"/><circle cx="40" cy="40" r="3" fill="${EMAS}"/>`)));
+  st.setProperty("--m-parang", svgUri(svgJawa(80,80,
+    `<path d="M0 80C20 80 20 40 40 40S60 0 80 0"/><path d="M0 40C20 40 20 0 40 0"/><path d="M40 80C60 80 60 40 80 40"/><circle cx="20" cy="60" r="2.5" fill="${EMAS}"/><circle cx="60" cy="20" r="2.5" fill="${EMAS}"/>`)));
+  const bintang = (x,y,r)=>`<path fill="${EMAS}" stroke="none" d="M${x} ${y-r}L${x+r*.3} ${y-r*.3}L${x+r} ${y}L${x+r*.3} ${y+r*.3}L${x} ${y+r}L${x-r*.3} ${y+r*.3}L${x-r} ${y}L${x-r*.3} ${y-r*.3}Z"/>`;
+  st.setProperty("--m-truntum", svgUri(svgJawa(80,80,
+    bintang(20,20,10)+bintang(60,60,10)+`<circle cx="60" cy="20" r="2" fill="${EMAS}"/><circle cx="20" cy="60" r="2" fill="${EMAS}"/><circle cx="40" cy="40" r="1.5" fill="${EMAS}"/>`)));
+  st.setProperty("--m-tumpal", svgUri(svgJawa(44,22,
+    `<path d="M2 22L22 2L42 22Z" fill="${EMAS}" fill-opacity=".35"/><path d="M12 22L22 12L32 22"/>`)));
+  st.setProperty("--g", svgUri(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="280" viewBox="0 0 200 280" fill="none" stroke="${EMAS2}" stroke-width="1.8" stroke-linecap="round">
+    <path fill="rgba(233,196,106,.12)" d="M100 6C116 46 172 76 182 138C192 200 150 252 100 270C50 252 8 200 18 138C28 76 84 46 100 6Z"/>
+    <path d="M100 38C112 68 144 90 150 134C156 176 132 208 100 222C68 208 44 176 50 134C56 90 88 68 100 38Z"/>
+    <path d="M100 60V222M100 100C86 96 74 106 68 120M100 100C114 96 126 106 132 120M100 140C84 136 70 148 66 162M100 140C116 136 130 148 134 162"/>
+    <path d="M82 270V234C82 222 118 222 118 234V270"/></svg>`));
+}
+/* Kelopak melati jatuh pelan */
+function kelopak(box, n=14){
+  for (let i=0;i<n;i++){
+    const k = document.createElement("span"); k.className = "kelopak";
+    k.style.cssText = `left:${Math.random()*100}%;--s:${(6+Math.random()*8).toFixed(1)}px;--d:${(9+Math.random()*9).toFixed(1)}s;--w:-${(Math.random()*14).toFixed(1)}s`;
+    box.append(k);
+  }
+}
+motifJawa();
+document.querySelectorAll(".kelopak-box").forEach(b=>kelopak(b));
+
 addEventListener("error", e => { if (e.target && e.target.tagName === "IMG") e.target.style.visibility = "hidden"; }, true);
 
 const tgl = new Date(CONFIG.tanggal);
@@ -454,7 +522,14 @@ function isi(){
     `<h2 class="font-esthetic m-0" style="font-size:2rem;overflow-wrap:anywhere">${esc(tamu || "Tamu Undangan")}</h2>`;
   $("form-name").value = tamu;
 
-  $("slides").innerHTML = CONFIG.slideDesktop.map(u=>`<div class="position-absolute h-100 w-100 slide-desktop"><img src="${esc(u)}" alt="bg" class="bg-cover-home" style="mask-image:none;opacity:30%"></div>`).join("");
+  const pasangLatar = (id,u)=>{ const e = $(id); if (e && u){ e.style.backgroundImage = `url("${String(u).replace(/"/g,"%22")}")`; e.classList.add("kb-img"); } };
+  pasangLatar("latarPembuka", CONFIG.latar && CONFIG.latar.pembuka); pasangLatar("latarBeranda", CONFIG.latar && CONFIG.latar.beranda);
+
+  const warnaSlide = ["radial-gradient(circle at 30% 20%,#7a3b16,#2a1005 75%)","radial-gradient(circle at 70% 30%,#1c3a4a,#0a1820 75%)","radial-gradient(circle at 50% 70%,#6b1d2a,#230810 75%)"];
+  const motifSlide = ["--m-kawung","--m-parang","--m-truntum"];
+  $("slides").innerHTML = CONFIG.slideDesktop.length
+    ? CONFIG.slideDesktop.map(u=>`<div class="position-absolute h-100 w-100 slide-desktop overflow-hidden"><img src="${esc(u)}" alt="bg" class="bg-cover-home" style="mask-image:none;opacity:45%;animation:kb 22s ease-in-out infinite alternate"></div>`).join("")
+    : motifSlide.map((m,i)=>`<div class="position-absolute h-100 w-100 slide-desktop overflow-hidden" style="background:${warnaSlide[i]}"><div class="bg-jawa" style="--m:var(${m});--t:80px;opacity:.4"></div><div class="gunungan"></div></div>`).join("");
 
   [["Pria",CONFIG.mempelai.pria],["Wanita",CONFIG.mempelai.wanita]].forEach(([k,m])=>{
     $("n"+k).textContent = m.nama; $("a"+k).textContent = m.anak; $("b"+k).textContent = m.bapak; $("i"+k).textContent = m.ibu;
