@@ -97,6 +97,20 @@ html[data-bs-theme="dark"] .bg-theme-auto{background-color:#000}
   background-color:var(--bs-body-bg);z-index:1020}
 #navbar-menu .nav-link{padding:.6rem 0;text-align:center}
 
+/* ===== Latar batik emas seluruh halaman (sampai menu bawah) ===== */
+html[data-bs-theme="dark"]{--latar:linear-gradient(180deg,#1a0a04 0%,#2e1409 50%,#1a0a04 100%);--emas-teks:#e9c46a;--emas-garis:rgba(212,168,75,.5);--pola:.3}
+html[data-bs-theme="light"]{--latar:linear-gradient(180deg,#fff8e7 0%,#f6e6bd 50%,#fff8e7 100%);--emas-teks:#8a5a12;--emas-garis:rgba(176,125,30,.55);--pola:.5}
+.kolom-jawa{position:relative;isolation:isolate}
+.latar-jawa{position:sticky;top:0;height:100vh;height:100dvh;margin-bottom:-100vh;margin-bottom:-100dvh;overflow:hidden;z-index:-1;pointer-events:none;background:var(--latar)}
+.latar-jawa .bg-jawa{opacity:var(--pola)}
+main .bg-white-black,main .bg-light-dark{background-color:transparent !important}
+main .bg-theme-auto{border:1px solid var(--emas-garis)}
+main h1.font-esthetic,main h2.font-esthetic{color:var(--emas-teks)}
+.svg-wrapper{height:22px;margin:.5rem 0;background-image:var(--m-tumpal);background-repeat:repeat-x;background-position:0 0;background-size:44px 22px;animation:geserX 14s linear infinite}
+.svg-wrapper svg{display:none}
+html[data-bs-theme="dark"] #navbar-menu{background-color:rgba(26,10,4,.94);border-top:1px solid var(--emas-garis) !important;--bs-navbar-color:#bfa05a;--bs-navbar-active-color:#f3d27a;--bs-navbar-hover-color:#f3d27a}
+html[data-bs-theme="light"] #navbar-menu{background-color:rgba(255,248,231,.95);border-top:1px solid var(--emas-garis) !important;--bs-navbar-color:#8a6a2a;--bs-navbar-active-color:#5c3806;--bs-navbar-hover-color:#5c3806}
+
 /* ===== Ucapan ===== */
 .komen{touch-action:manipulation;user-select:text}
 .komen code{background:rgba(127,127,127,.25);padding:0 .3rem;border-radius:.3rem}
@@ -133,14 +147,13 @@ body.gen #root,body.gen #welcome,body.gen #loading,body.gen #btnGroup{display:no
   </div>
 
   <!-- Tampilan HP -->
-  <div class="col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 m-0 p-0">
+  <div class="col-sm-7 col-md-6 col-lg-5 col-xl-4 col-xxl-3 m-0 p-0 kolom-jawa">
+    <div class="latar-jawa" aria-hidden="true"><div class="bg-jawa" style="--m:var(--m-kawung);--t:80px"></div></div>
     <main data-bs-spy="scroll" data-bs-target="#navbar-menu" data-bs-root-margin="25% 0% 0% 0%" data-bs-smooth-scroll="true" tabindex="0">
 
       <!-- Home -->
       <section id="home" class="bg-light-dark position-relative overflow-hidden p-0 m-0">
         <div class="bg-foto" id="latarBeranda"></div>
-        <div class="bg-jawa" style="--m:var(--m-parang);--t:80px;opacity:.32"></div>
-        <div class="home-fade"></div>
         <div class="tumpal atas"></div><div class="tumpal bawah"></div>
         <div class="kelopak-box"></div>
         <div class="position-relative text-center bg-overlay-auto" style="background-color:unset">
