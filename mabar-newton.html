@@ -710,6 +710,20 @@
             border-left-width: 4px;
         }
 
+        .history-summary { font-size:12px; font-weight:600; color:#475569; background:#f1f5f9; border-radius:8px; padding:8px 10px; margin-bottom:10px; }
+        .history-item.hi-compact { padding:9px 10px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+        .hi-meta { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-width:54px; }
+        .hi-chip { font-size:10.5px; font-weight:700; color:#334155; background:#e2e8f0; border-radius:6px; padding:2px 6px; white-space:nowrap; }
+        .hi-time { font-size:10.5px; color:#64748b; white-space:nowrap; }
+        .hi-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; font-size:12.5px; }
+        .hi-team { display:flex; justify-content:space-between; gap:8px; color:#334155; }
+        .hi-team span:first-child { overflow:hidden; text-overflow:ellipsis; }
+        .hi-team.hi-win { color:var(--success); font-weight:700; }
+        .hi-team b { font-variant-numeric:tabular-nums; }
+        .hi-seri { font-size:10.5px; font-weight:700; color:#475569; }
+        .hi-actions { display:flex; flex-direction:column; gap:4px; }
+        .hi-actions button { padding:4px 7px; font-size:12px; border-radius:7px; line-height:1; }
+
         /* === MODERN KAS & TREASURY STYLING === */
         .kas-hero-wallet {
             background: linear-gradient(135deg, #065f46 0%, #047857 45%, #0f766e 100%);
@@ -1706,6 +1720,12 @@
             <div class="card-header-title">
                 <span>📜 Riwayat Pertandingan</span>
             </div>
+            <div class="klasemen-nav" id="history-nav">
+                <button type="button" id="btn-history-prev" onclick="geserRiwayat(-1)">◀ Prev</button>
+                <div class="nav-label" id="history-nav-label"></div>
+                <button type="button" id="btn-history-next" onclick="geserRiwayat(1)">Next ▶</button>
+            </div>
+            <div class="history-summary" id="history-summary"></div>
             <ul class="history-list" id="history-container">
                 <!-- Injected via JavaScript -->
             </ul>
@@ -4142,35 +4162,116 @@
         return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     }
 
+    // ---- Riwayat Pertandingan: tampil per tanggal (WIB), default hari ini ----
+    let riwayatTanggalAktif = null; // null = hari ini; 'none' = match tanpa tanggal; selain itu 'YYYY-MM-DD'
+
+    function kunciTanggalWIB(date) {
+        const t = waktuWIB(date);
+        return t.tahun + '-' + String(t.bulan).padStart(2, '0') + '-' + String(t.tanggal).padStart(2, '0');
+    }
+
+    function kunciTanggalMatch(match) {
+        const d = tanggalPertandingan(match);
+        return d ? kunciTanggalWIB(d) : 'none';
+    }
+
+    function labelTanggalRiwayat(kunci) {
+        if (kunci === 'none') return 'Tanpa tanggal';
+        const [y, m, d] = kunci.split('-').map(Number);
+        const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        const bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+        return hari[dow] + ', ' + d + ' ' + bln[m - 1] + ' ' + y;
+    }
+
+    // Daftar tanggal yang punya match + hari ini, urut dari terlama ke terbaru ('none' paling lama)
+    function daftarTanggalRiwayat() {
+        const hariIni = kunciTanggalWIB(new Date());
+        const set = new Set([hariIni]);
+        (matchesHistory || []).forEach(m => set.add(kunciTanggalMatch(m)));
+        return Array.from(set).sort((a, b) => a === 'none' ? -1 : b === 'none' ? 1 : a.localeCompare(b));
+    }
+
+    function geserRiwayat(arah) {
+        const hariIni = kunciTanggalWIB(new Date());
+        const daftar = daftarTanggalRiwayat();
+        const aktif = riwayatTanggalAktif || hariIni;
+        const i = daftar.indexOf(aktif);
+        const baru = daftar[i + arah];
+        if (!baru) return;
+        riwayatTanggalAktif = (baru === hariIni) ? null : baru;
+        updateHistoryDOM();
+    }
+
     function updateHistoryDOM() {
         const container = document.getElementById('history-container');
-        container.innerHTML = "";
-        
-        if (matchesHistory.length === 0) {
-            container.innerHTML = `<li style="text-align:center; color:#94a3b8; font-size:12px; padding:15px;">Belum ada riwayat pertandingan</li>`;
+        if (!container) return;
+        const hariIni = kunciTanggalWIB(new Date());
+        const daftar = daftarTanggalRiwayat();
+        let aktif = riwayatTanggalAktif || hariIni;
+        if (!daftar.includes(aktif)) { riwayatTanggalAktif = null; aktif = hariIni; }
+        const idx = daftar.indexOf(aktif);
+
+        const navLabel = document.getElementById('history-nav-label');
+        if (navLabel) navLabel.textContent = (aktif === hariIni ? 'Hari ini • ' : '') + labelTanggalRiwayat(aktif);
+        const prev = document.getElementById('btn-history-prev');
+        const next = document.getElementById('btn-history-next');
+        if (prev) prev.disabled = idx <= 0;
+        if (next) next.disabled = idx >= daftar.length - 1;
+
+        // Ambil match tanggal aktif, simpan index asli supaya Edit/Hapus tepat sasaran
+        const items = [];
+        matchesHistory.forEach((match, index) => {
+            if (kunciTanggalMatch(match) === aktif) items.push({ match, index });
+        });
+
+        const summary = document.getElementById('history-summary');
+        if (items.length === 0) {
+            if (summary) summary.style.display = 'none';
+            container.innerHTML = '<li style="text-align:center; color:#94a3b8; font-size:12px; padding:15px;">' +
+                (aktif === hariIni ? 'Belum ada pertandingan hari ini' : 'Tidak ada pertandingan pada tanggal ini') + '</li>';
             return;
         }
 
-        matchesHistory.forEach((match, index) => {
-            const isAWin = Number(match.scoreA) > Number(match.scoreB);
-            const isAdmin = newtonCurrentRole === 'admin';
-            const actionButtons = isAdmin ? `
-                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;">
-                    <button type="button" onclick="editMatchResult(${index})" style="padding:5px 9px;font-size:11px;background:#e0f2fe;color:#075985;border-radius:7px;">✏️ Edit Skor</button>
-                    <button type="button" onclick="deleteMatchResult(${index})" style="padding:5px 9px;font-size:11px;background:#fee2e2;color:#991b1b;border-radius:7px;">🗑️ Hapus</button>
-                </div>` : '';
-            container.innerHTML += `
-                <li class="history-item">
-                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Lap ${escapeHTMLKlasemen(match.court ?? '-')} • ${escapeHTMLKlasemen(match.time || '-')} (${escapeHTMLKlasemen(match.duration || '-')})</div>
-                    <div style="font-size:13px;">
-                        <span style="${isAWin ? 'color:var(--success); font-weight:bold;' : ''}">${escapeHTMLKlasemen(match.teamA || '-')} (${Number(match.scoreA) || 0})</span>
-                        <span style="color:#94a3b8; margin:0 4px; font-weight:bold;">vs</span>
-                        <span style="${!isAWin ? 'color:var(--success); font-weight:bold;' : ''}">(${Number(match.scoreB) || 0}) ${escapeHTMLKlasemen(match.teamB || '-')}</span>
-                    </div>
-                    ${actionButtons}
-                </li>
-            `;
+        const pemain = new Set();
+        const lapangan = new Set();
+        items.forEach(({ match }) => {
+            const pa = Array.isArray(match.playersA) ? match.playersA : String(match.teamA || '').split(' / ').filter(Boolean);
+            const pb = Array.isArray(match.playersB) ? match.playersB : String(match.teamB || '').split(' / ').filter(Boolean);
+            [...pa, ...pb].forEach(n => pemain.add(n));
+            if (match.court !== undefined && match.court !== null && match.court !== '') lapangan.add(match.court);
         });
+        if (summary) {
+            summary.style.display = '';
+            summary.textContent = items.length + ' match • ' + pemain.size + ' pemain' + (lapangan.size ? ' • ' + lapangan.size + ' lapangan' : '');
+        }
+
+        const isAdmin = newtonCurrentRole === 'admin';
+        container.innerHTML = items.map(({ match, index }) => {
+            const a = Number(match.scoreA) || 0;
+            const b = Number(match.scoreB) || 0;
+            const seri = a === b;
+            const aMenang = a > b;
+            const aksi = isAdmin ? `
+                <div class="hi-actions">
+                    <button type="button" title="Edit skor" onclick="editMatchResult(${index})" style="background:#e0f2fe;color:#075985;">✏️</button>
+                    <button type="button" title="Hapus" onclick="deleteMatchResult(${index})" style="background:#fee2e2;color:#991b1b;">🗑️</button>
+                </div>` : '';
+            return `
+                <li class="history-item hi-compact">
+                    <div class="hi-meta">
+                        <span class="hi-chip">Lap ${escapeHTMLKlasemen(match.court ?? '-')}</span>
+                        <span class="hi-time">${escapeHTMLKlasemen(match.time || '-')}</span>
+                        <span class="hi-time">${escapeHTMLKlasemen(match.duration || '-')}</span>
+                    </div>
+                    <div class="hi-body">
+                        <div class="hi-team ${!seri && aMenang ? 'hi-win' : ''}"><span>${escapeHTMLKlasemen(match.teamA || '-')}</span><b>${a}</b></div>
+                        <div class="hi-team ${!seri && !aMenang ? 'hi-win' : ''}"><span>${escapeHTMLKlasemen(match.teamB || '-')}</span><b>${b}</b></div>
+                        ${seri ? '<span class="hi-seri">Seri (1 poin)</span>' : ''}
+                    </div>
+                    ${aksi}
+                </li>`;
+        }).join('');
     }
 
     function editMatchResult(index) {
