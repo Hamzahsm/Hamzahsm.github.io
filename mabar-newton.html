@@ -9,6 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
+        #sync-bar { display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:calc(var(--nav-height) + 14px + env(safe-area-inset-bottom, 0px)); z-index:99999; max-width:calc(100% - 24px); padding:8px 14px; border-radius:999px; font:700 12px 'Plus Jakarta Sans', -apple-system, sans-serif; color:#fff; text-align:center; box-shadow:0 6px 18px rgba(15,23,42,.28); pointer-events:none; }
+        #sync-bar.show { display:block; }
+        #sync-bar.offline { background:#b45309; }
+        #sync-bar.pending { background:#c2410c; }
+        #sync-bar.syncing { background:#0369a1; }
+        #sync-bar.synced { background:#15803d; }
         :root {
             --primary: #1e3a8a;
             --primary-light: #3b82f6;
@@ -1403,6 +1409,7 @@
     </style>
 </head>
 <body class="app-locked" onclick="closeExportDropdown(event)">
+<div id="sync-bar" role="status" aria-live="polite"></div>
 
 <div id="login-screen">
     <div class="login-card">
@@ -2033,6 +2040,49 @@
     </div>
 
 </div>
+
+<script>
+    // ============================================================
+    // MODE OFFLINE: indikator status + service worker
+    // ============================================================
+    (function () {
+        let hideTimer = null;
+        function adaPerubahanTertunda() {
+            try { return localStorage.getItem('mabar_pending_sync') === '1'; } catch (e) { return false; }
+        }
+        window.updateSyncBanner = function (transient) {
+            const bar = document.getElementById('sync-bar');
+            if (!bar) return;
+            clearTimeout(hideTimer);
+            let state = '', text = '';
+            if (transient === 'syncing') {
+                state = 'syncing'; text = '🔄 Menyinkronkan data ke server...';
+            } else if (transient === 'synced') {
+                state = 'synced'; text = '✅ Data sudah tersinkron';
+                hideTimer = setTimeout(() => window.updateSyncBanner(), 2500);
+            } else if (!navigator.onLine) {
+                state = 'offline';
+                text = adaPerubahanTertunda()
+                    ? '📴 Mode offline: perubahan tersimpan di perangkat, otomatis disinkronkan saat online'
+                    : '📴 Mode offline: menampilkan data terakhir yang tersimpan';
+            } else if (adaPerubahanTertunda()) {
+                state = 'pending'; text = '⏳ Ada perubahan belum tersinkron, mencoba lagi...';
+            }
+            bar.className = state ? ('show ' + state) : '';
+            bar.textContent = text;
+        };
+        window.addEventListener('online', () => window.updateSyncBanner());
+        window.addEventListener('offline', () => window.updateSyncBanner());
+        document.addEventListener('DOMContentLoaded', () => window.updateSyncBanner());
+
+        // Service worker (butuh file sw.js di folder yang sama dan HTTPS) supaya aplikasi bisa dibuka tanpa internet.
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker tidak aktif:', err));
+            });
+        }
+    })();
+</script>
 
 <script>
     // --- CUSTOM MODAL HELPERS (Avoiding alert/confirm) ---
@@ -4335,7 +4385,7 @@
             console.warn('Gagal menyimpan cache lokal:', e);
         }
 
-        if (window.firebaseBackendReady && typeof window.firebaseSaveAppData === 'function') {
+        if (typeof window.firebaseSaveAppData === 'function') {
             window.firebaseSaveAppData();
         }
     }
@@ -4995,6 +5045,55 @@
     let realtimeUnsubscribe = null;
     let lastRealtimeSnapshotJSON = "";
     let realtimeRefreshQueued = false;
+    let appInstance = null;
+    let reconnecting = false;
+
+    // --- Penanda perubahan offline (disimpan di perangkat, bertahan walau halaman ditutup) ---
+    const PENDING_KEY = 'mabar_pending_sync';
+    const BASE_KEY = 'mabar_pending_base_ms';
+    const REMOTE_MS_KEY = 'mabar_last_remote_ms';
+    let lastRemoteMs = 0;
+    try { lastRemoteMs = Number(localStorage.getItem(REMOTE_MS_KEY)) || 0; } catch (e) {}
+
+    function refreshBanner(state) {
+        if (typeof window.updateSyncBanner === 'function') window.updateSyncBanner(state);
+    }
+    function isPending() {
+        try { return localStorage.getItem(PENDING_KEY) === '1'; } catch (e) { return false; }
+    }
+    function markPending() {
+        try {
+            if (!isPending()) localStorage.setItem(BASE_KEY, String(lastRemoteMs));
+            localStorage.setItem(PENDING_KEY, '1');
+        } catch (e) {}
+        refreshBanner();
+    }
+    function clearPending() {
+        try {
+            localStorage.removeItem(PENDING_KEY);
+            localStorage.removeItem(BASE_KEY);
+        } catch (e) {}
+        refreshBanner();
+    }
+    function rememberRemoteMs(data) {
+        const ts = data && data.updatedAt;
+        const ms = ts && typeof ts.toMillis === 'function' ? ts.toMillis() : 0;
+        if (ms) {
+            lastRemoteMs = ms;
+            try { localStorage.setItem(REMOTE_MS_KEY, String(ms)); } catch (e) {}
+        }
+        return ms;
+    }
+    function comparableJSON(data) {
+        try {
+            const c = JSON.parse(JSON.stringify(data));
+            delete c.updatedAt;
+            return JSON.stringify(c);
+        } catch (e) { return ''; }
+    }
+    function withTimeout(promise, ms) {
+        return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
+    }
 
     const APP_DOC = "newton/appState";
 
@@ -5065,17 +5164,19 @@
             }
 
             try {
-                const app = initializeApp(FIREBASE_CONFIG);
-                db = getFirestore(app);
+                appInstance = appInstance || initializeApp(FIREBASE_CONFIG);
+                const app = appInstance;
                 const auth = getAuth(app);
-                await signInAnonymously(auth);
+                await withTimeout(signInAnonymously(auth), 8000);
+                db = getFirestore(app);
 
                 window.firebaseBackendReady = true;
                 console.info("Firebase Firestore backend aktif.");
                 return true;
             } catch (error) {
                 window.firebaseBackendReady = false;
-                console.error("Firebase init gagal:", error);
+                firebaseInitPromise = null; // izinkan coba lagi saat koneksi kembali
+                console.warn("Firebase init gagal (kemungkinan offline):", error);
                 return false;
             }
         })();
@@ -5180,6 +5281,9 @@
         realtimeUnsubscribe = onSnapshot(doc(db, APP_DOC), (snap) => {
             if (!snap.exists()) return;
             const incoming = snap.data();
+            if (snap.metadata && !snap.metadata.hasPendingWrites && !snap.metadata.fromCache) rememberRemoteMs(incoming);
+            // Ada perubahan offline yang belum terkirim: jangan ditimpa data server, sinkronisasi akan menanganinya.
+            if (isPending()) return;
             // Abaikan event duplikat; updatedAt timestamp Firestore tidak perlu dibandingkan.
             let comparable = {};
             try {
@@ -5213,36 +5317,89 @@
                 console.info('Data NEWTON disinkronkan secara realtime.');
             });
         }, (error) => {
-            console.error('Listener realtime Firebase gagal:', error);
+            console.warn('Listener realtime Firebase terhenti:', error);
+            realtimeUnsubscribe = null;
         });
     }
 
-    window.firebaseLoadAppData = async function() {
-        const ready = await initFirebase();
-        if (!ready) return false;
-
-        const snap = await getDoc(doc(db, APP_DOC));
+    // Sinkronisasi dengan server. refresh=true: dipanggil setelah koneksi kembali (tampilan perlu digambar ulang).
+    async function syncWithServer(refresh) {
+        let snap;
+        try {
+            snap = await withTimeout(getDoc(doc(db, APP_DOC)), 6000);
+        } catch (error) {
+            console.warn('Server belum terjangkau, memakai data di perangkat:', error);
+            startRealtimeListener();
+            refreshBanner();
+            return false;
+        }
 
         if (!snap.exists()) {
-            await setDoc(doc(db, APP_DOC), appSnapshot());
+            try {
+                await withTimeout(setDoc(doc(db, APP_DOC), appSnapshot()), 8000);
+                clearPending();
+            } catch (error) { markPending(); }
             startRealtimeListener();
             return true;
         }
 
-        cacheFirebaseData(snap.data());
-        let comparable = {};
-        try {
-            comparable = JSON.parse(JSON.stringify(snap.data()));
-            delete comparable.updatedAt;
-        } catch (e) {}
-        lastRealtimeSnapshotJSON = JSON.stringify(comparable);
+        const remote = snap.data();
+        const remoteMs = rememberRemoteMs(remote);
+
+        if (isPending()) {
+            // Ada perubahan yang dibuat saat offline.
+            let base = 0;
+            try { base = Number(localStorage.getItem(BASE_KEY)) || 0; } catch (e) {}
+            let pakaiLokal = true;
+            if (base > 0 && remoteMs > base) {
+                pakaiLokal = window.confirm('Data di server berubah saat perangkat ini offline (mungkin dari perangkat lain).\n\nOK = kirim perubahan dari perangkat ini dan timpa data server.\nBatal = pakai data server (perubahan offline di perangkat ini dibuang).');
+            }
+            refreshBanner('syncing');
+            if (pakaiLokal) {
+                try {
+                    await withTimeout(setDoc(doc(db, APP_DOC), appSnapshot(), { merge: false }), 10000);
+                    clearPending();
+                    refreshBanner('synced');
+                } catch (error) {
+                    markPending();
+                }
+            } else {
+                clearPending();
+                lastRealtimeSnapshotJSON = comparableJSON(remote);
+                pendingRealtimeData = remote;
+                jadwalkanFlushRealtime(200);
+                refreshBanner('synced');
+            }
+            startRealtimeListener();
+            return true;
+        }
+
+        lastRealtimeSnapshotJSON = comparableJSON(remote);
+        if (refresh) {
+            pendingRealtimeData = remote;
+            jadwalkanFlushRealtime(200);
+        } else {
+            cacheFirebaseData(remote);
+        }
         startRealtimeListener();
         return true;
+    }
+
+    window.firebaseLoadAppData = async function() {
+        const ready = await initFirebase();
+        if (!ready) { refreshBanner(); return false; }
+        return await syncWithServer(false);
     };
 
     window.firebaseSaveAppData = function() {
-        if (!window.firebaseBackendReady || !db) return;
+        if (!FIREBASE_CONFIG_READY) return;
         pendingRealtimeData = null; // data tertunda sudah usang dibanding perubahan lokal ini
+
+        // Sedang offline / Firebase belum tersambung: data sudah aman di perangkat, tandai untuk disinkronkan nanti.
+        if (!navigator.onLine || !window.firebaseBackendReady || !db) {
+            markPending();
+            if (!window.firebaseBackendReady || !db) return;
+        }
 
         clearTimeout(firebaseSaveTimer);
 
@@ -5253,10 +5410,16 @@
             }
 
             firebaseSaving = true;
+            // Kalau tidak ada balasan server dalam 6 detik (sinyal buruk), anggap belum tersinkron.
+            const lambat = setTimeout(markPending, 6000);
 
             try {
                 await setDoc(doc(db, APP_DOC), appSnapshot(), { merge: false });
+                clearTimeout(lambat);
+                clearPending();
             } catch (error) {
+                clearTimeout(lambat);
+                markPending();
                 console.error("Firebase save gagal:", error);
             } finally {
                 firebaseSaving = false;
@@ -5268,6 +5431,32 @@
             }
         }, 500);
     };
+
+    // Koneksi kembali / interval: sambungkan ulang Firebase dan kirim perubahan offline.
+    async function tryReconnect() {
+        if (!FIREBASE_CONFIG_READY || reconnecting || !navigator.onLine) return;
+        reconnecting = true;
+        try {
+            if (!window.firebaseBackendReady) {
+                const ok = await initFirebase();
+                if (!ok) return;
+                await syncWithServer(true);
+            } else if (isPending() && !firebaseSaving) {
+                await syncWithServer(true);
+            }
+        } catch (error) {
+            console.warn('Sinkronisasi ulang gagal:', error);
+        } finally {
+            reconnecting = false;
+            refreshBanner();
+        }
+    }
+    window.addEventListener('online', () => { refreshBanner(); setTimeout(tryReconnect, 800); });
+    window.addEventListener('offline', () => refreshBanner());
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tryReconnect(); });
+    setInterval(() => {
+        if (navigator.onLine && (isPending() || !window.firebaseBackendReady)) tryReconnect();
+    }, 15000);
 
     window.firebaseResetDatabase = async function() {
         if (!window.firebaseBackendReady || !db) return;
