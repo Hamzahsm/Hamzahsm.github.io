@@ -3863,7 +3863,7 @@
         const losses = matches.filter(m => m.hasil === 'L').length;
         const draws = matches.filter(m => m.hasil === 'D').length;
         const poinKlasemen = wins * 2 + draws; // menang 2, seri 1, kalah 0
-        const winRate = matches.length ? Math.round((wins / matches.length) * 1000) / 10 : 0;
+        const winRate = matches.length ? Math.round(((wins + draws * 0.5) / matches.length) * 1000) / 10 : 0; // menang 100%, seri 50%, kalah 0%
         const poinCetak = matches.reduce((a, m) => a + m.skorSaya, 0);
         const poinKebobolan = matches.reduce((a, m) => a + m.skorLawan, 0);
         const selisih = poinCetak - poinKebobolan;
@@ -3880,7 +3880,7 @@
             r.diff += m.skorSaya - m.skorLawan;
             if (m.hasil === 'W') { r.menang++; r.poin += 2; } else if (m.hasil === 'L') r.kalah++; else { r.seri++; r.poin += 1; }
         });
-        const partners = Object.values(pmap).map(r => Object.assign(r, { rate: r.main ? r.menang / r.main : 0, poinRate: r.main ? r.poin / r.main : 0 }));
+        const partners = Object.values(pmap).map(r => Object.assign(r, { rate: r.main ? (r.menang + r.seri * 0.5) / r.main : 0, poinRate: r.main ? r.poin / r.main : 0 }));
         const urut = (a, b) => b.poinRate - a.poinRate || b.rate - a.rate || b.menang - a.menang || b.diff - a.diff || b.main - a.main || a.nama.localeCompare(b.nama, 'id');
         const layak = partners.filter(r => r.main >= 2);
         const rankPartner = (layak.length ? layak : partners).slice().sort(urut);
@@ -3930,7 +3930,7 @@
                 ${kartu('Poin', poinKlasemen, '#1e3a8a')}
                 ${kartu('Selisih Poin', fmtSelisih(selisih), selisih >= 0 ? '#15803d' : '#b91c1c')}
             </div>
-            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Win rate = menang ÷ total main. Poin klasemen: menang 2, seri 1, kalah 0. Poin dicetak ${poinCetak}, kebobolan ${poinKebobolan}.</p>
+            <p style="font-size:11px;color:#64748b;margin:10px 0 0;">Win rate = (menang + seri × 0,5) ÷ total main (menang 100%, seri 50%, kalah 0%). Poin klasemen: menang 2, seri 1, kalah 0. Poin dicetak ${poinCetak}, kebobolan ${poinKebobolan}.</p>
         </div>`;
 
         html += `<div class="card">
